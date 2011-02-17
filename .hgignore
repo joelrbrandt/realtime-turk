@@ -2,3 +2,4 @@
 syntax: glob
 
 quik/quik.sh
+*.js.database
