@@ -1,0 +1,132 @@
+<html>
+<head>
+    <script src="https://www.google.com/jsapi?key=ABQIAAAAILPShughClO5gcq-8OtmDRQNj39AWSBq-QEua0qmS9N6Sr1xuhQM3bpLoN1U6bG8KZpnh133uixqTg" type="text/javascript"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>    
+    <script src="date.js" type="text/javascript"></script> 
+    <script src="jquery.getUrlParam.js" type="text/javascript"></script>
+    
+    <script language="Javascript" type="text/javascript">
+    //<![CDATA[
+
+    try { console.log('Firebug console found.'); } catch(e) { console = { log: function() {} }; }
+    
+    $(document).ready(serverTimeReceived);
+    $(document).ready(registerButtonListener);    
+
+    delays = [5, 10, 30, 60, 60*2, 60*5 ]; //[ 5 ];
+    var delay = delays[Math.floor(Math.random()*delays.length)]
+     
+    var showTimeRaw = delay + " seconds";
+    //var showTime = Date.parse(showTimeRaw);    
+    var showTime = (new Date()).add(delay).seconds();
+    var countdown = null;
+    
+    function serverTimeReceived() {
+        var startTime = new Date();
+        $.get("http://needle.csail.mit.edu/realtime/time.cgi",
+            function(data) {
+                var unixSecs = parseInt(data.date.split('.')[0])
+                var unixMillis = (parseInt(data.date.split('.')[1]) / 1000);
+                
+                var travelTime = (new Date() - startTime)/2;                
+                var serverTime = (new Date(unixSecs)).addMilliseconds(unixMillis);
+                serverTime.addMilliseconds(travelTime);
+                offset = (serverTime - new Date());
+                console.log("offset: " + offset);
+                
+                notifyViewed();
+                scheduleDisplay();
+            });
+    }
+    
+    function notifyViewed() {
+        var assignmentID = $(document).getUrlParam("assignmentId")    
+        if (assignmentID == null || assignmentID == "ASSIGNMENT_ID_NOT_AVAILABLE") {
+            return;
+        }
+        
+        $.post('http://needle.csail.mit.edu/realtime/viewed.cgi',
+                { 'requestTime': showTime.toISOString(),
+                  'requestTimeString': showTimeRaw,
+                  'assignmentId': assignmentID });
+    }
+    
+    function getServerTime() {
+        return (new Date().addMilliseconds(offset));
+    }
+    
+    function scheduleDisplay() {        
+        var assignmentID = $(document).getUrlParam("assignmentId")
+        if (assignmentID == null || assignmentID == "ASSIGNMENT_ID_NOT_AVAILABLE") {
+            $('#sendtime').remove();
+            showTime = (new Date()).add(5).seconds();
+        } else {
+            $('.preview').remove();
+        }
+        
+        
+        console.log("Time to fire:");
+        console.log(showTime);
+        
+        //console.log("clock time");
+        //console.log(new Date());
+        //console.log("Server time");
+        //console.log(getServerTime());
+            
+        var waitTime = showTime - getServerTime();
+        //console.log(waitTime);
+        
+        window.setTimeout(display, waitTime);
+        countdown = window.setInterval(updateCountdown, 250);
+    }
+    
+    function display() {
+        $('#showit').css('display', 'block');
+        clearInterval(countdown);
+    }
+    
+    function registerButtonListener() {
+        var assignmentID = $(document).getUrlParam("assignmentId")    
+        $('#sendtime').click(function() {
+            $('#sendtime').attr('disabled', 'true');
+        
+            var serverNow = getServerTime();
+            var serverString = serverNow.toISOString();
+            $.post('http://needle.csail.mit.edu/realtime/click.cgi',
+                    { 'clickTime': serverString,
+                      'requestTime': showTime.toISOString(),
+                      'requestTimeString': showTimeRaw,
+                      'assignmentId': assignmentID  },
+                    function(data) {
+                        $('#completeForm').append('<input type="hidden" name="assignmentId" value="' + assignmentID + '" />')
+                        .append('<input type="hidden" name="requestTime" value="' + serverString + '" />')
+                        .submit();
+                    });
+        });
+    }
+    
+    function updateCountdown() {
+        var waitTime = showTime - getServerTime();
+        $('#left').html(Math.round(waitTime/1000));
+    }
+
+    //]]>
+    </script>
+</head>
+<body>
+    <div class="real">
+        <div>In <span id='left'></span> seconds a button will appear below. Click it as quickly as possible.</div>
+    
+        <div id='showit' style="display: none;">
+            <button id='sendtime' type="button" style="font-size: 20pt;">Click Me!</button>
+            <div class="preview">
+                Accept the HIT to see the button to click.
+            </div>
+        </div>
+        
+        <form id="completeForm" action="http://www.mturk.com/mturk/externalSubmit" method="POST">
+            <input type="submit" name="Submit" style="display: none;" value="submit"></input>
+        </form>
+    </div>
+</body>
+</html>
