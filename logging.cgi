@@ -14,15 +14,18 @@ db=MySQLdb.connect(host="mysql.csail.mit.edu", passwd="gangsta2125", user="realt
 cur = db.cursor()
 
 form = cgi.FieldStorage()
-word_id = int(form['wordid'].value[4:]) # e.g., "word11"
+event = form['event'].value
+detail = form['detail'].value # e.g., word number
 text_id = int(form['textid'].value)
 assignment = form['assignmentid'].value
-trial = int(form['trial'].value)
-highlighted = (form['highlighted'].value == "true")
+worker = form['workerid'].value
+experiment = int(form['experiment'].value)
 ip = cgi.escape(os.environ["REMOTE_ADDR"])
+useragent = os.environ["HTTP_USER_AGENT"]
 time = parseISO(form['time'].value)
+servertime = unixtime(datetime.now())
     
-cur.execute("""INSERT INTO logging (textid, wordid, highlighted, time, assignmentid, ip, trial) VALUES (%s, %s, %s, %s, %s, %s, %s)""", (text_id, word_id, highlighted, time, assignment, ip, trial))
+cur.execute("""INSERT INTO logging (textid, event, detail, experiment, time, servertime, assignmentid, workerid, ip, useragent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", (text_id, event, detail, experiment, time,  servertime, assignment, worker, ip, useragent))
 
 cur.close()
 db.close()
