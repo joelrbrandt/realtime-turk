@@ -1,0 +1,5 @@
+# use glob syntax.
+syntax: glob
+
+quik/quik.sh
+*.js.database
