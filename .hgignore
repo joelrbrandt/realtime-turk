@@ -1,5 +1,5 @@
 # use glob syntax.
 syntax: glob
 
-quik/quik.sh
+quik/run.pl
 *.js.database

@@ -48,7 +48,7 @@ var reward = 0.02;
 // Number of assignments offered in each HIT posted.
 var assignments = 5;
 
-//
+// how many HITs in each new HIT group?
 var numhits = 1;
 
 
@@ -84,14 +84,10 @@ for(var i=0; true; i++) {
   var lowAnswer = curr[0];
   var diff = curr[1];
 
-  print("low answer: " + lowAnswer)  
-
   // If we already have enough answers, then don't worry about creating more.
   if(lowAnswer > numAnswersDesired - steadyStateNum) {
     lowAnswer = numAnswersDesired - steadyStateNum;
   }
-  
-    print("low answer: " + lowAnswer)
 
 
   // If someone's interacting with the application and we don't
@@ -99,9 +95,6 @@ for(var i=0; true; i++) {
   if(diff < 60*5 && lowAnswer > (numAnswersDesired -1)) {
       lowAnswer = numAnswersDesired - 1;
   }
-
-  print("low answer: " + lowAnswer)
-
 
   // Track the youngest HIT.
   var youngestHIT = 0;
@@ -148,12 +141,14 @@ for(var i=0; true; i++) {
 
   // How many tasks should new HITs have?
   // The default is 12, but this goes down to 5 or 2 based on how long until we expect to what answers.
+  /* msbernst
   var tasksForNewHits = 12;
   if(diff<0) {
     tasksForNewHits = 2;
   } else if(diff < 4*60) {
     tasksForNewHits = 5;
   }
+  */
 
   // Number of HITs added at once.
   var numHITsAtOnce = 2;
@@ -171,7 +166,7 @@ for(var i=0; true; i++) {
   // 
   if(hitsToAdd > 0) {
     for(var j=0; j<hitsToAdd;) {
-      var hits = createNewHIT(reward, assignments, numhits, tasksForNewHits);
+      var hits = createNewHIT(reward, assignments, numhits);
       currentHITs = currentHITs.concat(hits); 
 
       // Final number of jobs actually created.
@@ -198,19 +193,21 @@ for(var i=0; true; i++) {
 }
 
 
-function createNewHIT(reward, assignments, numhits, tasks) {
+function createNewHIT(reward, assignments, numhits) {
   var hitsCreated = [];
 
   // Generate a random number 0-1000;
   salt = Math.floor(Math.random()*1001);
 
+  /* msbernst
   if(typeof tasks == 'undefined') {
     tasks = 3;
   }
+  */
 
-  var mytitle = title.replace(/%%n%%/g, tasks);
-  var mydescription = description.replace(/%%n%%/g, tasks);
-  var myurl = url.replace(/%%n%%/g, tasks);
+  var mytitle = title//.replace(/%%n%%/g, tasks);
+  var mydescription = description//.replace(/%%n%%/g, tasks);
+  var myurl = url//.replace(/%%n%%/g, tasks);
 
   for(var i=0; i<numhits; i++) {
     // create a HIT on MTurk using the webpage
