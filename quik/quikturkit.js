@@ -2,7 +2,7 @@ print("___________________________________");
 
 
 // URL containing the page you want turkers to work on.
-var url = "http://needle.csail.mit.edu/realtime/msbernst/word_clicker.html?experiment=8&retainer=1";
+var url = "http://needle.csail.mit.edu/realtime/msbernst/word_clicker.html?experiment=9&retainer=1";
 
 var gettask_url = "http://people.csail.mit.edu/jbigham/locateit/gettask.php?poll=true&qtype=question";
 
@@ -77,10 +77,10 @@ for(var j=0; j<currentHITs.length; j++) {
   //}
 }
 currentHITs = [];
+database.query("currentHITs = " + json(currentHITs));
+print("DONE RETIRING: three seconds to quit\n");
+Packages.java.lang.Thread.currentThread().sleep(3000);
 
-
-
-print("DONE RETIRING\n");
 
 // Current number of active assignments.
 var activeAssignments = 0;
