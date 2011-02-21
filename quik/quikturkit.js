@@ -1,5 +1,5 @@
 // URL containing the page you want turkers to work on.
-var url = "http://needle.csail.mit.edu/realtime/msbernst/word_clicker.html";
+var url = "http://needle.csail.mit.edu/realtime/msbernst/word_clicker.html?experiment=5";
 
 var gettask_url = "http://needle.csail.mit.edu/realtime/gettask.cgi";
 
@@ -13,14 +13,14 @@ var maxPerHour = 3.00;
 var aggressiveNess = 0.80;
 
 // Maximum number of seconds until retiring the HIT (seconds).
-var maxTimeTillDeath = 60*5;
+var maxTimeTillDeath = 60*3;
 
 // Maximum time to complete one task in a HIT (seconds).
-var maxTimePerTask = 60;
+var maxTimePerTask = 90;
 
 // Number of answers really desired for each question.
 // Actual number be this much or
-var numAnswersDesired = 5;
+var numAnswersDesired = 3;
 
 // Multiplier on extra HITs.
 // At most you should expect to receive (and pay for)
@@ -28,7 +28,7 @@ var numAnswersDesired = 5;
 var overShootMultiplier = 3;
 
 // Number of HITs that should always be posted.
-var steadyStateNum = 0;
+var steadyStateNum = 3;
 
 // Minimum time between adding HITs.
 // Number of seconds between deleting and readding HITs -
@@ -40,16 +40,14 @@ var minTimeBetweenHITs = 15;
 // Maximum number of HITs to add a one time.
 var numHITsAtOnce = 2;
 
-
-
 // The reward for each HIT.
 var reward = 0.02;
 
 // Number of assignments offered in each HIT posted.
-var assignments = 5;
+var assignments = 3;
 
 // how many HITs in each new HIT group?
-var numhits = 1;
+var numhits = 3;
 
 
 
@@ -123,7 +121,7 @@ for(var i=0; true; i++) {
 	      // Remove this HIT from our list.
 	      retireHIT(currentHITs.splice(j, 1));
 	  } else {
-	      print("Adding: " + (hit.maxAssignments - hit.assignments.length));
+	      //print("Adding: " + (hit.maxAssignments - hit.assignments.length));
 	      activeAssignments += (hit.maxAssignments - hit.assignments.length);
 	  }
       }
@@ -189,7 +187,7 @@ for(var i=0; true; i++) {
   database.query("currentHITs = " + json(currentHITs));
 
   // Wait for a little bit before polling again.
-  Packages.java.lang.Thread.currentThread().sleep(2000);
+  Packages.java.lang.Thread.currentThread().sleep(5000);
 }
 
 
