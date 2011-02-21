@@ -16,4 +16,8 @@ function setShowCallback() {
         $('#task-paragraph').show().effect('highlight', {}, 3000);
         showTime = getServerTime();
     }, waitTime);
+    
+    window.setTimeout( function() {
+        $('#retainer').html('<div style="font-size: 30pt; color:red;">5 seconds left</div>').effect('shake', { times: 5 }, 300);
+    }, waitTime - 5000);
 }
