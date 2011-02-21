@@ -1,7 +1,8 @@
 var textid = 0;
 var assignmentid = 0; 
+var workerid = 0;
 var offset = 0;
-var trial = 0;
+var experiment = 0;
 var replay = false;
 var numClicks = 0;
 
@@ -20,13 +21,18 @@ function loadParameters() {
     if (assignmentid == null || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE") {
         assignmentid = 0;
     }
+    workerid = $(document).getUrlParam("workerId");
+    if (workerid == null) {
+        workerid = 0;
+    }    
+    
     textid = parseInt($(document).getUrlParam("textid"));
-    if (textid == null) {
-        textid = 0;
+    if (textid == null || isNaN(textid)) {
+        textid = Math.floor(Math.random() * 24) + 1;
     }
-    trial = parseInt($(document).getUrlParam("trial"));
-    if (trial == null || isNaN(trial)) {
-        trial = 0;
+    experiment = parseInt($(document).getUrlParam("experiment"));
+    if (experiment == null || isNaN(experiment)) {
+        experiment = 0;
     }
     
     replay = $(document).getUrlParam("replay") == "1";    
@@ -47,7 +53,7 @@ function loadTaskParagraph() {
 // and have either the class "word-on" or "word-off" storing click state
 //
 function toggleWord(jqe) {
-    var i = jqe.attr("id"); // get the index of the word
+    var i = parseInt(jqe.attr("id").substring(4)); // get the index of the word
 
     if (jqe.hasClass("word-on")) { // word was on before click
         jqe.removeClass("word-on");
@@ -69,7 +75,18 @@ function toggleWord(jqe) {
 //
 function logClick(wordid, highlighted) {
     console.log("word clicked: " + wordid + " " + highlighted);
-    $.post("logging.cgi", {wordid:wordid, highlighted:highlighted, textid:textid, time:getServerTime().toISOString(), assignmentid:assignmentid, trial:trial});  
+    var event = highlighted ? "highlight" : "unhighlight";
+    $.post("logging.cgi", 
+        {
+            event: event,
+            detail: wordid, 
+            textid: textid, 
+            assignmentid: assignmentid,
+            workerid: workerid,
+            experiment: experiment,
+            time: getServerTime().toISOString()
+        }
+    );  
     numClicks++;
 }
 
