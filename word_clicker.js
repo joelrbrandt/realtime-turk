@@ -5,12 +5,17 @@ var offset = 0;
 var experiment = 0;
 var replay = false;
 var numClicks = 0;
+var retainer = false;
 
 try { console.log('Javascript console found.'); } catch(e) { console = { log: function() {} }; }
 
 
 $(function() {
     loadParameters();
+    if (retainer) {
+        retainerHide();
+        setShowCallback();
+    }
     loadTaskParagraph();
     getServerTime();
     registerDoneBtnListener();
@@ -34,6 +39,9 @@ function loadParameters() {
     if (experiment == null || isNaN(experiment)) {
         experiment = 0;
     }
+    
+    var retainerURL = $(document).getUrlParam("retainer");
+    retainer = (retainerURL === '1');
     
     replay = $(document).getUrlParam("replay") == "1";    
 }
@@ -76,15 +84,29 @@ function toggleWord(jqe) {
 function logClick(wordid, highlighted) {
     console.log("word clicked: " + wordid + " " + highlighted);
     var event = highlighted ? "highlight" : "unhighlight";
+    
+    var detail = new Object();
+    detail.wordid = wordid;    
+    
+    var logTime = getServerTime();
+    if (retainer) {
+        // we will be benchmarking it against when it showed up        
+        detail.showTime = showTime.toISOString();
+        detail.clickTime = logTime.clone().toISOString();        
+        
+        // use Unix epoch as zero time
+        logTime = Date.parse("January 1 1970 00:00:00 GMT").add(logTime - showTime).milliseconds();
+    }
+    
     $.post("logging.cgi", 
         {
             event: event,
-            detail: wordid, 
+            detail: JSON.stringify(detail), 
             textid: textid, 
             assignmentid: assignmentid,
             workerid: workerid,
             experiment: experiment,
-            time: getServerTime().toISOString()
+            time: logTime.toISOString()
         }
     );  
     numClicks++;
