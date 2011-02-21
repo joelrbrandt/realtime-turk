@@ -12,13 +12,21 @@ a:hover {
     text-decoration: underline;
 }
 
-#task-paragraph {
+.task {
     margin: 3em;
     padding: 1.5em;
     line-height: 1.5em;
     border: thin solid black;
     -webkit-user-select: none;
     -moz-user-select: none;
+}
+
+.task.ready {
+    border: thick solid red;
+}
+
+#retainer img {
+    border: thin dashed darkGray;
 }
 
 .word-off {
