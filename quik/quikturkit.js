@@ -317,15 +317,15 @@ function createNewHIT(reward, assignments, numhits, tasks) {
 
       // create a HIT on MTurk using the webpage
       var hitId = mturk.createHITRaw({
-	title : mytitle,
-	desc : mydescription,
-	keywords: "text verbs reading quick",
-	url : myurl,
-        height : 1200,
-        reward : thisreward,
-        assignmentDurationInSeconds: maxTimeTillDeath,
-        maxAssignments: assignments
-      });
+	        title : mytitle,
+	        desc : mydescription,
+    	    keywords: "text verbs reading quick",
+            url : myurl,
+                height : 1200,
+                reward : thisreward,
+                assignmentDurationInSeconds: maxTimeTillDeath,
+                maxAssignments: assignments
+              });
 
       var qth = qtHIT(hitId, assignments, thisreward, tasks);
       newhits += "|" + qth.hitID + ":" + qth.assignments + ":" + qth.reward + ":" + tasks;
