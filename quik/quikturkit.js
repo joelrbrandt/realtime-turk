@@ -2,7 +2,7 @@ print("___________________________________");
 
 
 // URL containing the page you want turkers to work on.
-var url = "http://needle.csail.mit.edu/realtime/msbernst/word_clicker.html?experiment=9&retainer=1";
+var url = "http://needle.csail.mit.edu/realtime/msbernst/word_clicker.html?experiment=10&retainer=1";
 
 var gettask_url = "http://people.csail.mit.edu/jbigham/locateit/gettask.php?poll=true&qtype=question";
 

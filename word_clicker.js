@@ -6,26 +6,24 @@ var experiment = 0;
 var replay = false;
 var numClicks = 0;
 var retainer = false;
+var retainerType = "random";
+
+var TEST_TEXT_ID = 25;
 
 try { console.log('Javascript console found.'); } catch(e) { console = { log: function() {} }; }
 
 
 $(function() {
-    loadParameters();
-    if (retainer) {
-        retainerHide();
-        setShowCallback();
-    }
-    loadTaskParagraph();
-    getServerTime();
-    registerDoneBtnListener();
-})
+    loadParameters();    
+    initServerTime(timeOffsetReady);
+});
 
 function loadParameters() {
     assignmentid = $(document).getUrlParam("assignmentId");
     if (assignmentid == null || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE") {
         assignmentid = 0;
     }
+    
     workerid = $(document).getUrlParam("workerId");
     if (workerid == null) {
         workerid = 0;
@@ -43,17 +41,48 @@ function loadParameters() {
     var retainerURL = $(document).getUrlParam("retainer");
     retainer = (retainerURL === '1');
     
+    retainerType = $(document).getUrlParam("retainertype");
+    if (retainerType == null) {
+        retainerType = "random";
+        // other types: "5min"
+    }
+    
     replay = $(document).getUrlParam("replay") == "1";    
 }
 
+function timeOffsetReady() {
+    if (assignmentid == 0) {
+        logEvent("preview");
+    } else {
+        logEvent("accept");
+    }       
+    
+    if (retainer) {
+        scheduleRetainer();
+        retainerHide();
+        setRetainerCallback();
+    }
+    loadTaskParagraph();
+    registerDoneBtnListener();
+    registerFocusBlurListeners(); 
+}
+
 function loadTaskParagraph() {
-    $.getJSON("gettext.cgi", {'textid': textid }, function(data) {
-    	$("#task-paragraph").html("<p>"+ data.text + "</p>");
-	    $(".word").each(function(i, e) { $(e).addClass("word-off") });    	$(".word").click(function() { toggleWord($(this));});
-        if (replay) {
-            replayLog(textid);
-        }
-    });
+    $.getJSON("gettext.cgi", {'textid': textid }, insertText);
+}
+
+function insertText(data) {
+    if (textid == TEST_TEXT_ID && parseInt(data['pk']) != TEST_TEXT_ID) {
+        // if we're supposed to be showing the test text, and we're getting a callback for some other text, ignore it. Otherwise a callback to gettext might override our test text
+        return;
+    }
+    
+    
+    $("#task-paragraph").html("<p>"+ data.text + "</p>");
+    $(".word").each(function(i, e) { $(e).addClass("word-off") });    	$(".word").click(function() { toggleWord($(this));});
+    if (replay) {
+        replayLog(textid);
+    }
 }
 
 // jqe: JQuery Element (span tag) containing the word
@@ -76,6 +105,38 @@ function toggleWord(jqe) {
     }
 }
 
+function logEvent(eventName) {
+    logEvent(eventName, {}, null);
+}
+
+// eventName: "submit", "preview", "blur", etc.
+// data: any context-specific JSON to send to the server
+// finishedCallback: any function to call when done logging
+function logEvent(eventName, detail, finishedCallback) {
+    if (detail == null) {
+        detail = {};
+    }
+    
+    var logData = {
+        event: eventName,
+        detail: JSON.stringify(detail), 
+        textid: textid, 
+        assignmentid: assignmentid,
+        workerid: workerid,
+        experiment: experiment,
+        time: getServerTime().toISOString()
+    }    
+    
+    $.post("logging.cgi", logData,        
+        function(reply) {
+            console.log(logData.event + " " + logData.time + " " + JSON.stringify(detail));
+            if (finishedCallback != null) {
+                finishedCallback(reply);
+            }
+        }
+    );     
+}
+
 // wordid: the index of the word in the paragraph, which is assigned by the server and stored
 // in the id of the span surrounding the word
 //
@@ -95,27 +156,17 @@ function logClick(wordid, highlighted) {
         detail.clickTime = logTime.clone().toISOString();        
         
         // use Unix epoch as zero time
-        logTime = Date.parse("January 1 1970 00:00:00 GMT").add(logTime - showTime).milliseconds();
+        //logTime = Date.parse("January 1 1970 00:00:00 GMT").add(logTime - showTime).milliseconds();
     }
     
-    $.post("logging.cgi", 
-        {
-            event: event,
-            detail: JSON.stringify(detail), 
-            textid: textid, 
-            assignmentid: assignmentid,
-            workerid: workerid,
-            experiment: experiment,
-            time: logTime.toISOString()
-        }
-    );  
+    logEvent(event, detail, null);
     numClicks++;
 }
 
 /**
  * Gets the time from a CSAIL server, calculates the offset, and stores it.
  */
-function getServerTime() {
+function initServerTime(callback) {
     var startTime = new Date();
     $.get("http://needle.csail.mit.edu/realtime/time.cgi",
         function(data) {
@@ -126,7 +177,9 @@ function getServerTime() {
             var serverTime = (new Date(unixSecs)).addMilliseconds(unixMillis);
             serverTime.addMilliseconds(travelTime);
             offset = (serverTime - new Date());
-            console.log("offset: " + offset);
+            console.log("clock synch complete. offset: " + offset);
+            
+            callback();
         }
     );
 }
@@ -136,18 +189,30 @@ function getServerTime() {
 }
 
 function registerDoneBtnListener() {
-    var assignmentID = $(document).getUrlParam("assignmentId");
-    if (assignmentID == null || assignmentID == "ASSIGNMENT_ID_NOT_AVAILABLE") {
+    if (assignmentid == null || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE") {
         $('#donebtn').attr("disabled", "true").html("Accept HIT to submit work");
     } else {
-        $('#donebtn').click(submitForm);
+        var functionGenerator = function(callback) { return function() {
+            $('#donebtn').attr("disabled", "true").html("Submitting..."); 
+            logEvent("submit", { numHighlighted: $(".word.word-on").length }, callback);
+        }}; 
+        
+        $('#donebtn').click(functionGenerator(submitForm));
     }
 }
 
 function submitForm() {
-    var assignmentID = $(document).getUrlParam("assignmentId");
-
-    $('#completeForm').append('<input type="hidden" name="assignmentId" value="' + assignmentID + '" />')
+    
+    $('#completeForm').append('<input type="hidden" name="assignmentId" value="' + assignmentid + '" />')
     .append('<input type="hidden" name="numClicks" value="' + numClicks + '" />')
     .submit();
+}
+
+function registerFocusBlurListeners() {
+    $(window).focus(function() {
+        logEvent("focus");
+    });
+    $(window).blur(function() {
+        logEvent("blur");
+    });
 }
