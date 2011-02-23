@@ -21,7 +21,12 @@ function setRetainerCallback() {
         console.log("presetting wait time");
     }
     console.log("wait time: " + waitTime);
-    window.setTimeout(showText, waitTime);
+    window.setTimeout(function() {
+        if (checkInterval != null) {
+            window.clearInterval(checkInterval);
+            showText();
+        }
+    }, waitTime);
     
     /*
     window.setTimeout( function() {
@@ -44,10 +49,8 @@ function scheduleRetainer() {
                 window.clearTimeout(showTimeout);
                 textid = TEST_TEXT_ID;
                 insertText(data);
-                console.log("TEST TIME")
+                console.log("showing test text")
                 showText();
-            } else {
-                console.log("not test time")
             }
         });
     }, 1000);
