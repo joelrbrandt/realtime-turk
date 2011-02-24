@@ -3,3 +3,4 @@ syntax: glob
 
 quik/run.pl
 *.js.database
+*.pyc
