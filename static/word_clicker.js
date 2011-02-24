@@ -68,7 +68,7 @@ function timeOffsetReady() {
 }
 
 function loadTaskParagraph() {
-    $.getJSON("gettext.cgi", {'textid': textid }, insertText);
+    $.getJSON("http://needle.csail.mit.edu/rts/msbernst/gettext", {'textid': textid }, insertText);
 }
 
 function insertText(data) {
@@ -136,7 +136,7 @@ function logEvent(eventName, detail, finishedCallback) {
         bucket: bucketDate.toISOString(),
     }
     
-    $.post("logging.cgi", logData,        
+    $.post("http://needle.csail.mit.edu/rts/msbernst/log", logData,        
         function(reply) {
             console.log(logData.event + " " + logData.time + " " + JSON.stringify(detail));
             if (finishedCallback != null) {
@@ -177,7 +177,7 @@ function logClick(wordid, highlighted) {
  */
 function initServerTime(callback) {
     var startTime = new Date();
-    $.get("http://needle.csail.mit.edu/realtime/time.cgi",
+    $.get("http://needle.csail.mit.edu/rts/msbernst/time",
         function(data) {            
             var travelTime = (new Date() - startTime)/2;                
             var serverTime = parseDate(data.date);

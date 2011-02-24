@@ -43,19 +43,7 @@ function scheduleRetainer() {
         // don't do this in preview mode
         return;
     }
-    checkInterval = window.setInterval(function() {
-        $.get('test-timer.cgi?workerid=' + workerid + '&experimentid=' + experiment + '&textid=' + TEST_TEXT_ID, function(data) {
-            if (data['test']) {
-                window.clearInterval(checkInterval);
-                window.clearTimeout(showTimeout);
-                textid = TEST_TEXT_ID;
-                bucket = parseDate(data['bucket'])
-                insertText(data);
-                console.log("showing test text")
-                showText();
-            }
-        });
-    }, 1000);
+    checkForTest();
     /*
     if (retainerType == "5min") {
         var minToFire = 1;
@@ -69,6 +57,21 @@ function scheduleRetainer() {
         }
     }
     */
+}
+
+function checkForTest() {
+    $.get('http://needle.csail.mit.edu/rts/msbernst/testtimer?workerid=' + workerid + '&experimentid=' + experiment + '&textid=' + TEST_TEXT_ID, function(data) {
+        if (data['test']) {
+            window.clearInterval(checkInterval);
+            window.clearTimeout(showTimeout);
+            textid = TEST_TEXT_ID;
+            bucket = parseDate(data['bucket'])
+            insertText(data);
+            console.log("showing test text")
+            showText();
+        }
+    });
+    checkInterval = window.setTimeout(checkForTest, 1000);
 }
 
 // Shows the text to the user

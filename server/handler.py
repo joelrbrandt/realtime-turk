@@ -14,7 +14,17 @@ def handler(request):
         import testtimer
         testtimer.testTimer(request)
         return apache.OK
-
+        
+    elif uri_parts[-1] == "gettext":
+        import gettext
+        gettext.getText(request)
+        return apache.OK
+        
+    elif uri_parts[-1] == "log":
+        import logging
+        logging.log(request)
+        return apache.OK
+    
     else:
         # request.content_type = "text/plain"
         # request.write("Error: can't find a command with the name " + str(uri_parts) + "\n")
