@@ -23,9 +23,10 @@ experiment = int(form['experiment'].value)
 ip = cgi.escape(os.environ["REMOTE_ADDR"])
 useragent = os.environ["HTTP_USER_AGENT"]
 time = parseISO(form['time'].value)
+bucket = parseISO(form['bucket'].value)
 servertime = unixtime(datetime.now())
     
-cur.execute("""INSERT INTO logging (textid, event, detail, experiment, time, servertime, assignmentid, workerid, ip, useragent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", (text_id, event, detail, experiment, time,  servertime, assignment, worker, ip, useragent))
+cur.execute("""INSERT INTO logging (textid, event, detail, experiment, time, servertime, bucket, assignmentid, workerid, ip, useragent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", (text_id, event, detail, experiment, time,  servertime, bucket, assignment, worker, ip, useragent))
 
 cur.close()
 db.close()
