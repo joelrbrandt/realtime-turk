@@ -42,10 +42,10 @@ def parseResults():
             click_time = datetime.fromtimestamp(row[0])
             
             # when did the worker accept that task?
-            cur.execute("""SELECT time from logging WHERE event='accept' AND assignmentid = '%s'""" % ( row[3], ))
-            accept_time = unixtime(cur.fetchone()[0])
+            #cur.execute("""SELECT time from logging WHERE event='accept' AND assignmentid = '%s'""" % ( row[3], ))
+            #accept_time = unixtime(cur.fetchone()[0])
             
-            timebuckets[timebucket].append({ 'click_time': click_time, 'workerid': row[1], 'detail': json.loads(row[2]), 'accept_time': accept_time })
+            timebuckets[timebucket].append({ 'click_time': click_time, 'workerid': row[1], 'detail': json.loads(row[2]) }) #, 'accept_time': accept_time })
      
     for key in sorted(timebuckets.keys()):
         print('-----bucket: ' + str(key) + '-----')
