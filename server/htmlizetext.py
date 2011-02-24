@@ -1,36 +1,15 @@
-#!/usr/bin/env python
-import cgitb, cgi
-import MySQLdb
-import os
-import json
 import nltk
-cgitb.enable()    
+import MySQLdb
 
-def getText():
-    print "Content-Type: application/json"     # HTML is following
-    print                               # blank line, end of headers
-    
+def fixTexts():
     db=MySQLdb.connect(host="mysql.csail.mit.edu", passwd="gangsta2125", user="realtime", db="wordclicker", use_unicode=True)
     cur = db.cursor(MySQLdb.cursors.DictCursor)
     
-    form = cgi.FieldStorage()
-    id = int(form['textid'].value)
-    #print id
+    cur.execute("""SELECT pk, text from texts""")
+    for row in cur.fetchall():
+        html = htmlizeText(row['text'])
+        cur.execute("""UPDATE texts SET html = %s WHERE pk=%s""", (html, row['pk']) )
         
-    cur.execute("""SELECT text FROM texts WHERE pk = %s""", (id,))
-    
-    text = cur.fetchone()
-    paragraph = htmlizeText(text['text'])
-    
-    result = dict()
-    result['pk'] = id
-    result['text'] = paragraph
-    
-    print(json.dumps(result))
-        
-    cur.close()
-    db.close()
-
 def htmlizeText(text):
     #print text.encode('ascii', 'replace')
     tokenized = nltk.tokenize.word_tokenize(text)
@@ -45,4 +24,4 @@ def htmlizeText(text):
     #print paragraph.encode('ascii', 'replace')
     return paragraph
     
-getText()
+fixTexts()

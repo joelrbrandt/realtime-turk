@@ -29,13 +29,12 @@ def testTimer(request):
          # if we have enough workers or if you've already done the task
         request.write(json.dumps( { 'test' : False } ))
     else:       
-        cur.execute("""SELECT text FROM texts WHERE pk = %s""", (test_text_pk,))
-        
+        cur.execute("""SELECT html FROM texts WHERE pk = %s""", (test_text_pk,))
         text = cur.fetchone()[0]
         
         result = dict()
         result['pk'] = test_text_pk
-        result['text'] = htmlizeText(text)
+        result['text'] = text
         result['test'] = True
         result['bucket'] = last_test_mark * 1000 # javascript likes millis
         
@@ -43,19 +42,3 @@ def testTimer(request):
         
     cur.close()
     db.close()
-
-# copied from gettext.cgi, since we can't import another CGI script
-def htmlizeText(text):
-    import nltk # do this lazily, we want this to return fast
-    #print text.encode('ascii', 'replace')
-    tokenized = nltk.tokenize.word_tokenize(text)
-    
-    spanned = []
-    for index, token in enumerate(tokenized):
-    #    print token.encode('ascii', 'replace') + " " + str(type(token))
-        span = u"<span id='word" + unicode(index) +  u"' class='word'>" + token + u"</span>"
-        spanned.append(span)
-    
-    paragraph = u"<p>" + u" ".join(spanned) + u"</p>"
-    #print paragraph.encode('ascii', 'replace')
-    return paragraph
