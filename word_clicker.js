@@ -117,6 +117,14 @@ function logEvent(eventName, detail, finishedCallback) {
         detail = {};
     }
     
+    // if there's no bucket, send it jan 1 1970
+    var bucketDate = null;
+    if (bucket && bucket != null) {
+        bucketDate = bucket;
+    } else {
+        bucketDate = new Date(0);
+    }
+    
     var logData = {
         event: eventName,
         detail: JSON.stringify(detail), 
@@ -125,7 +133,7 @@ function logEvent(eventName, detail, finishedCallback) {
         workerid: workerid,
         experiment: experiment,
         time: getServerTime().toISOString(),
-        bucket: ((bucket && bucket != null) ? bucket.toISOString() : 0),   // if we have a bucket, use it; otherwise, use 0
+        bucket: bucketDate.toISOString(),
     }
     
     $.post("logging.cgi", logData,        
