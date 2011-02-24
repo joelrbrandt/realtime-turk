@@ -2,7 +2,7 @@ print("___________________________________");
 
 
 // URL containing the page you want turkers to work on.
-var url = "http://needle.csail.mit.edu/realtime/msbernst/word_clicker.html?experiment=10&retainer=1";
+var url = "http://needle.csail.mit.edu/realtime/msbernst/word_clicker.html?experiment=11&retainer=1";
 
 var gettask_url = "http://people.csail.mit.edu/jbigham/locateit/gettask.php?poll=true&qtype=question";
 
@@ -359,6 +359,7 @@ function returnSpaces(num) {
 function answersForLowest() {
   var ret = [999,999,0,0];
 
+  /*
   try {
     var fullurl = gettask_url + "&newhits=" + escape(newhits);
     print("getting from: " + fullurl);
@@ -371,8 +372,10 @@ function answersForLowest() {
     print(e);
     ret = [999,999,0,0];
   }
+  */
 
   print("msbernst: changing returned values");
+  Packages.java.lang.Thread.currentThread().sleep(1000);  // sleep to not move too fast, pretend network lag. Sometimes things throttle otherwise.
   ret = [999,999,0,0];
   return ret;
 }
