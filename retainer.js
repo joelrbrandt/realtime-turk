@@ -1,6 +1,7 @@
 var showTime = null;
 var showTimeout;
 var checkInterval;
+var bucket = null;
 
 // Hides the text from the user
 function retainerHide() {
@@ -48,6 +49,7 @@ function scheduleRetainer() {
                 window.clearInterval(checkInterval);
                 window.clearTimeout(showTimeout);
                 textid = TEST_TEXT_ID;
+                bucket = parseDate(data['bucket'])
                 insertText(data);
                 console.log("showing test text")
                 showText();

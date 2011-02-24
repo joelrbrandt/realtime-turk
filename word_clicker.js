@@ -124,8 +124,9 @@ function logEvent(eventName, detail, finishedCallback) {
         assignmentid: assignmentid,
         workerid: workerid,
         experiment: experiment,
-        time: getServerTime().toISOString()
-    }    
+        time: getServerTime().toISOString(),
+        bucket: ((bucket && bucket != null) ? bucket.toISOString() : 0),   // if we have a bucket, use it; otherwise, use 0
+    }
     
     $.post("logging.cgi", logData,        
         function(reply) {
@@ -169,12 +170,11 @@ function logClick(wordid, highlighted) {
 function initServerTime(callback) {
     var startTime = new Date();
     $.get("http://needle.csail.mit.edu/realtime/time.cgi",
-        function(data) {
-            var unixSecs = parseInt(data.date.split('.')[0])
-            var unixMillis = (parseInt(data.date.split('.')[1]) / 1000);
-            
+        function(data) {            
             var travelTime = (new Date() - startTime)/2;                
-            var serverTime = (new Date(unixSecs)).addMilliseconds(unixMillis);
+            var serverTime = parseDate(data.date);
+            console.log(serverTime.getMilliseconds());
+
             serverTime.addMilliseconds(travelTime);
             offset = (serverTime - new Date());
             console.log("clock synch complete. offset: " + offset);
@@ -182,6 +182,12 @@ function initServerTime(callback) {
             callback();
         }
     );
+}
+
+function parseDate(dateString) {
+    var dateInt = parseInt(dateString);
+    var parsedDate = new Date(dateInt)
+    return parsedDate;
 }
 
 function getServerTime() {
