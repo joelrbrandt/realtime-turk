@@ -4,14 +4,15 @@ import MySQLdb
 import simplejson as json
 from datetime import datetime
 from timeutils import *
+import settings
 
 MIN_BETWEEN_TESTS = 5
 DESIRED_WORKERS = 5
 
 def testTimer(request):
     request.content_type = "application/json"
-    
-    db=MySQLdb.connect(host="mysql.csail.mit.edu", passwd="gangsta2125", user="realtime", db="wordclicker", use_unicode=True)
+    db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE,
+ use_unicode=True)
     cur = db.cursor()
     
     form = util.FieldStorage(request)
