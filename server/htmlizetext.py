@@ -1,8 +1,10 @@
 import nltk
 import MySQLdb
+import settings
 
 def fixTexts():
-    db=MySQLdb.connect(host="mysql.csail.mit.edu", passwd="gangsta2125", user="realtime", db="wordclicker", use_unicode=True)
+    db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
+
     cur = db.cursor(MySQLdb.cursors.DictCursor)
     
     cur.execute("""SELECT pk, text from texts""")

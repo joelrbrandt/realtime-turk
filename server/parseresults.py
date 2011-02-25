@@ -3,6 +3,7 @@ from timeutils import unixtime
 from datetime import datetime, timedelta
 import simplejson as json
 from timeutils import parseISO
+import settings
 
 TEST_TEXT_PK = 25
 EXPERIMENT = 12
@@ -14,7 +15,8 @@ COLUMN = "time" # "servertime"
 # TODO: move sql query so that it gets executed for each window separately
 
 def parseResults():    
-    db=MySQLdb.connect(host="mysql.csail.mit.edu", passwd="gangsta2125", user="realtime", db="wordclicker", use_unicode=True)
+    db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE,
+ use_unicode=True)
     cur = db.cursor()
     
     print("Format:")

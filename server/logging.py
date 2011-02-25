@@ -4,9 +4,10 @@ import MySQLdb
 from datetime import datetime
 import time
 from timeutils import *
+import settings
 
 def log(request):
-    db=MySQLdb.connect(host="mysql.csail.mit.edu", passwd="gangsta2125", user="realtime", db="wordclicker")
+    db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
     cur = db.cursor()
     
     form = util.FieldStorage(request)

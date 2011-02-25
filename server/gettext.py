@@ -1,11 +1,12 @@
 from mod_python import apache, util
 import MySQLdb
 import simplejson as json
+import settings
 
 def getText(request):    
     request.content_type = "application/json"
     
-    db=MySQLdb.connect(host="mysql.csail.mit.edu", passwd="gangsta2125", user="realtime", db="wordclicker", use_unicode=True)
+    db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
     cur = db.cursor(MySQLdb.cursors.DictCursor)
     
     form = util.FieldStorage(request)
