@@ -3,6 +3,30 @@ var showTimeout;
 var checkInterval;
 var bucket = null;
 
+// Sets a specific textid if we are near the regular firing period,
+// and sets the firing time to be exactly on the dot of the firing period
+function scheduleRetainer() {
+    if (assignmentid == 0) {
+        // don't do this in preview mode
+        return;
+    }
+    checkForTest();
+
+    /*
+    if (retainerType == "5min") {
+        var minToFire = 1;
+        
+        var curTime = getServerTime();
+        var modTime = curTime.getTime() % (60 * 1000 * minToFire);
+        console.log("mod time is " + modTime);
+        if (modTime < (30 * 1000)) {   // the random call can only go up to 29 secs
+            showTime = curTime.add((30*1000) - modTime).milliseconds()
+            console.log("fire at " + showTime);
+        }
+    }
+    */
+}
+
 // Hides the text from the user
 function retainerHide() {
     console.log("hiding");
@@ -24,7 +48,10 @@ function setRetainerCallback() {
     console.log("wait time: " + waitTime);
     window.setTimeout(function() {
         if (checkInterval != null) {
-            window.clearInterval(checkInterval);
+            window.clearTimeout(checkInterval);
+        }
+        // if we haven't already shown a text, do it now
+        if (showTime == null) {
             showText();
         }
     }, waitTime);
@@ -36,42 +63,20 @@ function setRetainerCallback() {
     */
 }
 
-// Sets a specific textid if we are near the regular firing period,
-// and sets the firing time to be exactly on the dot of the firing period
-function scheduleRetainer() {
-    if (assignmentid == 0) {
-        // don't do this in preview mode
-        return;
-    }
-    checkForTest();
-    /*
-    if (retainerType == "5min") {
-        var minToFire = 1;
-        
-        var curTime = getServerTime();
-        var modTime = curTime.getTime() % (60 * 1000 * minToFire);
-        console.log("mod time is " + modTime);
-        if (modTime < (30 * 1000)) {   // the random call can only go up to 29 secs
-            showTime = curTime.add((30*1000) - modTime).milliseconds()
-            console.log("fire at " + showTime);
-        }
-    }
-    */
-}
-
 function checkForTest() {
-    $.get('http://needle.csail.mit.edu/rts/msbernst/testtimer?workerid=' + workerid + '&experimentid=' + experiment + '&textid=' + TEST_TEXT_ID, function(data) {
+    $.get('http://flock.csail.mit.edu/rts/msbernst/testtimer?workerid=' + workerid + '&experimentid=' + experiment + '&textid=' + TEST_TEXT_ID, function(data) {
         if (data['test']) {
-            window.clearInterval(checkInterval);
+            window.clearTimeout(checkInterval);
             window.clearTimeout(showTimeout);
             textid = TEST_TEXT_ID;
             bucket = parseDate(data['bucket'])
             insertText(data);
             console.log("showing test text")
             showText();
+        } else {
+            checkInterval = window.setTimeout(checkForTest, 1000);
         }
     });
-    checkInterval = window.setTimeout(checkForTest, 1000);
 }
 
 // Shows the text to the user
@@ -82,4 +87,10 @@ function showText() {
     $('#retainer').hide();
     $('#task-paragraph').show().effect('highlight', {}, 3000);
     showTime = getServerTime();
+    logEvent("display", { 'showTime': showTime }, null);    
+    
+    alert('Start now!');
+    // log immediately after they click the OK button
+    logEvent("clickalert");
+    
 }
