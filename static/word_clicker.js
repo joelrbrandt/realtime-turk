@@ -203,7 +203,7 @@ function getServerTime() {
 }
 
 function registerDoneBtnListener() {
-    if (assignmentid == null || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE") {
+    if (isPreview()) {
         $('#donebtn').attr("disabled", "true").html("Accept HIT to submit work");
     } else {
         var functionGenerator = function(callback) { return function() {
@@ -229,4 +229,8 @@ function registerFocusBlurListeners() {
     $(window).blur(function() {
         logEvent("blur");
     });
+}
+
+function isPreview() {
+    return (assignmentid == null || assignmentid == 0 || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE");
 }

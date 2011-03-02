@@ -23,7 +23,7 @@ def testTimer(request):
     # first, determine if we have hit a new test timestamp
     now = datetime.now()
     last_test_mark = unixtime(now) - (unixtime(now) % (60*MIN_BETWEEN_TESTS))
-    cur.execute("""SELECT DISTINCT workerid from logging WHERE time >= %s AND textid = 25 AND experiment = %s AND event='highlight'""" % (last_test_mark, experimentid) )
+    cur.execute("""SELECT DISTINCT workerid FROM logging WHERE time >= %s AND textid = %s AND experiment = %s AND event='highlight'""" % (last_test_mark, test_text_pk, experimentid) )
     completed = [row[0] for row in cur.fetchall()]
     
     if len(completed) >= DESIRED_WORKERS or unicode(workerid) in completed:
