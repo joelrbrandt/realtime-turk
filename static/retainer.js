@@ -3,10 +3,12 @@ var showTimeout;
 var checkInterval;
 var bucket = null;
 
+var MAX_WAIT_SECONDS = 60 * 3;
+
 // Sets a specific textid if we are near the regular firing period,
 // and sets the firing time to be exactly on the dot of the firing period
 function scheduleRetainer() {
-    if (assignmentid == 0) {
+    if (isPreview()) {
         // don't do this in preview mode
         return;
     }
@@ -31,7 +33,7 @@ function scheduleRetainer() {
 function retainerHide() {
     console.log("hiding");
     $('#task-paragraph').hide()
-    .after("<div id='retainer' class='task'>In thirty seconds or less, a paragraph will appear here. Act as quickly as you can when it appears to select all the verbs.<br/><br/><img src='media/preview.png' /></div>");
+    .after("<div id='retainer' class='task'>In " + MAX_WAIT_SECONDS + " seconds or less, a paragraph will appear here. Act as quickly as you can when it appears to select all the verbs.<br/><br/><img src='media/preview.png' /></div>");
     
     $('#donebtn').attr("disabled", "true").html("HIT will be submittable after job appears");
 }
@@ -40,7 +42,7 @@ function retainerHide() {
 function setRetainerCallback() {
     if (showTime == null) { 
         //var waitTime = Math.floor(Math.random()*30) * 1000;
-        var waitTime = 30 * 1000; 
+        var waitTime = MAX_WAIT_SECONDS * 1000; 
     } else {
         var waitTime = showTime - getServerTime();
         console.log("presetting wait time");

@@ -6,7 +6,7 @@ from timeutils import parseISO
 import settings
 
 TEST_TEXT_PK = 25
-EXPERIMENT = 12
+EXPERIMENT = 14
 MIN_BETWEEN_TESTS = 5
 COLUMN = "time" # "servertime"
 
