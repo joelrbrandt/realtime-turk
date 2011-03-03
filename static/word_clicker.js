@@ -14,6 +14,7 @@ try { console.log('Javascript console found.'); } catch(e) { console = { log: fu
 
 
 $(function() {
+    initDatePrototype();    // some browsers don't have toISOString()
     loadParameters();    
     initServerTime(timeOffsetReady);
 });
@@ -143,7 +144,8 @@ function logEvent(eventName, detail, finishedCallback) {
                 finishedCallback(reply);
             }
         }
-    );     
+    );
+    
 }
 
 // wordid: the index of the word in the paragraph, which is assigned by the server and stored
@@ -234,3 +236,33 @@ function registerFocusBlurListeners() {
 function isPreview() {
     return (assignmentid == null || assignmentid == 0 || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE");
 }
+
+
+// Date prototype hacking in case the browser does not support it
+// ref: http://williamsportwebdeveloper.com/cgi/wp/?p=503
+
+function initDatePrototype() {
+    if (Date.prototype.toISOString == null) {
+        console.log("Adding to Date prototype.");
+        Date.prototype.toISOString = toISOString;
+    }
+}
+
+function toISOString() {
+    var d = this;
+     return d.getUTCFullYear() + '-' +  padzero(d.getUTCMonth() + 1) + '-' + padzero(d.getUTCDate()) + 'T' + padzero(d.getUTCHours()) + ':' +  padzero(d.getUTCMinutes()) + ':' + padzero(d.getUTCSeconds()) + '.' + pad2zeros(d.getUTCMilliseconds()) + 'Z';
+ }
+ 
+function padzero(n) {
+    return n < 10 ? '0' + n : n;
+}
+
+function pad2zeros(n) {
+    if (n < 100) {
+         n = '0' + n;
+     }
+     if (n < 10) {
+         n = '0' + n;
+     }
+     return n;     
+ }
