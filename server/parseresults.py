@@ -6,7 +6,7 @@ from timeutils import parseISO
 import settings
 
 TEST_TEXT_PK = 25
-EXPERIMENT = 15
+EXPERIMENT = 16
 MIN_BETWEEN_TESTS = 5
 
 # TODO: make the two columsn correctly identify client/server time

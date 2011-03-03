@@ -3,7 +3,7 @@ var showTimeout;
 var checkInterval;
 var bucket = null;
 
-var MAX_WAIT_SECONDS = 60 * 3;
+var MAX_WAIT_SECONDS = 5;
 
 // Sets a specific textid if we are near the regular firing period,
 // and sets the firing time to be exactly on the dot of the firing period
@@ -13,20 +13,6 @@ function scheduleRetainer() {
         return;
     }
     checkForTest();
-
-    /*
-    if (retainerType == "5min") {
-        var minToFire = 1;
-        
-        var curTime = getServerTime();
-        var modTime = curTime.getTime() % (60 * 1000 * minToFire);
-        console.log("mod time is " + modTime);
-        if (modTime < (30 * 1000)) {   // the random call can only go up to 29 secs
-            showTime = curTime.add((30*1000) - modTime).milliseconds()
-            console.log("fire at " + showTime);
-        }
-    }
-    */
 }
 
 // Hides the text from the user
@@ -48,10 +34,9 @@ function setRetainerCallback() {
         console.log("presetting wait time");
     }
     console.log("wait time: " + waitTime);
-    window.setTimeout(function() {
-        if (checkInterval != null) {
-            window.clearTimeout(checkInterval);
-        }
+    showTimeout = window.setTimeout(function() {
+        window.clearTimeout(checkInterval);
+        
         // if we haven't already shown a text, do it now
         if (showTime == null) {
             showText();
