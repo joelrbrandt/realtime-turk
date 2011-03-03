@@ -6,7 +6,7 @@ from datetime import datetime
 from timeutils import *
 import settings
 
-MIN_BETWEEN_TESTS = 1
+MIN_BETWEEN_TESTS = 5
 
 def testTimer(request):
     request.content_type = "application/json"
