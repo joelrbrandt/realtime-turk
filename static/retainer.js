@@ -3,7 +3,7 @@ var showTimeout;
 var checkInterval;
 var bucket = null;
 
-var MAX_WAIT_SECONDS = 5;
+var MAX_WAIT_SECONDS = 180;
 
 // Sets a specific textid if we are near the regular firing period,
 // and sets the firing time to be exactly on the dot of the firing period
