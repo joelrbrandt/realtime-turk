@@ -14,6 +14,7 @@ try { console.log('Javascript console found.'); } catch(e) { console = { log: fu
 
 
 $(function() {
+    $.ajaxSetup({ cache: false })
     initDatePrototype();    // some browsers don't have toISOString()
     loadParameters();    
     initServerTime(timeOffsetReady);

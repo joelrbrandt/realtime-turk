@@ -51,7 +51,8 @@ function setRetainerCallback() {
 }
 
 function checkForTest() {
-    $.get('http://flock.csail.mit.edu/rts/msbernst/testtimer?workerid=' + workerid + '&experimentid=' + experiment + '&textid=' + TEST_TEXT_ID, function(data) {
+    var theURL = 'http://flock.csail.mit.edu/rts/msbernst/testtimer?workerid=' + workerid + '&experimentid=' + experiment + '&textid=' + TEST_TEXT_ID;
+    $.get(theURL, function(data) {
         if (data['test']) {
             window.clearTimeout(checkInterval);
             window.clearTimeout(showTimeout);
