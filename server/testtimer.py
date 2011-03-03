@@ -7,7 +7,6 @@ from timeutils import *
 import settings
 
 MIN_BETWEEN_TESTS = 5
-DESIRED_WORKERS = 5
 
 def testTimer(request):
     request.content_type = "application/json"
@@ -23,10 +22,10 @@ def testTimer(request):
     # first, determine if we have hit a new test timestamp
     now = datetime.now()
     last_test_mark = unixtime(now) - (unixtime(now) % (60*MIN_BETWEEN_TESTS))
-    cur.execute("""SELECT DISTINCT workerid from logging WHERE time >= %s AND textid = 25 AND experiment = %s AND event='highlight'""" % (last_test_mark, experimentid) )
+    cur.execute("""SELECT DISTINCT workerid FROM logging WHERE time >= %s AND textid = %s AND experiment = %s AND event='highlight'""" % (last_test_mark, test_text_pk, experimentid) )
     completed = [row[0] for row in cur.fetchall()]
     
-    if len(completed) >= DESIRED_WORKERS or unicode(workerid) in completed:
+    if unicode(workerid) in completed:
          # if we have enough workers or if you've already done the task
         request.write(json.dumps( { 'test' : False } ))
     else:       
