@@ -6,13 +6,10 @@ from timeutils import parseISO
 import settings
 
 TEST_TEXT_PK = 25
-EXPERIMENT = 12
+EXPERIMENT = 15
 MIN_BETWEEN_TESTS = 5
-COLUMN = "time" # "servertime"
 
-# TODO: fix logging so that we log which time window they're aiming for
-
-# TODO: move sql query so that it gets executed for each window separately
+# TODO: make the two columsn correctly identify client/server time
 
 def parseResults():    
     db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE,
@@ -39,20 +36,21 @@ def parseResults():
     
     # get all the clicks
     for timebucket in sorted(timebuckets.keys()):
-        cur.execute("""SELECT MIN(%s), workerid, detail, assignmentid from logging WHERE textid = %s AND experiment = %s AND event='highlight' AND time >= %s AND time < %s GROUP BY workerid""" % (COLUMN, TEST_TEXT_PK, EXPERIMENT, unixtime(timebucket), unixtime(timebucket + timedelta(minutes = MIN_BETWEEN_TESTS))) )
+        cur.execute("""SELECT MIN(servertime), workerid, detail, assignmentid, time from logging WHERE textid = %s AND experiment = %s AND event='highlight' AND bucket = %s GROUP BY workerid""" % (TEST_TEXT_PK, EXPERIMENT, unixtime(timebucket)) )
     
         for row in cur.fetchall():    
             click_time = datetime.fromtimestamp(row[0])
+            client_time = datetime.fromtimestamp(row[4])
             
             # when did the worker accept that task?
-            cur.execute("""SELECT %s from logging WHERE event='accept' AND assignmentid = '%s'""" % ( COLUMN, row[3] ))
+            cur.execute("""SELECT servertime from logging WHERE event='accept' AND assignmentid = '%s'""" % ( row[3] ))
             result = cur.fetchone()
             if result is not None:
                 accept_time = datetime.fromtimestamp(result[0])
             else:
                 accept_time = None
                 
-            timebuckets[timebucket].append({ 'click_time': click_time, 'workerid': row[1], 'detail': json.loads(row[2]), 'accept_time': accept_time })
+            timebuckets[timebucket].append({ 'click_time': click_time, 'workerid': row[1], 'detail': json.loads(row[2]), 'accept_time': accept_time, 'client_time': client_time })
      
     for key in sorted(timebuckets.keys()):
         print('-----bucket: ' + str(key) + '-----')
@@ -60,7 +58,7 @@ def parseResults():
             delta = total_seconds(click['click_time'] - key)
             
             appear_time = datetime.fromtimestamp(parseISO(click['detail']['showTime']))
-            delta_since_appear = total_seconds(click['click_time'] - appear_time)
+            delta_since_appear = total_seconds(click['client_time'] - appear_time)
 
             delta_since_accept = None         
             if click['accept_time'] is not None:

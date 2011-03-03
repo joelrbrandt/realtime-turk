@@ -68,7 +68,7 @@ function timeOffsetReady() {
 }
 
 function loadTaskParagraph() {
-    $.getJSON("http://needle.csail.mit.edu/rts/msbernst/gettext", {'textid': textid }, insertText);
+    $.getJSON("http://flock.csail.mit.edu/rts/msbernst/gettext", {'textid': textid }, insertText);
 }
 
 function insertText(data) {
@@ -136,7 +136,7 @@ function logEvent(eventName, detail, finishedCallback) {
         bucket: bucketDate.toISOString(),
     }
     
-    $.post("http://needle.csail.mit.edu/rts/msbernst/log", logData,        
+    $.post("http://flock.csail.mit.edu/rts/msbernst/log", logData,        
         function(reply) {
             console.log(logData.event + " " + logData.time + " " + JSON.stringify(detail));
             if (finishedCallback != null) {
@@ -177,7 +177,7 @@ function logClick(wordid, highlighted) {
  */
 function initServerTime(callback) {
     var startTime = new Date();
-    $.get("http://needle.csail.mit.edu/rts/msbernst/time",
+    $.get("http://flock.csail.mit.edu/rts/msbernst/time",
         function(data) {            
             var travelTime = (new Date() - startTime)/2;                
             var serverTime = parseDate(data.date);
@@ -203,7 +203,7 @@ function getServerTime() {
 }
 
 function registerDoneBtnListener() {
-    if (assignmentid == null || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE") {
+    if (isPreview()) {
         $('#donebtn').attr("disabled", "true").html("Accept HIT to submit work");
     } else {
         var functionGenerator = function(callback) { return function() {
@@ -229,4 +229,8 @@ function registerFocusBlurListeners() {
     $(window).blur(function() {
         logEvent("blur");
     });
+}
+
+function isPreview() {
+    return (assignmentid == null || assignmentid == 0 || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE");
 }

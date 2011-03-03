@@ -2,7 +2,9 @@ print("___________________________________");
 
 
 // URL containing the page you want turkers to work on.
-var url = "http://needle.csail.mit.edu/realtime/msbernst/static/word_clicker.html?experiment=12&retainer=1";
+var experimentNum = 15;
+var server = 'flock.csail.mit.edu';
+var url = "http://" + server + "/msbernst/static/word_clicker.html?experiment=" + experimentNum + "&retainer=1";
 
 var gettask_url = "http://people.csail.mit.edu/jbigham/locateit/gettask.php?poll=true&qtype=question";
 
@@ -324,7 +326,8 @@ function createNewHIT(reward, assignments, numhits, tasks) {
                 height : 1200,
                 reward : thisreward,
                 assignmentDurationInSeconds: maxTimeTillDeath,
-                maxAssignments: assignments
+                maxAssignments: assignments,
+                autoApprovalDelayInSeconds: 60 * 5,
               });
 
       var qth = qtHIT(hitId, assignments, thisreward, tasks);
