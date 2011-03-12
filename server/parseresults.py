@@ -3,11 +3,13 @@ from timeutils import unixtime
 from datetime import datetime, timedelta
 import simplejson as json
 from timeutils import parseISO
+import numpy
 import settings
 
 TEST_TEXT_PK = 25
-EXPERIMENT = 16
+EXPERIMENT = 17
 MIN_BETWEEN_TESTS = 5
+TIME_TO_BUCKETS = 5
 
 # TODO: make the two columsn correctly identify client/server time
 
@@ -51,10 +53,11 @@ def parseResults():
                 accept_time = None
                 
             timebuckets[timebucket].append({ 'click_time': click_time, 'workerid': row[1], 'detail': json.loads(row[2]), 'accept_time': accept_time, 'client_time': client_time })
-     
+    
+    time_to = dict()
     for key in sorted(timebuckets.keys()):
         print('-----bucket: ' + str(key) + '-----')
-        for click in sorted(timebuckets[key], key=lambda k: k['click_time']):
+        for index, click in enumerate(sorted(timebuckets[key], key=lambda k: k['click_time'])):
             delta = total_seconds(click['click_time'] - key)
             
             appear_time = datetime.fromtimestamp(parseISO(click['detail']['showTime']))
@@ -64,6 +67,10 @@ def parseResults():
             if click['accept_time'] is not None:
                 delta_since_accept = total_seconds(click['click_time'] - click['accept_time'])
             print('  ' + str(delta) + 'sec | ' + str(delta_since_appear) + 'sec | ' + str(delta_since_accept) + 'sec')
+            
+            if not time_to.has_key(index+1):
+                time_to[index+1] = []
+            time_to[index+1].append(delta)
             
             
     print
@@ -80,7 +87,17 @@ def parseResults():
             worker_lags[click['workerid']].append(delta)
     for workerid in worker_lags.keys():
         print(workerid + ' ' + str(worker_lags[workerid]))
+    
+    print
+    print
+    print "aggregated (REMOVING FIRST BUCKET AS STARTUP)"    
+    for i in range(1,TIME_TO_BUCKETS+1):
+        # removes first bucket as probably noisy
+        input_arr = time_to[i][1:]
         
+        print("Time to " + str(i))
+        print("\tMedian:" + str(numpy.median(input_arr)) + " Mean: " + str(numpy.mean(input_arr)) + " s.d.: " + str(numpy.std(input_arr)))
+    
     cur.close()
     db.close()        
 

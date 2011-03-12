@@ -2,7 +2,7 @@ print("___________________________________");
 
 
 // URL containing the page you want turkers to work on.
-var experimentNum = 16;
+var experimentNum = 18;
 var server = 'flock.csail.mit.edu';
 var url = "http://" + server + "/msbernst/static/word_clicker.html?experiment=" + experimentNum + "&retainer=1";
 
@@ -389,6 +389,8 @@ function answersForLowest() {
  **/
 function retireHIT(hit) {
   try {
+    print("all assignments");
+    print(hit.assignments);
     //mturk.approveAssignments(hit.assignments);
     mturk.deleteHITRaw(hit);
     print("Successfully deleted HIT.");

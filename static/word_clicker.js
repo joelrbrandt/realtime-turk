@@ -1,12 +1,15 @@
 var textid = 0;
 var assignmentid = 0; 
 var workerid = 0;
+var hitid = 0;
 var offset = 0;
 var experiment = 0;
 var replay = false;
 var numClicks = 0;
 var retainer = false;
 var retainerType = "random";
+var isAlert = false;
+var isReward = false;
 
 var TEST_TEXT_ID = 25;
 
@@ -30,6 +33,11 @@ function loadParameters() {
     if (workerid == null) {
         workerid = 0;
     }    
+
+    hitid = $(document).getUrlParam("hitId");
+    if (hitid == null) {
+        hitid = 0;
+    }        
     
     textid = parseInt($(document).getUrlParam("textid"));
     if (textid == null || isNaN(textid)) {
@@ -49,7 +57,13 @@ function loadParameters() {
         // other types: "5min"
     }
     
-    replay = $(document).getUrlParam("replay") == "1";    
+    var alertURL = $(document).getUrlParam("alert");
+    isAlert = (alertURL === '1');
+    
+    var rewardURL = $(document).getUrlParam("reward");
+    isReward = (rewardURL === '1');    
+    
+    replay = $(document).getUrlParam("replay") == "1";
 }
 
 function timeOffsetReady() {
