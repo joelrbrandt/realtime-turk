@@ -24,6 +24,11 @@ def handler(request):
         import logging
         logging.log(request)
         return apache.OK
+        
+    elif uri_parts[-1] == "bonus":
+        import bonus
+        bonus.grantBonus(request)
+        return apache.OK
     
     else:
         # request.content_type = "text/plain"

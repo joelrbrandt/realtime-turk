@@ -29,6 +29,10 @@ a:hover {
     border: thin dashed darkGray;
 }
 
+#readybtn {
+    font-size: 50pt;
+}
+
 .word-off {
     background-color: white;
 }
