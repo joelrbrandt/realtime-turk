@@ -3,7 +3,7 @@ var showTimeout;
 var checkInterval;
 var bucket = null;
 
-var MAX_WAIT_SECONDS = 120;
+var MAX_WAIT_SECONDS = 0;
 var REWARD_MAX_SECONDS = 3; // max number of seconds to click the "go" button if you want the reward
 
 // Sets a specific textid if we are near the regular firing period,
@@ -94,6 +94,7 @@ function showGoButton() {
     logEvent("display", { 'showTime': showTime }, null);
     
     if (isAlert) {
+        playSound();
         alert('Start now!');
         // log immediately after they click the OK button
         showText();
@@ -145,4 +146,13 @@ function grantBonus() {
     $.get(theURL, function(data) {
         console.log("bonus logged");
     });
+}
+
+function playSound() {
+    try {
+        var s = soundManager.getSoundById('alert-sound');
+        s.play();
+    } catch(e) {
+        console.log("sound file not loaded yet, do nothing");
+    }
 }
