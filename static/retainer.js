@@ -3,7 +3,7 @@ var showTimeout;
 var checkInterval;
 var bucket = null;
 
-var MAX_WAIT_SECONDS = 5;
+var MAX_WAIT_SECONDS = 180;
 var REWARD_MAX_SECONDS = 3; // max number of seconds to click the "go" button if you want the reward
 
 // Sets a specific textid if we are near the regular firing period,
@@ -99,7 +99,7 @@ function showGoButton() {
 // Shows the text to the user
 function showText() {
     var goTime = getServerTime();
-    logEvent("go", { 'goTime': goTime } );     // log that they're starting the task
+    logEvent("go");     // log that they're starting the task
     
     if (isReward) {
         var timeDiff = goTime - showTime;
