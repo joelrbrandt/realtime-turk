@@ -13,7 +13,9 @@ function scheduleRetainer() {
         // don't do this in preview mode
         return;
     }
-    checkForTest();
+    
+    // msbernst: turning off bucket test timing
+    // checkForTest();
 }
 
 // Hides the text from the user
@@ -39,8 +41,9 @@ function retainerHide() {
 // Sets a callback to fire and show the text to the user
 function setRetainerCallback() {
     if (showTime == null) { 
-        //var waitTime = Math.floor(Math.random()*30) * 1000;
         var waitTime = MAX_WAIT_SECONDS * 1000; 
+        var waitDelta = Math.random() * (.30 * waitTime);
+        waitTime = waitTime - waitDelta;
     } else {
         var waitTime = showTime - getServerTime();
         console.log("presetting wait time");
@@ -55,11 +58,6 @@ function setRetainerCallback() {
         }
     }, waitTime);
     
-    /*
-    window.setTimeout( function() {
-        $('#retainer').html('<div style="font-size: 30pt; color:red;">5 seconds left</div>').effect('shake', { times: 5 }, 300);
-    }, waitTime - 5000);
-    */
 }
 
 function checkForTest() {
