@@ -7,7 +7,7 @@ import numpy
 import settings
 
 TEST_TEXT_PK = 25
-EXPERIMENT = 20
+EXPERIMENT = 21
 MIN_BETWEEN_TESTS = 5
 TIME_TO_BUCKETS = 5
 
@@ -74,13 +74,14 @@ def parseResults():
         for index, click in enumerate(sorted(timebuckets[key], key=lambda k: k['answer_time']['server'])):
             answer_delta_bucket = total_seconds(click['answer_time']['server'] - key)
             
-            answer_delta_go = total_seconds(click['answer_time']['client'] - go_time['client'])
+            answer_delta_go = total_seconds(click['answer_time']['client'] - click['go_time']['client'])
             go_delta_show = total_seconds(click['go_time']['client'] - click['show_time']['client'])
+            show_delta_accept = total_seconds(click['show_time']['client'] - click['accept_time']['client'])
 
             #             accept_delta_answer = None         
             #             if click['client_accept_time'] is not None:
             #                 delta_since_accept = total_seconds(click['click_time']['client'] - click['accept_time']['client'])
-            print('answer-bucket  ' + str(answer_delta_bucket) + 'sec | go-show ' + str(go_delta_show) + 'sec | answer-go ' + str(answer_delta_go) + 'sec')
+            print('bucketstart-answer ' + str(answer_delta_bucket) + 'sec | accept-show ' + str(show_delta_accept) + 'sec | show-go ' + str(go_delta_show) + 'sec | go-answer ' + str(answer_delta_go) + 'sec')
             
             if not time_to.has_key(index+1):
                 time_to[index+1] = []

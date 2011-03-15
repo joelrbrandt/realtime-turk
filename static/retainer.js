@@ -3,7 +3,7 @@ var showTimeout;
 var checkInterval;
 var bucket = null;
 
-var MAX_WAIT_SECONDS = 5;
+var MAX_WAIT_SECONDS = 180;
 var REWARD_MAX_SECONDS = 3; // max number of seconds to click the "go" button if you want the reward
 
 // Sets a specific textid if we are near the regular firing period,
@@ -121,6 +121,10 @@ function showText() {
 }
 
 function grantBonus() {
+    if (isPreview()) {
+        return; // don't grant a bonus for a preview!
+    }
+    
     var theURL = 'http://flock.csail.mit.edu/rts/msbernst/bonus?workerId=' + workerid + '&assignmentId=' + assignmentid + '&hitId=' + hitid;
 
     $.get(theURL, function(data) {
