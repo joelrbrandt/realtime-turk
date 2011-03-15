@@ -7,7 +7,7 @@ import numpy
 import settings
 
 TEST_TEXT_PK = 25
-EXPERIMENT = 18
+EXPERIMENT = 20
 MIN_BETWEEN_TESTS = 5
 TIME_TO_BUCKETS = 5
 
@@ -17,13 +17,7 @@ def parseResults():
     db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE,
  use_unicode=True)
     cur = db.cursor()
-    
-    print("Format:")
-    print("---bucket: time that bucket starts----")
-    print("  time between bucket start and click received | time between text appear and user click | time between HIT accept and user click")
-    print
-    print
-    
+        
     timebuckets = dict()
     
     # initialize all the buckets
