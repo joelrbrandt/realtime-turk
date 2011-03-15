@@ -14,7 +14,9 @@ soundManager.onready(function() {
   // SM2 has loaded - now you can create and play sounds!
     var mySound = soundManager.createSound({
 	id: 'alert-sound',
-	url: 'alert/alert.mp3'
+	url: 'alert/alert.mp3',
+	loops: 3,
+	autoLoad: true,
 	// onload: [ event handler function object ],
     // other options here..
     });
