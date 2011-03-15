@@ -1,0 +1,1 @@
+java -jar TurKit-0.2.5.jar -f "quikturkit.js" -a AWS_ACCESS_KEY -s AFS_SECRET_KEY -m sandbox -o 100 -h 1000
