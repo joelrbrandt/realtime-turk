@@ -3,7 +3,7 @@ var showTimeout;
 var checkInterval;
 var bucket = null;
 
-var MAX_WAIT_SECONDS = 180;
+var MAX_WAIT_SECONDS = 120;
 var REWARD_MAX_SECONDS = 3; // max number of seconds to click the "go" button if you want the reward
 
 // Sets a specific textid if we are near the regular firing period,
@@ -16,6 +16,8 @@ function scheduleRetainer() {
     
     // msbernst: turning off bucket test timing
     // checkForTest();
+    
+    pingAlive();
 }
 
 // Hides the text from the user
@@ -60,6 +62,13 @@ function setRetainerCallback() {
     
 }
 
+/* Tells the server that we're still watching */
+function pingAlive() {
+    logEvent("ping");
+    window.setTimeout(pingAlive, 5000);
+}
+
+
 function checkForTest() {
     var theURL = 'http://flock.csail.mit.edu/rts/msbernst/testtimer?workerid=' + workerid + '&experimentid=' + experiment + '&textid=' + TEST_TEXT_ID;
     $.get(theURL, function(data) {
@@ -101,7 +110,15 @@ function showText() {
     
     if (isReward) {
         var timeDiff = goTime - showTime;
-        var timeString = "You clicked the Go button in " + (timeDiff / 1000) + " seconds.";
+        
+        var timeString = "You "
+        if (isAlert) {
+            timeString = timeString + " dismissed the alert "
+        } else {
+            timeString = timeString + " clicked the Go! button "
+        }        
+        
+        timeString = timeString +  "in " + (timeDiff / 1000) + " seconds.";
         if (timeDiff < REWARD_MAX_SECONDS * 1000) {
             timeString = timeString + " You get the bonus!";
             $('#time-report').css('color', 'red');
