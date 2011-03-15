@@ -3,7 +3,7 @@ var showTimeout;
 var checkInterval;
 var bucket = null;
 
-var MAX_WAIT_SECONDS = 180;
+var MAX_WAIT_SECONDS = 5;
 var REWARD_MAX_SECONDS = 3; // max number of seconds to click the "go" button if you want the reward
 
 // Sets a specific textid if we are near the regular firing period,
