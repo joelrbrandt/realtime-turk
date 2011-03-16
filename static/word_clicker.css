@@ -21,6 +21,10 @@ a:hover {
     -moz-user-select: none;
 }
 
+.outlined {
+    border: thin solid darkGray;
+}
+
 .task.ready {
     border: thick solid red;
 }
