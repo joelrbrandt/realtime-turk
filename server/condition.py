@@ -1,8 +1,8 @@
 from mod_python import apache, util
-from mako.template import Template
 import MySQLdb
 import settings
 import random
+import simplejson as json
 
 CONDITIONS = [
     {
@@ -39,7 +39,7 @@ def loadCondition(request):
     is_alert = bool(result['is_alert'])
     is_reward = bool(result['is_reward'])
     
-    renderTemplate(request, is_alert, is_reward)
+    renderResponse(request, is_alert, is_reward)
     
 def setRandomCondition(worker_id, cursor):
     """ Chooses a random group to assign the worker to, and sets it in the database """
@@ -48,9 +48,17 @@ def setRandomCondition(worker_id, cursor):
     cursor.execute("""INSERT INTO workers (workerid, is_alert, is_reward) VALUES (%s, %s, %s)""", (worker_id, random_condition['is_alert'], random_condition['is_reward']) )
     
     return random_condition
+
+def renderResponse(request, is_alert, is_reward):
+    response = {
+                    'is_alert': is_alert,
+                    'is_reward': is_reward
+                }
+    request.write(json.dumps(response))
     
 def renderTemplate(request, is_alert, is_reward):
     """ Renders the worker's settings into the javascript """
+    from mako.template import Template
     template = Template(filename='/var/www/realtime/msbernst/server/condition.js')
 
     request.write(template.render(workerid_is_alert = is_alert, workerid_is_reward = is_reward))

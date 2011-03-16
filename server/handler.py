@@ -10,7 +10,7 @@ def handler(request):
         servertime.servertime(request)
         return apache.OK
         
-    elif uri_parts[-1] == "condition.js":
+    elif uri_parts[-1] == "condition":
         import condition
         condition.loadCondition(request)
         return apache.OK 
