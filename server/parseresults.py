@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import simplejson as json
 from timeutils import parseISO
 import numpy
+from scipy import stats
 import settings
 from padnums import pprint_table
 import sys
@@ -141,15 +142,33 @@ def printSummary(assignments):
     print("WARNING: not removing first worker attempt to smooth")
     print("N = %d, %d unique workers" % (len(assignments), len(set([assignment.workerid for assignment in assignments]))))
     
-    table = [["metric", "median", "mean", "std. dev"]]
+    table = [["metric", "10%", "25%", "50%", "75%", "mean", "std. dev"]]
     accept_show = [click.showDeltaAccept() for click in assignments if click.showDeltaAccept() is not None]
-    table.append( ["accept-show", str(numpy.median(accept_show)), str(numpy.mean(accept_show)), str(numpy.std(accept_show)) ] )        
+    table.append( ["accept-show", 
+                   str(stats.scoreatpercentile(accept_show, 10)),
+                   str(stats.scoreatpercentile(accept_show, 25)),
+                   str(stats.scoreatpercentile(accept_show, 50)),
+                   str(stats.scoreatpercentile(accept_show, 75)),
+                   str(numpy.mean(accept_show)),
+                   str(numpy.std(accept_show)) ] )
     
     go_show = [click.goDeltaShow() for click in assignments if click.goDeltaShow() is not None]
-    table.append( ["show-go", str(numpy.median(go_show)), str(numpy.mean(go_show)), str(numpy.std(go_show)) ] )
+    table.append( ["show-go",
+                   str(stats.scoreatpercentile(go_show, 10)),
+                   str(stats.scoreatpercentile(go_show, 25)),
+                   str(stats.scoreatpercentile(go_show, 50)),
+                   str(stats.scoreatpercentile(go_show, 75)),
+                   str(numpy.mean(go_show)),
+                   str(numpy.std(go_show)) ] )
     
     go_answer = [click.answerDeltaGo() for click in assignments if click.answerDeltaGo() is not None]
-    table.append( ["go-answer", str(numpy.median(go_answer)), str(numpy.mean(go_answer)), str(numpy.std(go_answer)) ] )    
+    table.append( ["go-answer",
+                   str(stats.scoreatpercentile(go_answer, 10)),
+                   str(stats.scoreatpercentile(go_answer, 25)),
+                   str(stats.scoreatpercentile(go_answer, 50)),
+                   str(stats.scoreatpercentile(go_answer, 75)),                   
+                   str(numpy.mean(go_answer)),
+                   str(numpy.std(go_answer)) ] )    
     
     pprint_table(sys.stdout, table)
     
