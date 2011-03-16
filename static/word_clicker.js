@@ -2,12 +2,21 @@ var textid = 0;
 var assignmentid = 0; 
 var workerid = 0;
 var hitid = 0;
-var offset = 0;
+
 var experiment = 0;
 var replay = false;
 var numClicks = 0;
 var retainer = false;
 var retainerType = "random";
+
+// Worker conditions
+var conditionsLoaded = false;
+var isAlert = false;
+var isReward = false;
+
+// Timing
+var timingLoaded = false;
+var offset = 0;
 
 var TEST_TEXT_ID = 25;
 
@@ -18,7 +27,14 @@ $(function() {
     $.ajaxSetup({ cache: false })
     initDatePrototype();    // some browsers don't have toISOString()
     loadParameters();
-    initServerTime(timeOffsetReady);
+    initServerTime();
+    
+    // loadParameters and initServertime call testReady()
+    // once they return, which calls main() once they have
+    // both returned ready
+    // javascript sucks at semaphores and things, so this
+    // seemed to be the way that the internet recommended
+    // doing it
 });
 
 function loadParameters() {
@@ -57,9 +73,38 @@ function loadParameters() {
     }
         
     replay = $(document).getUrlParam("replay") == "1";
+    
+    initConditions();
 }
 
-function timeOffsetReady() {
+function initConditions() {
+    $.getJSON("http://flock.csail.mit.edu/rts/msbernst/condition?workerid=" + workerid, function(result) {
+        var alertURL = $(document).getUrlParam("alert");
+        if (alertURL == null || alertURL == "") {
+            isAlert = result['is_alert'];
+        } else {
+            isAlert = (alertURL === '1');
+        }
+        
+        var rewardURL = $(document).getUrlParam("reward");
+        if (rewardURL == null || rewardURL == "") {
+            isReward = result['is_reward'];
+        }
+        else {
+            isReward = (rewardURL === '1');    
+        }
+        
+        console.log('alert: ' + isAlert + " | reward: " + isReward);
+    
+        conditionsLoaded = true;
+        testReady();    
+    });
+}
+
+/**
+ * Starts the timers and shows everything to the user.
+ */
+function main() {
     if (assignmentid == 0) {
         logEvent("preview");
     } else {
@@ -76,10 +121,25 @@ function timeOffsetReady() {
     registerFocusBlurListeners(); 
 }
 
+/**
+ * Calls main if all required AJAX calls have returned
+ */
+function testReady() {
+    if (timingLoaded && conditionsLoaded) {
+        main();
+    }
+}
+
+/**
+ * Gets a random paragraph from the server
+ */
 function loadTaskParagraph() {
     $.getJSON("http://flock.csail.mit.edu/rts/msbernst/gettext", {'textid': textid }, insertText);
 }
 
+/**
+ * Takes the paragraph text and inserts it (hidden) into the DOM
+ */
 function insertText(data) {
     if (textid == TEST_TEXT_ID && parseInt(data['pk']) != TEST_TEXT_ID) {
         // if we're supposed to be showing the test text, and we're getting a callback for some other text, ignore it. Otherwise a callback to gettext might override our test text
@@ -185,7 +245,7 @@ function logClick(wordid, highlighted) {
 /**
  * Gets the time from a CSAIL server, calculates the offset, and stores it.
  */
-function initServerTime(callback) {
+function initServerTime() {
     var startTime = new Date();
     $.get("http://flock.csail.mit.edu/rts/msbernst/time",
         function(data) {            
@@ -197,7 +257,8 @@ function initServerTime(callback) {
             offset = (serverTime - new Date());
             console.log("clock synch complete. offset: " + offset);
             
-            callback();
+            timingLoaded = true;
+            testReady();
         }
     );
 }
