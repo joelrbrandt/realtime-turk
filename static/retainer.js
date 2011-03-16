@@ -24,7 +24,7 @@ function scheduleRetainer() {
 // Hides the text from the user
 function retainerHide() {
     $('#task-paragraph').hide()
-    .after("<div id='retainer' class='task'>In " + MAX_WAIT_SECONDS + " seconds or less, a paragraph will appear here. Act as quickly as you can when it appears to select all the verbs.<br/><br/><img src='media/preview.png' /></div>");
+    .after("<div id='retainer' class='task'>In " + MAX_WAIT_SECONDS + " seconds or less, a paragraph will appear here. Act as quickly as you can when it appears to select all the verbs.<br/><br/></div>");
     
     if (isReward) {
         var explanation = "We will give you a <b>two cent bonus</b> if you ";
