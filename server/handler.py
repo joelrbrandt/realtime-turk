@@ -9,6 +9,11 @@ def handler(request):
         import servertime
         servertime.servertime(request)
         return apache.OK
+        
+    elif uri_parts[-1] == "condition.js":
+        import condition
+        condition.loadCondition(request)
+        return apache.OK 
 
     elif uri_parts[-1] == "testtimer":
         import testtimer

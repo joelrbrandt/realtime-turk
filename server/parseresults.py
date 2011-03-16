@@ -10,6 +10,38 @@ import sys
 
 EXPERIMENT = 25
 
+class Assignment:
+    """ Encapsulates information about an assignment completion """
+    answer_time = None
+    accept_time = None
+    show_time = None
+    go_time = None
+    
+    workerid = None
+    assignmentid = None
+    detail = None
+    
+    def answerDeltaGo(self):
+        """ Time between clicking Go and clicking the first answer """
+        if self.answer_time is not None and self.go_time is not None:
+            return total_seconds(self.answer_time['client'] - self.go_time['client'])
+        else:
+            return None         
+            
+    def goDeltaShow(self):
+        """ Time between the Go button showing up, and it being clicked """
+        if self.go_time is not None and self.show_time is not None:            
+            return total_seconds(self.go_time['client'] - self.show_time['client'])
+        else:
+            return None
+    
+    def showDeltaAccept(self):
+        """ Time between accepting the task and the Go button appearing """
+        if self.show_time is not None and self.accept_time is not None:
+            return total_seconds(self.show_time['client'] - self.accept_time['client'])
+        else:
+            return None
+
 def parseResults():      
     db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE,
  use_unicode=True)
@@ -17,10 +49,13 @@ def parseResults():
 
     # get all the clicks
     assignments = getAssignments(cur, EXPERIMENT)
-    assignments.sort(key=lambda k: k['answer_time']['server'])  # we want them in completion order
+    assignments.sort(key=lambda k: k.answer_time['server'])  # we want them in completion order
     
     """ Now we look at each assignment and look at time diffs """
-    printAssignments(sorted(assignments, key=lambda k: k['workerid']))
+    printAssignments(sorted(assignments, key=lambda k: k.workerid))
+    
+    print("\n\n")
+    printSummary(assignments)
     
     print("\n\nworker logs")
     printWorkerLogs(assignments)
@@ -40,39 +75,34 @@ def getAssignments(cur, experiment):
 
     """ For each assignment, get its completion information """
     for row in cur.fetchall():
-        answer_time = { 'client': datetime.fromtimestamp(row[0]),
+        assignment = Assignment()
+        assignment.workerid = row[1]
+        assignment.assignmentid = row[3]
+        assignment.detail = json.loads(row[2])
+        
+        assignment.answer_time = { 'client': datetime.fromtimestamp(row[0]),
                         'server': datetime.fromtimestamp(row[4]) }
         
         # when did the worker accept that task?
         cur.execute("""SELECT time, servertime from logging WHERE event='accept' AND assignmentid = '%s'""" % ( row[3] ))
         result = cur.fetchone()
         if result is not None:
-            accept_time = { 'client': datetime.fromtimestamp(result[0]),
+            assignment.accept_time = { 'client': datetime.fromtimestamp(result[0]),
                             'server': datetime.fromtimestamp(result[1]) }
-        else:
-            accept_time = None
             
         # when did the task or 'go' button appear to the user?
-        detail = json.loads(row[2])
-        show_time = { 'client': datetime.fromtimestamp(parseISO(detail['showTime'])) } # no server time
+
+        assignment.show_time = { 'client': datetime.fromtimestamp(parseISO(assignment.detail['showTime'])) } # no server time
             
         # when did the worker click the "go" button?
         cur.execute("""SELECT time, servertime from logging WHERE event='go' AND assignmentid = '%s'""" % ( row[3] ))
         result = cur.fetchone()
         if result is not None:
-            go_time = { 'client': datetime.fromtimestamp(result[0]),
+            assignment.go_time = { 'client': datetime.fromtimestamp(result[0]),
                         'server': datetime.fromtimestamp(result[1]) }
-        else:
-            go_time = None
         
             
-        assignments.append( {   'answer_time': answer_time,
-                                'workerid': row[1],
-                                'assignmentid': row[3],
-                                'detail': json.loads(row[2]),
-                                'accept_time': accept_time,
-                                'show_time': show_time,
-                                'go_time': go_time })
+        assignments.append(assignment)
 
     return assignments
 
@@ -80,20 +110,10 @@ def printAssignments(assignments):
     """ Calculates relevant deltas and prints them out to the console """
 
     table = [["workerId", "assignmentId", "accept-show", "show-go", "go-answer"]]
-    for click in assignments:
-        answer_delta_go = go_delta_show = show_delta_accept = "None"
+    for click in assignments:     
+        table.append( [ click.workerid, click.assignmentid, str(click.showDeltaAccept()), str(click.goDeltaShow()), str(click.answerDeltaGo()) ] )
         
-        if click['answer_time'] is not None and click['go_time'] is not None:
-            answer_delta_go = total_seconds(click['answer_time']['client'] - click['go_time']['client'])
-        if click['go_time']  is not None and click['show_time'] is not None:            
-            go_delta_show = total_seconds(click['go_time']['client'] - click['show_time']['client'])
-        if click['show_time'] is not None and click['accept_time']  is not None:
-            show_delta_accept = total_seconds(click['show_time']['client'] - click['accept_time']['client'])
-     
-        table.append( [ click['workerid'], click['assignmentid'], str(show_delta_accept), str(go_delta_show), str(answer_delta_go) ] )
-        
-    out = sys.stdout
-    pprint_table(out, table)
+    pprint_table(sys.stdout, table)
 
 
 def printWorkerLogs(assignments):
@@ -102,12 +122,10 @@ def printWorkerLogs(assignments):
     worker_lags = dict()
     # looking at per-user lag time
     for click in assignments:
-        if not worker_lags.has_key(click['workerid']):
-            worker_lags[click['workerid']] = []
+        if not worker_lags.has_key(click.workerid):
+            worker_lags[click.workerid] = []
 
-        if click['answer_time'] is not None and click['go_time']  is not None:
-            answer_delta_go = total_seconds(click['answer_time']['client'] - click['go_time']['client'])
-        worker_lags[click['workerid']].append(answer_delta_go)
+        worker_lags[click.workerid].append(click.answerDeltaGo())
         
     for workerid in worker_lags.keys():
         print(workerid + ' ' + str(worker_lags[workerid]))
@@ -119,6 +137,23 @@ def printCurrentlyActiveCount(cur, experiment):
     result = cur.fetchone()[0]
     print("unique assignmentId pings in last 15 seconds: " + str(result))
     
+def printSummary(assignments):
+    print("WARNING: not removing first worker attempt to smooth")
+    print("N = %d, %d unique workers" % (len(assignments), len(set([assignment.workerid for assignment in assignments]))))
+    
+    table = [["metric", "median", "mean", "std. dev"]]
+    accept_show = [click.showDeltaAccept() for click in assignments if click.showDeltaAccept() is not None]
+    table.append( ["accept-show", str(numpy.median(accept_show)), str(numpy.mean(accept_show)), str(numpy.std(accept_show)) ] )        
+    
+    go_show = [click.goDeltaShow() for click in assignments if click.goDeltaShow() is not None]
+    table.append( ["show-go", str(numpy.median(go_show)), str(numpy.mean(go_show)), str(numpy.std(go_show)) ] )
+    
+    go_answer = [click.answerDeltaGo() for click in assignments if click.answerDeltaGo() is not None]
+    table.append( ["go-answer", str(numpy.median(go_answer)), str(numpy.mean(go_answer)), str(numpy.std(go_answer)) ] )    
+    
+    pprint_table(sys.stdout, table)
+    
+     
 def total_seconds(td):
     return td.days * 3600 * 24 + td.seconds + td.microseconds / 1000000.0
 

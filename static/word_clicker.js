@@ -8,8 +8,6 @@ var replay = false;
 var numClicks = 0;
 var retainer = false;
 var retainerType = "random";
-var isAlert = false;
-var isReward = false;
 
 var TEST_TEXT_ID = 25;
 
@@ -19,7 +17,7 @@ try { console.log('Javascript console found.'); } catch(e) { console = { log: fu
 $(function() {
     $.ajaxSetup({ cache: false })
     initDatePrototype();    // some browsers don't have toISOString()
-    loadParameters();    
+    loadParameters();
     initServerTime(timeOffsetReady);
 });
 
@@ -43,6 +41,7 @@ function loadParameters() {
     if (textid == null || isNaN(textid)) {
         textid = Math.floor(Math.random() * 24) + 1;
     }
+    
     experiment = parseInt($(document).getUrlParam("experiment"));
     if (experiment == null || isNaN(experiment)) {
         experiment = 0;
@@ -56,13 +55,7 @@ function loadParameters() {
         retainerType = "random";
         // other types: "5min"
     }
-    
-    var alertURL = $(document).getUrlParam("alert");
-    isAlert = (alertURL === '1');
-    
-    var rewardURL = $(document).getUrlParam("reward");
-    isReward = (rewardURL === '1');    
-    
+        
     replay = $(document).getUrlParam("replay") == "1";
 }
 
