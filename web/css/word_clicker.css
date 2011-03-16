@@ -1,0 +1,66 @@
+@charset "UTF-8";
+body {
+    margin:1em;
+    font-size: 12pt;
+    font-family: Georgia, "Times New Roman", Times, serif;
+}
+a {
+    text-decoration: inherit;
+    color: inherit;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+.task {
+    margin: 3em;
+    padding: 1.5em;
+    line-height: 1.5em;
+    border: thin solid black;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+.instructions {
+    background-color: #FFFADB;
+    border: thin dotted darkGray;
+    padding: 1em;
+}
+
+.instructions ol {
+    margin: 0 inherit;
+}
+
+.outlined {
+    border: thin solid darkGray;
+}
+
+.task.ready {
+    border: thick solid red;
+}
+
+#retainer img {
+    border: thin dashed darkGray;
+}
+
+#readybtn {
+    font-size: 50pt;
+}
+
+.word-off {
+    background-color: white;
+}
+
+.word-off:hover {
+    background-color: #DDDDDD;
+    cursor:pointer;
+}
+
+.word-on {
+    background-color: #FF9999;
+}
+
+.word-on:hover {
+    background-color: #FF3333;
+    cursor:pointer;
+}
