@@ -1,0 +1,8 @@
+# use glob syntax.
+syntax: glob
+
+settings.py
+quik/run.pl
+*.js.database
+*.pyc
+long-poll-server/rts_config.py
