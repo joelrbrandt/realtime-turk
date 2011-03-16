@@ -114,7 +114,6 @@ function main() {
     if (retainer) {
         scheduleRetainer();
         retainerHide();
-        setRetainerCallback();
     }
     loadTaskParagraph();
     registerDoneBtnListener();
@@ -251,11 +250,10 @@ function initServerTime() {
         function(data) {            
             var travelTime = (new Date() - startTime)/2;                
             var serverTime = parseDate(data.date);
-            console.log(serverTime.getMilliseconds());
 
             serverTime.addMilliseconds(travelTime);
             offset = (serverTime - new Date());
-            console.log("clock synch complete. offset: " + offset);
+            console.log("clock sync complete. offset: " + offset);
             
             timingLoaded = true;
             testReady();
