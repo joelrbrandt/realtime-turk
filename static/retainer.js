@@ -11,12 +11,13 @@ var REWARD_MAX_SECONDS = 3; // max number of seconds to click the "go" button if
 function scheduleRetainer() {
     if (isPreview()) {
         // don't do this in preview mode
+        console.log("In preview mode, not setting timer.");
         return;
     }
     
     // msbernst: turning off bucket test timing
     // checkForTest();
-    
+    setRetainerCallback();
     pingAlive();
 }
 
@@ -87,6 +88,7 @@ function checkForTest() {
 }
 
 function showGoButton() {
+    console.log("GO!");
     $('#retainer').hide();
     $('#donebtn').hide();
 
