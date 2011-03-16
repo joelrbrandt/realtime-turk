@@ -1,22 +1,24 @@
+from mod_python import apache, util
 from mako.template import Template
 import MySQLdb
 import settings
+import random
 
 CONDITIONS = [
     {
-        name: 'baseline',
-        is_alert: False,
-        is_reward: False
+        'name': 'baseline',
+        'is_alert': False,
+        'is_reward': False
     },
     {
-        name: 'alert',
-        is_alert: True,
-        is_reward: False
+        'name': 'alert',
+        'is_alert': True,
+        'is_reward': False
     },
     {
-        name: 'reward',
-        is_alert: False,
-        is_reward: True
+        'name': 'reward',
+        'is_alert': True,
+        'is_reward': True
     }
 ]
 
@@ -27,21 +29,25 @@ def loadCondition(request):
     cur = db.cursor(MySQLdb.cursors.DictCursor)
     
     form = util.FieldStorage(request)
-    workerid = form['workerid'].value
+    worker_id = form['workerid'].value
     
-    num_rows = cur.execute("""SELECT is_alert, is_reward FROM workers WHERE workerid = %s """, (workerid, ) )
+    num_rows = cur.execute("""SELECT is_alert, is_reward FROM workers WHERE workerid = %s """, (worker_id, ) )
     if (num_rows == 0): # not in database yet
-        setRandomCondition(worker_id, cur)
+        result = setRandomCondition(worker_id, cur)
     else:
-        
-    
-
+        result = cur.fetchone()
+    is_alert = bool(result['is_alert'])
+    is_reward = bool(result['is_reward'])
     
     renderTemplate(request, is_alert, is_reward)
     
 def setRandomCondition(worker_id, cursor):
     """ Chooses a random group to assign the worker to, and sets it in the database """
+    random_condition = random.choice(CONDITIONS)
     
+    cursor.execute("""INSERT INTO workers (workerid, is_alert, is_reward) VALUES (%s, %s, %s)""", (worker_id, random_condition['is_alert'], random_condition['is_reward']) )
+    
+    return random_condition
     
 def renderTemplate(request, is_alert, is_reward):
     """ Renders the worker's settings into the javascript """
