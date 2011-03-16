@@ -21,6 +21,17 @@ a:hover {
     -moz-user-select: none;
 }
 
+.instructions {
+    background-color: #FFFADB;
+    border: thin dotted darkGray;
+    margin: 0 inherit 0 inherit;
+    padding: 1em;
+}
+
+.instruction ol {
+    margin-top: 0;
+}
+
 .outlined {
     border: thin solid darkGray;
 }
