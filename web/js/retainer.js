@@ -71,7 +71,7 @@ function pingAlive() {
 
 
 function checkForTest() {
-    var theURL = 'http://flock.csail.mit.edu/rts/msbernst/testtimer?workerid=' + workerid + '&experimentid=' + experiment + '&textid=' + TEST_TEXT_ID;
+    var theURL = 'rts/testtimer?workerid=' + workerid + '&experimentid=' + experiment + '&textid=' + TEST_TEXT_ID;
     $.get(theURL, function(data) {
         if (data['test']) {
             window.clearTimeout(checkInterval);
@@ -143,7 +143,7 @@ function grantBonus() {
         return; // don't grant a bonus for a preview!
     }
     
-    var theURL = 'http://flock.csail.mit.edu/rts/msbernst/bonus?workerId=' + workerid + '&assignmentId=' + assignmentid + '&hitId=' + hitid;
+    var theURL = 'rts/bonus?workerId=' + workerid + '&assignmentId=' + assignmentid + '&hitId=' + hitid;
 
     $.get(theURL, function(data) {
         console.log("bonus logged");
