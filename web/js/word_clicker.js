@@ -146,7 +146,7 @@ function insertText(data) {
     }
     
     
-    $("#task-paragraph").html("<p>"+ data.text + "</p>");
+    $("#taskText").html("<p>"+ data.text + "</p>");
     $(".word").each(function(i, e) { $(e).addClass("word-off") });    	$(".word").click(function() { toggleWord($(this));});
     if (replay) {
         replayLog(textid);

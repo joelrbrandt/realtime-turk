@@ -24,12 +24,11 @@ a:hover {
 .instructions {
     background-color: #FFFADB;
     border: thin dotted darkGray;
-    margin: 0 inherit 0 inherit;
     padding: 1em;
 }
 
-.instruction ol {
-    margin-top: 0;
+.instructions ol {
+    margin: 0 inherit;
 }
 
 .outlined {

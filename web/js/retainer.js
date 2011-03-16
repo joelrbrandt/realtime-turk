@@ -23,10 +23,10 @@ function scheduleRetainer() {
 
 // Hides the text from the user
 function retainerHide() {
-    $('#task-paragraph').hide()
-    .after("<div id='retainer' class='task'>In " + MAX_WAIT_SECONDS + " seconds or less, a paragraph will appear here. Act as quickly as you can when it appears to select all the verbs.<br/><br/></div>");
+    $('#taskText').hide()
+    //.after("<div id='retainer' class='task'>In " + MAX_WAIT_SECONDS + " seconds or less, a paragraph will appear here. Act as quickly as you can when it appears to select all the verbs.<br/><br/></div>");
     
-    if (isReward) {
+    /*if (isReward) {
         var explanation = "We will give you a <b>two cent bonus</b> if you ";
         if (isAlert) {
             explanation = explanation + " dismiss the alert "
@@ -36,7 +36,8 @@ function retainerHide() {
         explanation = explanation + "in less than " + REWARD_MAX_SECONDS + " seconds after it appears.";
         
         $('#task-paragraph').before("<p id='bonus-explanation'>" + explanation + "</p><p id='time-report' style='display: none'></p>");        
-    }    
+    }
+    */
     
     $('#donebtn').attr("disabled", "true").html("HIT will be submittable after job appears");
 }
@@ -101,8 +102,8 @@ function showGoButton() {
         // log immediately after they click the OK button
         showText();
     } else {
-        $('#task-paragraph').after("<div id='readycontainer' class='task'><button id='readybtn'>Go!</button></div>");
-        $('#readybtn').click(showText);    
+        $('#goContainer').html("<button id='readybtn'>Go!</button>");
+        $('#readybtn').click(showText);
     }
 }
 
@@ -131,11 +132,12 @@ function showText() {
     }
     
     $('#donebtn').show();
-    $('#readycontainer').hide();
+    $('#goContainer').hide();
     if (assignmentid != 0) {
         $('#donebtn').attr("disabled", "").html("Done");    
     }
-    $('#task-paragraph').show().effect('highlight', {}, 3000);    
+    $('#taskText').show();
+    $('#taskContainer').effect('highlight', {}, 3000);    
 }
 
 function grantBonus() {
