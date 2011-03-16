@@ -78,7 +78,7 @@ function loadParameters() {
 }
 
 function initConditions() {
-    $.getJSON("http://flock.csail.mit.edu/rts/msbernst/condition?workerid=" + workerid, function(result) {
+    $.getJSON("rts/condition?workerid=" + workerid, function(result) {
         var alertURL = $(document).getUrlParam("alert");
         if (alertURL == null || alertURL == "") {
             isAlert = result['is_alert'];
@@ -133,7 +133,7 @@ function testReady() {
  * Gets a random paragraph from the server
  */
 function loadTaskParagraph() {
-    $.getJSON("http://flock.csail.mit.edu/rts/msbernst/gettext", {'textid': textid }, insertText);
+    $.getJSON("rts/gettext", {'textid': textid }, insertText);
 }
 
 /**
@@ -204,7 +204,7 @@ function logEvent(eventName, detail, finishedCallback) {
         bucket: bucketDate.toISOString(),
     }
     
-    $.post("http://flock.csail.mit.edu/rts/msbernst/log", logData,        
+    $.post("rts/log", logData,        
         function(reply) {
             console.log(logData.event + " " + logData.time + " " + JSON.stringify(detail));
             if (finishedCallback != null) {
@@ -246,7 +246,7 @@ function logClick(wordid, highlighted) {
  */
 function initServerTime() {
     var startTime = new Date();
-    $.get("http://flock.csail.mit.edu/rts/msbernst/time",
+    $.get("rts/time",
         function(data) {            
             var travelTime = (new Date() - startTime)/2;                
             var serverTime = parseDate(data.date);
