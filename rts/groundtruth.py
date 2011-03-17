@@ -17,6 +17,7 @@ def setGroundTruth(text_id, ground_truth_array):
     zipped = zip([text_id] * len(ground_truth_array), ground_truth_array)
     print(zipped)
     
+    cur.execute("""DELETE FROM groundtruth WHERE textid = %s""", (text_id,))
     cur.executemany("""INSERT INTO groundtruth (textid, wordid) VALUES (%s, %s)""", zipped)
     cur.close()
     db.close()
