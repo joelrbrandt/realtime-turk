@@ -1,4 +1,3 @@
-from mod_python import apache, util
 import MySQLdb
 import settings
 import random
@@ -21,6 +20,14 @@ CONDITIONS = [
         'is_reward': True
     }
 ]
+
+def getConditionName(is_alert, is_reward):
+    for condition in CONDITIONS:
+        if condition['is_alert'] == is_alert and condition['is_reward'] == is_reward:
+            return condition['name']
+    
+    # we don't know it
+    return 'unknown'
 
 def isAlert(worker_id):
     """ Returns true if the worker should have an alert """
@@ -56,6 +63,8 @@ def setRandomCondition(worker_id, cursor):
     return random_condition
 
 def renderResponse(request, is_alert, is_reward):
+    from mod_python import apache, util # we don't want this available for all code, just this
+    
     response = {
                     'is_alert': is_alert,
                     'is_reward': is_reward
