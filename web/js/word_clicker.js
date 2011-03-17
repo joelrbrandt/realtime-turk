@@ -282,7 +282,7 @@ function registerDoneBtnListener() {
         $('#donebtn').attr("disabled", "true").html("Accept HIT to submit work");
     } else {
         var functionGenerator = function(callback) { return function() {
-            $('#donebtn').attr("disabled", "true").html("Submitting..."); 
+            $(this).attr("disabled", "true").html("Submitting..."); 
             
             var verbs = getSelectedVerbs();
             var postData = {
@@ -290,15 +290,47 @@ function registerDoneBtnListener() {
                 'verbs[]': verbs
             };
             
-            $.post('rts/verify', postData, 
-                function(data) {
-                    console.log("verification complete");
-                    console.log(data);
-                    logEvent("submit", { numHighlighted: $(".word.word-on").length }, null);//callback);
-                });
+            $.post('rts/verify', postData, function(data) {
+                verifyResults(data, callback);
+            });
         }}; 
         
         $('#donebtn').click(functionGenerator(submitForm));
+        $('#surebtn').click(submitForm);
+    }
+}
+
+/**
+ * Checks the submitter's precision/recall values against minimum passable
+ * values and submits or errors as necessary.
+ */
+var MIN_PRECISION = .75;
+var MIN_RECALL = .66;
+function verifyResults(precision_recall, callback) {
+    var precision = precision_recall['precision']
+    var recall = precision_recall['recall']
+    console.log("precision: " + precision)
+    console.log("recall: " + recall)
+    
+    // we can keep track of how they do
+    logEvent("verify", precision_recall, null);
+    
+    if (precision >= MIN_PRECISION && recall >= MIN_RECALL) {
+        console.log("work accepted");
+        logEvent("submit", { numHighlighted: $(".word.word-on").length }, callback);                    
+    } else {
+        var errorMessage = "";
+        if (precision < MIN_PRECISION) {
+            errorMessage = errorMessage + "Warning: You have highlighted many words that our backup algorithm did not classify as verbs.<br/>"
+        }
+        if (recall < MIN_RECALL) {
+            errorMessage = errorMessage + "Warning: You have left many words un-highlighted that our backup algorithm classified as verbs.<br/>"
+        }
+        errorMessage = errorMessage + "If you are sure that your selections are correct, click the 'I'm Sure' button. We will review your work and reject it if it does not meet our threshold.<br/>Otherwise, change your selections and click 'Try Again' to see if you agree more with our algorithm."
+
+        $('#donemsg').html(errorMessage)
+        $('#donebtn').attr("disabled", "").html("Try Again"); 
+        $('#surebtn').show();
     }
 }
 

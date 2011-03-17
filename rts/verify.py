@@ -4,7 +4,7 @@ import simplejson as json
 import settings
 
 def verify(request):
-    #request.content_type = "application/json"
+    request.content_type = "application/json"
 
     form = util.FieldStorage(request)
     text_id = int(form['textid'].value)
@@ -21,7 +21,15 @@ def calculateAccuracy(text_id, verbs):
     cur.execute("""SELECT wordid FROM groundtruth WHERE textid = %s""", (text_id))
     ground_truth = [row[0] for row in cur.fetchall()]
     
-    precision = float(len(set(verbs).intersection(ground_truth))) / len(verbs)
-    recall = float(len(set(verbs).intersection(ground_truth))) / len(ground_truth)
+    try:
+        precision = float(len(set(verbs).intersection(ground_truth))) / len(verbs)
+    except ZeroDivisionError:
+        precision = 1 # otherwise we show an error that they "highlighted many verbs", which is weird if you haven't highlighted anything
+    
+    try:
+        recall = float(len(set(verbs).intersection(ground_truth))) / len(ground_truth)
+    except ZeroDivisionError:
+        recall = 0
+        
     return { 'precision': precision, 'recall': recall }
     
