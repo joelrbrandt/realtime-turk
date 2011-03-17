@@ -3,9 +3,6 @@ var showTimeout;
 var checkInterval;
 var bucket = null;
 
-var MAX_WAIT_SECONDS = 5;
-var REWARD_MAX_SECONDS = 3; // max number of seconds to click the "go" button if you want the reward
-
 // Sets a specific textid if we are near the regular firing period,
 // and sets the firing time to be exactly on the dot of the firing period
 function scheduleRetainer() {
@@ -24,20 +21,6 @@ function scheduleRetainer() {
 // Hides the text from the user
 function retainerHide() {
     $('#taskText').hide()
-    //.after("<div id='retainer' class='task'>In " + MAX_WAIT_SECONDS + " seconds or less, a paragraph will appear here. Act as quickly as you can when it appears to select all the verbs.<br/><br/></div>");
-    
-    /*if (isReward) {
-        var explanation = "We will give you a <b>two cent bonus</b> if you ";
-        if (isAlert) {
-            explanation = explanation + " dismiss the alert "
-        } else {
-            explanation = explanation + " click the Go! button "
-        }
-        explanation = explanation + "in less than " + REWARD_MAX_SECONDS + " seconds after it appears.";
-        
-        $('#task-paragraph').before("<p id='bonus-explanation'>" + explanation + "</p><p id='time-report' style='display: none'></p>");        
-    }
-    */
     
     $('#donebtn').attr("disabled", "true").html("HIT will be submittable after job appears");
 }
@@ -45,7 +28,7 @@ function retainerHide() {
 // Sets a callback to fire and show the text to the user
 function setRetainerCallback() {
     if (showTime == null) { 
-        var waitTime = MAX_WAIT_SECONDS * 1000; 
+        var waitTime = maxWaitTime * 1000; 
         var waitDelta = Math.random() * (.30 * waitTime);
         waitTime = waitTime - waitDelta;
     } else {
@@ -123,7 +106,7 @@ function showText() {
         }        
         
         timeString = timeString +  "in " + (timeDiff / 1000) + " seconds.";
-        if (timeDiff < REWARD_MAX_SECONDS * 1000) {
+        if (timeDiff < maxRewardTime * 1000) {
             timeString = timeString + " You get the bonus!";
             $('#time-report').css('color', 'red');
             grantBonus();

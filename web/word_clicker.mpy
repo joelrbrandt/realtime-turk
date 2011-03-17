@@ -23,6 +23,9 @@ if fieldstorage.has_key('waittime'):
     wait_time = int(fieldstorage['waittime'])
 else:
     wait_time = 120
+    
+# time the user has to dismiss the dialog
+max_reward_time = 2
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -42,6 +45,9 @@ else:
     <script type="text/javascript">
         var isAlert = ${str(is_alert).lower()};
         var isReward = ${str(is_reward).lower()};
+        
+        var maxRewardTime = ${max_reward_time};
+        var maxWaitTime = ${wait_time};
     </script>
 </head>
 <body>
@@ -70,7 +76,7 @@ else:
     % else:
         click the Go! button
     % endif
-    in less than ${wait_time} seconds.</li>
+    in less than ${max_reward_time} seconds.</li>
 % endif        
         </ul>
         <div id="agreementContainer">
