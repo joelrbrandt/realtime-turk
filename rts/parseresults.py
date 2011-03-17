@@ -11,7 +11,7 @@ from scipy import stats
 from padnums import pprint_table
 import sys
 
-EXPERIMENT = 27
+EXPERIMENT = 28
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -146,6 +146,7 @@ def printCurrentlyActiveCount(cur, experiment):
     cur.execute("""SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event='ping' AND experiment = '%s' AND servertime >= %s""" % ( experiment, unixtime(ping_floor) ))
     result = cur.fetchone()[0]
     print("unique assignmentId pings in last 15 seconds: " + str(result))
+    return result
     
 def printSummary(assignments):
     # TODO?: WARNING: not removing first worker attempt to smooth
