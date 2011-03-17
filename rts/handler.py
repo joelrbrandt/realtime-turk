@@ -42,7 +42,12 @@ def handler(request):
             return apache.OK
         elif uri_parts[-1] == "set":
             agreement.setAgreement(request)
-            return apache.OK            
+            return apache.OK
+            
+    elif uri_parts[-1] == "verify":
+        import verify
+        verify.verify(request)
+        return apache.OK
         
     else:
         # request.content_type = "text/plain"
