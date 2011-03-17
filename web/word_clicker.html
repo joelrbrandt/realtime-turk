@@ -19,25 +19,21 @@
 <div class="task instructions">
     Instructions:
     <ol>
-        <li>In MAX_WAIT_SECONDS seconds or less, a paragraph will appear below. Act <b>quickly</b> when it appears.</li>
-        
-        <li>IF_ALERT: Your browser will display a dialog box and play a sound when the paragraph is ready. Press 'OK' as quickly as possible to show the paragraph.</li>
+        <li>In MAX_WAIT_SECONDS seconds or less, a paragraph will appear below. Act <b>quickly</b> to start when it appears.</li>
         
         <li>Use the mouse to click and select all verbs in the  paragraph.<br/><img src='media/preview.png' class='outlined'/><!--<br/>You may ignore all parts of each verb phrase other than the main verb.--></li>
-        
-        <li>IF_BONUS: We will give you a <b>two cent bonus</b> if you {DISMISS THE ALERT/click the Go! button} in less than REWARD_MAX_SECONDS seconds after it appears</li>
     </ol>
     <div id='time-report' style='display: none'></div>
 </div>
 
 <div class="task" id="taskContainer">
-    <div id="retainer">Please acknowledge that you have read the instructions, in particular:
+    <div id="retainer">Special instructions:
         <ul>
-        <li>Wait up to MAX_WAIT_SECONDS seconds for a paragraph to appear.</li>
+        <li>IF_ALERT: Your browser will display a dialog box and play a sound when the paragraph is ready. Press 'OK' as quickly as possible.</li>
         <li>Dismiss the dialog box as quickly as possible when it appears.</li>
-        <li>Receive a two cent bonus if you {DISMISS THE DIALOG} in less than REWARD_MAX_SECONDS.</li>
+        <li>IF_BONUS: You get a <b>two cent bonus</b> if you {DISMISS THE ALERT/click the Go! button} in less than REWARD_MAX_SECONDS seconds.</li>
         </ul>
-    <button id="instructionsOK">Ready!</button>
+    <button id="instructionsOK">I understand {about the alert and the bonus}</button>
     </div>
     <div id="goContainer"></div>
     <div id="taskText"></div>
