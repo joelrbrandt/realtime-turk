@@ -45,6 +45,7 @@ a:hover {
 
 #readybtn {
     font-size: 50pt;
+    min-height: 50pt;
 }
 
 .word-off {

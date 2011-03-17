@@ -13,9 +13,6 @@ var retainerType = "random";
 var timingLoaded = false;
 var offset = 0;
 
-// User needs to verify that they are ready
-var userReady = false;
-
 var TEST_TEXT_ID = 25;
 
 try { console.log('Javascript console found.'); } catch(e) { console = { log: function() {} }; }
@@ -34,6 +31,7 @@ $(function() {
     // javascript sucks at semaphores and things, so this
     // seemed to be the way that the internet recommended
     // doing it
+    $('#donebtn').attr("disabled", "true").html("HIT will be submittable after job appears");
 });
 
 function loadParameters() {
@@ -84,26 +82,20 @@ function loadParameters() {
 function initUserReady() {
     if (isPreview()) { 
         logEvent("preview"); 
+        // Return so that we don't show the "I understand" button
+        return;
     }    
     
-    $.get('rts/agreement/get?workerid=' + workerid, function(data) {
-        if (!data['read_instructions']) {
-            $('#instructionsOK').show()
-            .click(function() {
-                // When they click to say they understand
-                $('#instructionsOK').hide();
-                if (!isPreview()) {
-                    // Tell the server that they don't need to click it again.
-                    $.get('rts/agreement/set?workerid=' + workerid);
-                    
-                    $('#agreementContainer').append("Great! We signaled our server that you are ready for a task. You shouldn't have to click this button again.");
-                }
-                instructionsOK();
-            });
-        } else {
-            // They've already agreed
-            instructionsOK();
+    $('#instructionsOK').click(function() {
+        // When they click to say they understand
+        $('#instructionsOK').hide();
+        if (!isPreview()) {
+            // Tell the server that they don't need to click it again.
+            $.get('rts/agreement/set?workerid=' + workerid);
+            
+            $('#agreementContainer').append("Great! We signaled our server that you are ready for a task. You shouldn't have to click this button again.");
         }
+        instructionsOK();
     });
 }
 
