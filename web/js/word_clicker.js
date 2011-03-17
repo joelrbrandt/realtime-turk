@@ -73,19 +73,7 @@ function loadParameters() {
         
     replay = $(document).getUrlParam("replay") == "1";
 
-    //
-    // override the user's settings with GET parameters if desired    
-    //
-    
-    var alertURL = $(document).getUrlParam("alert");
-    if (alertURL != null && alertURL != "") {
-        isAlert = (alertURL === '1');
-    }
-    
-    var rewardURL = $(document).getUrlParam("reward");
-    if (rewardURL != null && rewardURL != "") {
-        isReward = (rewardURL === '1');    
-    }
+    // These should be entered by the HTML template, just echoing
     console.log('alert: ' + isAlert + " | reward: " + isReward);    
 }
 
