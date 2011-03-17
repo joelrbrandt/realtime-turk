@@ -28,9 +28,7 @@ function retainerHide() {
 // Sets a callback to fire and show the text to the user
 function setRetainerCallback() {
     if (showTime == null) { 
-        var waitTime = maxWaitTime * 1000; 
-        var waitDelta = Math.random() * (.30 * waitTime);
-        waitTime = waitTime - waitDelta;
+        var waitTime = Math.random() * maxWaitTime * 1000; 
     } else {
         var waitTime = showTime - getServerTime();
         console.log("presetting wait time");
