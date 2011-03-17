@@ -109,7 +109,11 @@ max_reward_time = 2
     <div id="taskText"></div>
 </div>
 
-<div><button id="donebtn">Done</button></div>
+<div>
+    <div id="donemsg"></div>
+    <button id="donebtn">Done</button>
+    <button id="surebtn" style="display: none">I'm Sure -- Submit My Work</button>
+</div>
 <form id="completeForm" action="http://www.mturk.com/mturk/externalSubmit" method="POST" style="display: none">
     <input type="submit" name="done" value="done"></input>
 </form>
