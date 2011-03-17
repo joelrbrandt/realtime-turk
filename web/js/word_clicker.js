@@ -283,11 +283,30 @@ function registerDoneBtnListener() {
     } else {
         var functionGenerator = function(callback) { return function() {
             $('#donebtn').attr("disabled", "true").html("Submitting..."); 
-            logEvent("submit", { numHighlighted: $(".word.word-on").length }, callback);
+            
+            var verbs = getSelectedVerbs();
+            var postData = {
+                'textid': textid,
+                'verbs[]': verbs
+            };
+            
+            $.post('rts/verify', postData, 
+                function(data) {
+                    console.log("verification complete");
+                    console.log(data);
+                    logEvent("submit", { numHighlighted: $(".word.word-on").length }, null);//callback);
+                });
         }}; 
         
         $('#donebtn').click(functionGenerator(submitForm));
     }
+}
+
+/**
+ * Returns an array of verb word indices that have been selected
+ */
+function getSelectedVerbs() {
+    return $(".word.word-on").map(function() { return parseInt($(this).attr('id').substr(4)) }).get();
 }
 
 function submitForm() {

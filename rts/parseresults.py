@@ -11,7 +11,7 @@ from scipy import stats
 from padnums import pprint_table
 import sys
 
-EXPERIMENT = 26
+EXPERIMENT = 27
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -56,14 +56,18 @@ def parseResults():
     assignments = getAssignments(cur, EXPERIMENT)
     assignments.sort(key=lambda k: k.answer_time['server'])  # we want them in completion order
     
+    print("\n\nworker logs")
+    printWorkerLogs(assignments)    
+    
     """ Now we look at each assignment and look at time diffs """
+    print("\n\nassignments")
     printAssignments(sorted(assignments, key=lambda k: k.workerid))
     
     print("\n\n")
     printSummary(assignments)
     
-    print("\n\nworker logs")
-    printWorkerLogs(assignments)
+    print("\n\n")
+    printConditionSummaries(assignments)
     
     print("\n\n")
     printCurrentlyActiveCount(cur, EXPERIMENT)
@@ -144,16 +148,17 @@ def printCurrentlyActiveCount(cur, experiment):
     print("unique assignmentId pings in last 15 seconds: " + str(result))
     
 def printSummary(assignments):
-    print("WARNING: not removing first worker attempt to smooth")
+    # TODO?: WARNING: not removing first worker attempt to smooth
     print("N = %d, %d unique workers" % (len(assignments), len(set([assignment.workerid for assignment in assignments]))))
     
-    table = [["metric", "10%", "25%", "50%", "75%", "mean", "std. dev"]]
+    table = [["metric", "10%", "25%", "50%", "75%", "90%", "mean", "std. dev"]]
     accept_show = [click.showDeltaAccept() for click in assignments if click.showDeltaAccept() is not None]
     table.append( ["accept-show", 
                    str(stats.scoreatpercentile(accept_show, 10)),
                    str(stats.scoreatpercentile(accept_show, 25)),
                    str(stats.scoreatpercentile(accept_show, 50)),
                    str(stats.scoreatpercentile(accept_show, 75)),
+                   str(stats.scoreatpercentile(accept_show, 90)),                   
                    str(numpy.mean(accept_show)),
                    str(numpy.std(accept_show)) ] )
     
@@ -163,6 +168,7 @@ def printSummary(assignments):
                    str(stats.scoreatpercentile(go_show, 25)),
                    str(stats.scoreatpercentile(go_show, 50)),
                    str(stats.scoreatpercentile(go_show, 75)),
+                   str(stats.scoreatpercentile(go_show, 90)),                   
                    str(numpy.mean(go_show)),
                    str(numpy.std(go_show)) ] )
     
@@ -172,10 +178,24 @@ def printSummary(assignments):
                    str(stats.scoreatpercentile(go_answer, 25)),
                    str(stats.scoreatpercentile(go_answer, 50)),
                    str(stats.scoreatpercentile(go_answer, 75)),                   
+                   str(stats.scoreatpercentile(go_answer, 90)),                                      
                    str(numpy.mean(go_answer)),
-                   str(numpy.std(go_answer)) ] )    
+                   str(numpy.std(go_answer)) ] )
     
     pprint_table(sys.stdout, table)
+    
+    # Correlation between wait-show and show-go
+    (r, p_val) = stats.pearsonr(accept_show, go_show)
+    print("Correlation between accept-show and show-go: %f, p<%f" % (r, p_val))
+    (r_answer, p_val_answer) = stats.pearsonr(go_show, go_answer)    
+    print("Correlation between show-go and go-answer: %f, p<%f" % (r_answer, p_val_answer))    
+    
+def printConditionSummaries(assignments):
+    all_conditions = set([assignment.condition for assignment in assignments])
+    for condition in all_conditions:
+        filtered_assignments = filter(lambda assignment: assignment.condition == condition, assignments)
+        print("\n" + condition + ":")
+        printSummary(filtered_assignments)
     
      
 def total_seconds(td):
