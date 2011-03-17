@@ -1,5 +1,6 @@
 <%!
 import rts.condition as condition
+import rts.agreement as agreement
 %>
 
 <%
@@ -17,6 +18,13 @@ elif fieldstorage.has_key('workerId'):
     is_reward = condition.isReward(fieldstorage['workerId'])    
 else:
     is_reward = False
+    
+# have they already agreed that they understand the instructions?
+if fieldstorage.has_key('workerId'):
+    worker_id = fieldstorage['workerId']
+    has_agreed = agreement.getAgreementForWorker(worker_id)
+else:
+    has_agreed = False    
 
 # grab wait time from the URL params
 if fieldstorage.has_key('waittime'):
@@ -43,6 +51,8 @@ max_reward_time = 2
     <script src="lib/jquery.getUrlParam.js" type="text/javascript"></script>
     <script src="js/replay.js" type="text/javascript"></script>
     <script type="text/javascript">
+        var userReady = ${str(has_agreed).lower()};     // user says they read the instructions (once)
+    
         var isAlert = ${str(is_alert).lower()};
         var isReward = ${str(is_reward).lower()};
         
@@ -79,8 +89,20 @@ max_reward_time = 2
     in less than ${max_reward_time} seconds.</li>
 % endif        
         </ul>
-        <div id="agreementContainer">
-            <button id="instructionsOK" style="display:none">I understand {about the alert and the bonus}</button>
+
+        <div id="agreementContainer">              
+% if not has_agreed:        
+            <button id="instructionsOK">I understand 
+    % if is_alert:
+            about the alert
+        % if is_reward:                
+            and the bonus
+        % endif
+    % endif        
+            </button>
+% else:
+            <span style="color: darkGray">You already agreed that you understand the task. We signaled our server that you are ready.</span>
+% endif
         </div>
     </div>
     <div id="goContainer"></div>

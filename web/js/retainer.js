@@ -21,8 +21,6 @@ function scheduleRetainer() {
 // Hides the text from the user
 function retainerHide() {
     $('#taskText').hide()
-    
-    $('#donebtn').attr("disabled", "true").html("HIT will be submittable after job appears");
 }
 
 // Sets a callback to fire and show the text to the user

@@ -4,7 +4,8 @@ print("___________________________________");
 // URL containing the page you want turkers to work on.
 var experimentNum = 26;
 var server = 'flock.csail.mit.edu';
-var url = "http://" + server + "/msbernst/static/word_clicker.html?experiment=" + experimentNum + "&retainer=1"; // &reward=1
+var userDir = 'msbernst';
+var url = "http://" + server + "/" + userDir + "/word_clicker.mpy?experiment=" + experimentNum + "&retainer=1"; // &reward=1
 
 var gettask_url = "http://people.csail.mit.edu/jbigham/locateit/gettask.php?poll=true&qtype=question";
 
