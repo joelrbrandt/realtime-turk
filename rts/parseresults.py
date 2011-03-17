@@ -1,15 +1,17 @@
-import MySQLdb
 from timeutils import unixtime
+import settings
+import condition
+
+import MySQLdb
 from datetime import datetime, timedelta
 import simplejson as json
 from timeutils import parseISO
 import numpy
 from scipy import stats
-import settings
 from padnums import pprint_table
 import sys
 
-EXPERIMENT = 25
+EXPERIMENT = 26
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -21,6 +23,8 @@ class Assignment:
     workerid = None
     assignmentid = None
     detail = None
+    
+    condition = None
     
     def answerDeltaGo(self):
         """ Time between clicking Go and clicking the first answer """
@@ -70,7 +74,7 @@ def parseResults():
 def getAssignments(cur, experiment):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 
     
-    cur.execute("""SELECT MIN(time), workerid, detail, assignmentid, servertime from logging WHERE experiment = %s AND event='highlight' GROUP BY assignmentid""" % (experiment, ) )
+    cur.execute("""SELECT MIN(time), log.workerid, detail, assignmentid, servertime, is_alert, is_reward from logging log, workers w WHERE experiment = %s AND event='highlight' AND log.workerid = w.workerid GROUP BY assignmentid""" % (experiment, ) )
 
     assignments = []
 
@@ -80,6 +84,7 @@ def getAssignments(cur, experiment):
         assignment.workerid = row[1]
         assignment.assignmentid = row[3]
         assignment.detail = json.loads(row[2])
+        assignment.condition = condition.getConditionName(bool(row[5]), bool(row[6]))
         
         assignment.answer_time = { 'client': datetime.fromtimestamp(row[0]),
                         'server': datetime.fromtimestamp(row[4]) }
@@ -110,9 +115,9 @@ def getAssignments(cur, experiment):
 def printAssignments(assignments):
     """ Calculates relevant deltas and prints them out to the console """
 
-    table = [["workerId", "assignmentId", "accept-show", "show-go", "go-answer"]]
+    table = [["workerId", "condition", "assignmentId", "accept-show", "show-go", "go-answer"]]
     for click in assignments:     
-        table.append( [ click.workerid, click.assignmentid, str(click.showDeltaAccept()), str(click.goDeltaShow()), str(click.answerDeltaGo()) ] )
+        table.append( [ click.workerid, click.condition, click.assignmentid, str(click.showDeltaAccept()), str(click.goDeltaShow()), str(click.answerDeltaGo()) ] )
         
     pprint_table(sys.stdout, table)
 
