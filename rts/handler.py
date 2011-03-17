@@ -49,6 +49,11 @@ def handler(request):
         verify.verify(request)
         return apache.OK
         
+    elif uri_parts[-1] == "status":
+        import status
+        status.status(request)
+        return apache.OK
+        
     else:
         # request.content_type = "text/plain"
         # request.write("Error: can't find a command with the name " + str(uri_parts) + "\n")

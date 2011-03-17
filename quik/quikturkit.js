@@ -2,12 +2,12 @@ print("___________________________________");
 
 
 // URL containing the page you want turkers to work on.
-var experimentNum = 27;
+var experimentNum = 28;
 var server = 'flock.csail.mit.edu';
 var userDir = 'msbernst';
-var url = "http://" + server + "/" + userDir + "/word_clicker.mpy?experiment=" + experimentNum + "&retainer=1"; // &reward=1
+var url = "http://" + server + "/" + userDir + "/word_clicker.mpy?experiment=" + experimentNum + "&retainer=1";
 
-var gettask_url = "http://people.csail.mit.edu/jbigham/locateit/gettask.php?poll=true&qtype=question";
+var status_url = "http://" + server + "/" + userDir + "/rts/status?experiment=" + experimentNum;
 
 var title = "Find verbs in a paragraph";
 var title2 = "Quick help needed identifying verbs";
@@ -26,17 +26,17 @@ var maxTimeTillDeath = 60*6;
 var maxChurn = 60*8;
 
 // Maximum time to complete one task in a HIT (seconds).
-var maxTimePerTask = 60;
+var maxTimePerTask = 90;
 
 // Number of answers really desired for each question.
 // Actual number be this much or
-var numAnswersDesired = 3;
+var numAnswersDesired = 5;
 
 // Number of workers desired.
-var desiredWorkers = 8;
+var desiredWorkers = 15;
 
 // Number of HITs that should always be posted.
-var steadyStateNum = 0;
+var steadyStateNum = 36;
 
 // Minimum time between adding HITs.
 // Number of seconds between deleting and readding HITs -
@@ -53,10 +53,10 @@ var numHITsAtOnce = 4;
 var reward = 0.03;
 
 // Number of assignments offered in each HIT posted.
-var assignments = 2;
+var assignments = 4;
 
 //
-var numhits = 1;
+var numhits = 3;
 
 
 // Keeps track of new hits for sending to the server.
@@ -280,7 +280,7 @@ for(var i=0; true; i++) {
       print("deleting all HITs");
       mturk.deleteHITsRaw(mturk.getHITs());
     }
-    Packages.java.lang.Thread.currentThread().sleep(5000);
+    Packages.java.lang.Thread.currentThread().sleep(1000);
   }
 
   // Store current currentHITs.
@@ -360,27 +360,24 @@ function returnSpaces(num) {
  * numworkers = number of workers that are actively engaged (by some definition)
  *
  */
-function answersForLowest() {
-  var ret = [999,999,0,0];
+function answersForLowest() {  
+  var ret = [0, 999, 0, 0];
 
-  /*
   try {
-    var fullurl = gettask_url + "&newhits=" + escape(newhits);
-    print("getting from: " + fullurl);
-    print(slurp(fullurl));
-    var content = eval(slurp(fullurl));
+    print("getting from: " + status_url);
+    var content = eval("(" + slurp(status_url) + ")");
+    print(content);
 
-    newhits = "";
-    ret = [content.cnt, content.time, content.numworkers, content.workerslooking];
+    ret = [content.waiting, 999, 0, 0];
   } catch(e) {
     print(e);
     ret = [999,999,0,0];
   }
-  */
 
-  print("msbernst: changing returned values");
+  /*print("msbernst: changing returned values");
   Packages.java.lang.Thread.currentThread().sleep(1000);  // sleep to not move too fast, pretend network lag. Sometimes things throttle otherwise.
-  ret = [999,999,0,0];
+  var ret = [0,999,0,0];
+  */
   return ret;
 }
 
