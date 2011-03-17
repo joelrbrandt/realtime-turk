@@ -22,14 +22,19 @@ CONDITIONS = [
     }
 ]
 
-def loadCondition(request):
+def isAlert(worker_id):
+    """ Returns true if the worker should have an alert """
+    return getCondition(worker_id)['isAlert']
+
+def isReward(worker_id):
+    """ Returns true if the worker should get a bonus """
+    return getCondition(worker_id)['isReward']
+
+def getCondition(worker_id):
     """ Sees if the worker has already been assigned a condition, and if not, assigns them """
     
     db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
     cur = db.cursor(MySQLdb.cursors.DictCursor)
-    
-    form = util.FieldStorage(request)
-    worker_id = form['workerid'].value
     
     num_rows = cur.execute("""SELECT is_alert, is_reward FROM workers WHERE workerid = %s """, (worker_id, ) )
     if (num_rows == 0): # not in database yet
@@ -39,7 +44,8 @@ def loadCondition(request):
     is_alert = bool(result['is_alert'])
     is_reward = bool(result['is_reward'])
     
-    renderResponse(request, is_alert, is_reward)
+    return { 'isAlert': is_alert,
+             'isReward': is_reward }
     
 def setRandomCondition(worker_id, cursor):
     """ Chooses a random group to assign the worker to, and sets it in the database """
