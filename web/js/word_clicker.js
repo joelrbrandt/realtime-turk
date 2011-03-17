@@ -112,6 +112,9 @@ function initUserReady() {
                 }
                 instructionsOK();
             });
+        } else {
+            // They've already agreed
+            instructionsOK();
         }
     });
 }
