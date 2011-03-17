@@ -34,7 +34,16 @@ def handler(request):
         import bonus
         bonus.grantBonus(request)
         return apache.OK
-    
+        
+    elif uri_parts[-2] == "agreement":
+        import agreement    
+        if uri_parts[-1] == "get":
+            agreement.getAgreement(request)
+            return apache.OK
+        elif uri_parts[-1] == "set":
+            agreement.setAgreement(request)
+            return apache.OK            
+        
     else:
         # request.content_type = "text/plain"
         # request.write("Error: can't find a command with the name " + str(uri_parts) + "\n")

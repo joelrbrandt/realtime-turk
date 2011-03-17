@@ -9,14 +9,12 @@ var numClicks = 0;
 var retainer = false;
 var retainerType = "random";
 
-// Worker conditions
-var conditionsLoaded = false;
-var isAlert = false;
-var isReward = false;
-
 // Timing
 var timingLoaded = false;
 var offset = 0;
+
+// User needs to verify that they are ready
+var userReady = false;
 
 var TEST_TEXT_ID = 25;
 
@@ -28,6 +26,7 @@ $(function() {
     initDatePrototype();    // some browsers don't have toISOString()
     loadParameters();
     initServerTime();
+    initUserReady();
     
     // loadParameters and initServertime call testReady()
     // once they return, which calls main() once they have
@@ -73,41 +72,65 @@ function loadParameters() {
     }
         
     replay = $(document).getUrlParam("replay") == "1";
+
+    //
+    // override the user's settings with GET parameters if desired    
+    //
     
-    initConditions();
+    var alertURL = $(document).getUrlParam("alert");
+    if (alertURL != null && alertURL != "") {
+        isAlert = (alertURL === '1');
+    }
+    
+    var rewardURL = $(document).getUrlParam("reward");
+    if (rewardURL != null && rewardURL != "") {
+        isReward = (rewardURL === '1');    
+    }
+    console.log('alert: ' + isAlert + " | reward: " + isReward);    
 }
 
-function initConditions() {
-    $.getJSON("rts/condition?workerid=" + workerid, function(result) {
-        var alertURL = $(document).getUrlParam("alert");
-        if (alertURL == null || alertURL == "") {
-            isAlert = result['is_alert'];
-        } else {
-            isAlert = (alertURL === '1');
-        }
-        
-        var rewardURL = $(document).getUrlParam("reward");
-        if (rewardURL == null || rewardURL == "") {
-            isReward = result['is_reward'];
-        }
-        else {
-            isReward = (rewardURL === '1');    
-        }
-        
-        console.log('alert: ' + isAlert + " | reward: " + isReward);
+/**
+ * Finds out if the user has already OK'ed our information,
+ * and if not, sets up the button listener.
+ */
+function initUserReady() {
+    if (isPreview()) { 
+        logEvent("preview"); 
+    }    
     
-        conditionsLoaded = true;
-        testReady();    
+    $.get('rts/agreement/get?workerid=' + workerid, function(data) {
+        if (!data['read_instructions']) {
+            $('#instructionsOK').show()
+            .click(function() {
+                // When they click to say they understand
+                $('#instructionsOK').hide();
+                if (!isPreview()) {
+                    // Tell the server that they don't need to click it again.
+                    $.get('rts/agreement/set?workerid=' + workerid);
+                    
+                    $('#agreementContainer').append("Great! We signaled our server that you are ready for a task. You shouldn't have to click this button again.");
+                }
+                instructionsOK();
+            });
+        }
     });
+}
+
+/**
+ * User has indicated via button press or DB call that they understand
+ * the instructions
+ */
+function instructionsOK() {
+    userReady = true;
+    $.get('rts/agreement/set?workerid=' + workerid)    
+    testReady();
 }
 
 /**
  * Starts the timers and shows everything to the user.
  */
-function main() {
-    if (assignmentid == 0) {
-        logEvent("preview");
-    } else {
+function beginTask() {
+    if (assignmentid != 0) {
         logEvent("accept");
     }       
     
@@ -124,8 +147,8 @@ function main() {
  * Calls main if all required AJAX calls have returned
  */
 function testReady() {
-    if (timingLoaded && conditionsLoaded) {
-        main();
+    if (timingLoaded && userReady) {
+        beginTask();
     }
 }
 
