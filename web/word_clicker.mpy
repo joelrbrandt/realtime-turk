@@ -1,12 +1,28 @@
 <%!
 import rts.condition as condition
+%>
 
-if fieldstorage.has_key('workerId'):
+<%
+# grab worker condition from the URL or server
+if fieldstorage.has_key('alert'):
+    is_alert = bool(fieldstorage['alert'])
+elif fieldstorage.has_key('workerId'):
     is_alert = condition.isAlert(fieldstorage['workerId'])
-    is_reward = condition.isReward(fieldstorage['workerId'])
 else:
     is_alert = False
+
+if fieldstorage.has_key('reward'):
+    is_reward = bool(fieldstorage['reward'])
+elif fieldstorage.has_key('workerId'):
+    is_reward = condition.isReward(fieldstorage['workerId'])    
+else:
     is_reward = False
+
+# grab wait time from the URL params
+if fieldstorage.has_key('waittime'):
+    wait_time = int(fieldstorage['waittime'])
+else:
+    wait_time = 120
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -33,7 +49,7 @@ else:
 <div class="task instructions">
     Instructions:
     <ol>
-        <li>In MAX_WAIT_SECONDS seconds or less, a paragraph will appear below. Act <b>quickly</b> to start when it appears.</li>
+        <li>In ${wait_time} seconds or less, a paragraph will appear below. Act <b>quickly</b> to start when it appears.</li>
         
         <li>Use the mouse to click and select all verbs in the  paragraph.<br/><img src='media/preview.png' class='outlined'/><!--<br/>You may ignore all parts of each verb phrase other than the main verb.--></li>
     </ol>
@@ -43,9 +59,19 @@ else:
 <div class="task" id="taskContainer">
     <div id="retainer">Special instructions:
         <ul>
-        <li>IF_ALERT: Your browser will display a dialog box and play a sound when the paragraph is ready. Press 'OK' as quickly as possible.</li>
+% if is_alert:
+        <li>Your browser will display a dialog box and play a sound when the paragraph is ready. Press 'OK' as quickly as possible.</li>
+% endif
         <li>Dismiss the dialog box as quickly as possible when it appears.</li>
-        <li>IF_BONUS: You get a <b>two cent bonus</b> if you {DISMISS THE ALERT/click the Go! button} in less than REWARD_MAX_SECONDS seconds.</li>
+% if is_reward:        
+        <li>You get a <b>two cent bonus</b> if you 
+    % if is_alert:
+        dismiss the alert
+    % else:
+        click the Go! button
+    % endif
+    in less than ${wait_time} seconds.</li>
+% endif        
         </ul>
         <div id="agreementContainer">
             <button id="instructionsOK" style="display:none">I understand {about the alert and the bonus}</button>
