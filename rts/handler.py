@@ -26,8 +26,8 @@ def handler(request):
         return apache.OK
         
     elif uri_parts[-1] == "log":
-        import logging
-        logging.log(request)
+        import log
+        log.log(request)
         return apache.OK
         
     elif uri_parts[-1] == "bonus":
@@ -48,6 +48,11 @@ def handler(request):
         import verify
         verify.verify(request)
         return apache.OK
+
+    elif uri_parts[-1] == "submit":
+        import submit
+        submit.record_and_redirect(request)
+        return apache.OK
         
     elif uri_parts[-1] == "status":
         import status
@@ -58,4 +63,3 @@ def handler(request):
         # request.content_type = "text/plain"
         # request.write("Error: can't find a command with the name " + str(uri_parts) + "\n")
         return apache.HTTP_NOT_IMPLEMENTED
-        
