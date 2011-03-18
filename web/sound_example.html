@@ -2,9 +2,17 @@
 <head>
 <script type="text/javascript" src="lib/alert/script/soundmanager2-nodebug-jsmin.js"></script>
 <script type="text/javascript" src="lib/alert/alert.js"></script>
+<script type="text/javascript">
+function alertPlayStop() {
+   soundManager.getSoundById('alert-sound').play();
+   alert("the sound is playing, and will stop when you click 'ok'");
+   soundManager.getSoundById('alert-sound').stop();
+}
+</script>
 </head>
 <body>
 <button onclick="soundManager.getSoundById('alert-sound').play();">play sound</button>
 <button onclick="soundManager.getSoundById('alert-sound').stop();">stop sound</button>
+<button onclick="setTimeout(alertPlayStop, 1000)">alert and play in 1 sec</button>
 </body>
 </html>
