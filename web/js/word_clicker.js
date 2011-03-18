@@ -15,6 +15,14 @@ var isChatroom = true;
 var timingLoaded = false;
 var offset = 0;
 
+var times = {
+    accept : null,
+    show : null,
+    go : null,
+    first : null,
+    submit : null,
+}
+
 var TEST_TEXT_ID = 25;
 
 try { console.log('Javascript console found.'); } catch(e) { console = { log: function() {} }; }
@@ -118,6 +126,7 @@ function instructionsOK() {
 function beginTask() {
     if (assignmentid != 0) {
         logEvent("accept");
+	times.accept = getServerTime();
     }       
     
     if (retainer) {
@@ -231,6 +240,11 @@ function logEvent(eventName, detail, finishedCallback) {
 //
 function logClick(wordid, highlighted) {
     console.log("word clicked: " + wordid + " " + highlighted);
+    if (times.first == null) {
+	// first word clicked, so record the time
+	times.first = getServerTime();
+    }
+
     var event = highlighted ? "highlight" : "unhighlight";
     
     var detail = new Object();
@@ -345,10 +359,55 @@ function getSelectedVerbs() {
 }
 
 function submitForm() {
+    // record the time of submission in the times array
+    times.submit = getServerTime();
+
+    var form = $('#completeForm');
+
+    // Add everything to the form that we want in the database
+    // using short names for the fields so we have as much URL space as possible
+    //
+    // Comments above each added form element give the db column name on the left
+    // and the form element name on the right
+
+    // assignmentid = assignmentId  (Amazon requires this to be called "assignmentId")
+    form.append('<input type="hidden" name="assignmentId" value="' + assignmentid + '" />');
+
+    // workerid = w
+    form.append('<input type="hidden" name="w" value="' + workerid + '" />');
+
+    // experiment = e
+    form.append('<input type="hidden" name="e" value="' + experiment + '" />');
+
+    // textid = t
+    form.append('<input type="hidden" name="t" value="' + textid + '" />');
+
+    // wordarray = wa
+    wa = getSelectedVerbs();
+    wa_json = JSON.stringify(wa); 
+    form.append('<input type="hidden" name="wa" value="' + wa_json + '" />');
+
+    // accept = a
+    a = times.accept == null ? "" : times.accept.toISOString()
+    form.append('<input type="hidden" name="a" value="' + a + '" />');
+
+    // show = sh
+    sh = times.show == null ? "" : times.show.toISOString()
+    form.append('<input type="hidden" name="sh" value="' + sh + '" />');
+
+    // go = g
+    g = times.go == null ? "" : times.go.toISOString()
+    form.append('<input type="hidden" name="g" value="' + g + '" />');
+
+    // first = f
+    f = times.first == null ? "" : times.first.toISOString()
+    form.append('<input type="hidden" name="f" value="' + f + '" />');
+
+    // submit = su
+    su = times.submit == null ? "" : times.submit.toISOString()
+    form.append('<input type="hidden" name="su" value="' + su + '" />');
     
-    $('#completeForm').append('<input type="hidden" name="assignmentId" value="' + assignmentid + '" />')
-    .append('<input type="hidden" name="numClicks" value="' + numClicks + '" />')
-    .submit();
+    form.submit();
 }
 
 function registerFocusBlurListeners() {
