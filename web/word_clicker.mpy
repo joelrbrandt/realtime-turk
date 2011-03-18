@@ -19,6 +19,8 @@ elif fieldstorage.has_key('workerId'):
 else:
     is_reward = False
     
+is_tetris = True
+    
 # have they already agreed that they understand the instructions?
 if fieldstorage.has_key('workerId'):
     worker_id = fieldstorage['workerId']
@@ -50,12 +52,17 @@ max_reward_time = 2
     <script type="text/javascript" src="lib/alert/alert.js"></script>
     <script src="lib/jquery.getUrlParam.js" type="text/javascript"></script>
     <script src="js/replay.js" type="text/javascript"></script>
-    <script src="js/chatroom.js" type="text/javascript"></script>    
+% if is_tetris:
+    <script src="lib/tetris/tetris.js" type="text/javascript"></script>
+	<link href="lib/tetris/tetris.css"	rel="stylesheet" type="text/css">
+% endif
+    
     <script type="text/javascript">
         var userReady = ${str(has_agreed).lower()};     // user says they read the instructions (once)
     
         var isAlert = ${str(is_alert).lower()};
         var isReward = ${str(is_reward).lower()};
+        var isTetris = ${str(is_tetris).lower()};
         
         var maxRewardTime = ${max_reward_time};
         var maxWaitTime = ${wait_time};
@@ -110,6 +117,12 @@ max_reward_time = 2
     <div id="taskText"></div>
 </div>
 
+<div id='chatContainer'></div>
+<div id='tetrisContainer'>
+% if is_tetris:
+    <%include file="lib/tetris/tetris.html" />
+% endif
+
 <div>
     <div id="donemsg"></div>
     <button id="donebtn">Done</button>
@@ -118,8 +131,7 @@ max_reward_time = 2
 <form id="completeForm" action="http://www.mturk.com/mturk/externalSubmit" method="POST" style="display: none">
     <input type="submit" name="done" value="done"></input>
 </form>
-
-<div id='chatContainer'></div>
+</div>
 
 </body>
 </html>

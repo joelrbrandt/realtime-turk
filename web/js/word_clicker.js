@@ -26,7 +26,7 @@ $(function() {
     loadParameters();
     initServerTime();
     initUserReady();
-    initChatroom();
+    //initChatroom();
     
     // loadParameters and initServertime call testReady()
     // once they return, which calls main() once they have

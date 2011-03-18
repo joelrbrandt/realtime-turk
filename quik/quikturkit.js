@@ -2,7 +2,7 @@ print("___________________________________");
 
 
 // URL containing the page you want turkers to work on.
-var experimentNum = 29;
+var experimentNum = 30;
 var server = 'flock.csail.mit.edu';
 var userDir = 'msbernst';
 var url = "http://" + server + "/" + userDir + "/word_clicker.mpy?experiment=" + experimentNum + "&retainer=1";

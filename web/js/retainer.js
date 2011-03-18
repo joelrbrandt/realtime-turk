@@ -71,6 +71,10 @@ function showGoButton() {
     console.log("GO!");
     $('#retainer').hide();
     $('#donebtn').hide();
+    
+    if (isTetris) {
+        simulatePause();
+    }
 
     showTime = getServerTime();
     logEvent("display", { 'showTime': showTime }, null);
