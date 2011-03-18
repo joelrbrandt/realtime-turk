@@ -69,3 +69,7 @@ a:hover {
 #donemsg {
     color: red;
 }
+
+#chatContainer {
+    margin: 3em;    
+}

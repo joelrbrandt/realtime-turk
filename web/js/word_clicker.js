@@ -9,6 +9,8 @@ var numClicks = 0;
 var retainer = false;
 var retainerType = "random";
 
+var isChatroom = true;
+
 // Timing
 var timingLoaded = false;
 var offset = 0;
@@ -24,6 +26,7 @@ $(function() {
     loadParameters();
     initServerTime();
     initUserReady();
+    initChatroom();
     
     // loadParameters and initServertime call testReady()
     // once they return, which calls main() once they have
