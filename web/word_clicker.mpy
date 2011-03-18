@@ -18,8 +18,13 @@ elif fieldstorage.has_key('workerId'):
     is_reward = condition.isReward(fieldstorage['workerId'])    
 else:
     is_reward = False
-    
-is_tetris = True
+
+if fieldstorage.has_key('tetris'):
+    is_tetris = bool(fieldstorage['tetris'])
+elif fieldstorage.has_key('workerId'):
+    is_tetris = condition.isTetris(fieldstorage['workerId'])    
+else:
+    is_tetris = False
     
 # have they already agreed that they understand the instructions?
 if fieldstorage.has_key('workerId'):
@@ -117,20 +122,20 @@ max_reward_time = 2
     <div id="taskText"></div>
 </div>
 
+<div>
+    <div id="donemsg"></div>
+    <button id="donebtn">Done</button>
+    <button id="surebtn" style="display: none">I'm Sure -- Submit My Work</button>
+    <form id="completeForm" action="rts/submit" method="GET" style="display: none">
+        <input type="submit" name="done" value="done"></input>
+    </form>
+</div>
+
 <div id='chatContainer'></div>
 <div id='tetrisContainer'>
 % if is_tetris:
     <%include file="lib/tetris/tetris.html" />
 % endif
-
-<div>
-    <div id="donemsg"></div>
-    <button id="donebtn">Done</button>
-    <button id="surebtn" style="display: none">I'm Sure -- Submit My Work</button>
-</div>
-<form id="completeForm" action="rts/submit" method="GET" style="display: none">
-    <input type="submit" name="done" value="done"></input>
-</form>
 </div>
 
 </body>
