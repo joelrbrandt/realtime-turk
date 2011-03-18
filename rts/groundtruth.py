@@ -3,8 +3,9 @@ import simplejson as json
 import settings
 
 """ Major inputs: text id and string list of verb indices in text"""
-text_id = 1 # text id in database
-json_groundtruth = "[2, 4, 19, 20, 26, 36, 38, 45, 53, 58, 76, 78, 87, 89, 101, 103, 107, 116, 118, 120, 122]" # get by calling getSelectedVerbs() in javascript
+text_id = 25 # text id in database
+# get by calling getSelectedVerbs() in javascript
+json_groundtruth = "[1, 3, 5, 8, 15, 22, 48, 58, 67, 75, 85]"
 
 def main():
     ground_truth_array = json.loads(json_groundtruth)

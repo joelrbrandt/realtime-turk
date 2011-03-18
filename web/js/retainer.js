@@ -91,6 +91,8 @@ function showText() {
     var goTime = getServerTime();
     logEvent("go");     // log that they're starting the task
     
+    stopSound();    // stop any alert sound that's playing
+    
     if (isReward) {
         var timeDiff = goTime - showTime;
         
@@ -137,5 +139,14 @@ function playSound() {
         s.play();
     } catch(e) {
         console.log("sound file not loaded yet, do nothing");
+    }
+}
+
+function stopSound() {
+    try {
+        var s = soundManager.getSoundById('alert-sound');
+        s.stop();
+    } catch (e) {
+        // it's fine, there probably was no sound playing
     }
 }

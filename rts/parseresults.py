@@ -11,7 +11,7 @@ from scipy import stats
 from padnums import pprint_table
 import sys
 
-EXPERIMENT = 28
+EXPERIMENT = 29
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
