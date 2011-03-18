@@ -1,3 +1,9 @@
+print("WARNING! WAIT TIME IS SHORT!");
+print("WARNING! WAIT TIME IS SHORT!");
+print("WARNING! WAIT TIME IS SHORT!");
+print("WARNING! WAIT TIME IS SHORT!");
+print("WARNING! WAIT TIME IS SHORT!");
+print("WARNING! WAIT TIME IS SHORT!");
 print("___________________________________");
 
 
@@ -5,7 +11,7 @@ print("___________________________________");
 var experimentNum = 30;
 var server = 'flock.csail.mit.edu';
 var userDir = 'msbernst';
-var url = "http://" + server + "/" + userDir + "/word_clicker.mpy?experiment=" + experimentNum + "&retainer=1";
+var url = "http://" + server + "/" + userDir + "/word_clicker.mpy?experiment=" + experimentNum + "&retainer=1&waittime=10";
 
 var status_url = "http://" + server + "/" + userDir + "/rts/status?experiment=" + experimentNum;
 
@@ -328,7 +334,7 @@ function createNewHIT(reward, assignments, numhits, tasks) {
                 reward : thisreward,
                 assignmentDurationInSeconds: maxTimeTillDeath,
                 maxAssignments: assignments,
-                autoApprovalDelayInSeconds: 60 * 5,
+                autoApprovalDelayInSeconds: 60 * 60 * 24,
               });
 
       var qth = qtHIT(hitId, assignments, thisreward, tasks);
