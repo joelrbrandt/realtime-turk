@@ -13,7 +13,7 @@ def configure_logging():
     logging.basicConfig(level=mylevel,
                         format='[%(asctime)s] %(levelname)s (%(filename)s:%(lineno)d) %(message)s',
                         filename=settings.RTS_LOGFILE,
-                        filemode='w+')
+                        filemode='a')
 
 
 # the first time (well, only time, since it's only imported once) call configure_logging
