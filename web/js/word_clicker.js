@@ -321,8 +321,8 @@ function registerDoneBtnListener() {
  * Checks the submitter's precision/recall values against minimum passable
  * values and submits or errors as necessary.
  */
-var MIN_PRECISION = .75;
-var MIN_RECALL = .66;
+var MIN_PRECISION = .66;
+var MIN_RECALL = .50;
 function verifyResults(precision_recall, callback) {
     var precision = precision_recall['precision']
     var recall = precision_recall['recall']
