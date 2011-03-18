@@ -7,6 +7,7 @@ import rts_logging
 import logging
 
 BASE_HIT_SUBMIT_URL = "http://planetexpress.stanford.edu/foo.php?"
+#BASE_HIT_SUBMIT_URL = "http://www.mturk.com/mturk/externalSubmit"
 
 def record_and_redirect(request):
     query = request.parsed_uri[apache.URI_QUERY]

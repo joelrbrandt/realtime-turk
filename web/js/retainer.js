@@ -1,4 +1,3 @@
-var showTime = null;
 var showTimeout;
 var checkInterval;
 var bucket = null;
@@ -25,10 +24,10 @@ function retainerHide() {
 
 // Sets a callback to fire and show the text to the user
 function setRetainerCallback() {
-    if (showTime == null) { 
+    if (times.show == null) { 
         var waitTime = Math.random() * maxWaitTime * 1000; 
     } else {
-        var waitTime = showTime - getServerTime();
+        var waitTime = times.show - getServerTime();
         console.log("presetting wait time");
     }
     console.log("wait time: " + waitTime);
@@ -36,7 +35,7 @@ function setRetainerCallback() {
         window.clearTimeout(checkInterval);
         
         // if we haven't already shown a text, do it now
-        if (showTime == null) {
+        if (times.show == null) {
             showGoButton();
         }
     }, waitTime);
@@ -76,8 +75,8 @@ function showGoButton() {
         simulatePause();
     }
 
-    showTime = getServerTime();
-    logEvent("display", { 'showTime': showTime }, null);
+    times.show = getServerTime();
+    logEvent("display", { 'showTime': times.show }, null);
     
     if (isAlert) {
         playSound();
@@ -92,13 +91,13 @@ function showGoButton() {
 
 // Shows the text to the user
 function showText() {
-    var goTime = getServerTime();
+    times.go = getServerTime();
     logEvent("go");     // log that they're starting the task
     
     stopSound();    // stop any alert sound that's playing
     
     if (isReward) {
-        var timeDiff = goTime - showTime;
+        var timeDiff = times.go - times.show;
         
         var timeString = "You "
         if (isAlert) {
