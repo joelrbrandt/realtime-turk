@@ -3,7 +3,7 @@ function initChatroom() {
         return;
     }
     
-    addChatroom();
+    //addChatroom();
 }
 
 function addChatroom() {

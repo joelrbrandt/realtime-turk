@@ -202,4 +202,5 @@ def printConditionSummaries(assignments):
 def total_seconds(td):
     return td.days * 3600 * 24 + td.seconds + td.microseconds / 1000000.0
 
-parseResults()
+if __name__ == "__main__":
+    parseResults()
