@@ -160,13 +160,52 @@ def autoapprove_all_reviewable_assignments(conn, verbose=True):
                                       bonus_evaluator=lambda x: (False, None, None),
                                       verbose=verbose)
                     
+def delete_all_hits(conn, do_you_mean_it="NO"):
+    if do_you_mean_it != "YES_I_MEAN_IT":
+        print """
+This will delete everything in your mechanical turk account
+and autoapprove everything that hasn't been approved
+if you realy mean it, run:
 
-def dispose_all_hits(conn):
-    hits = conn.get_reviewable_hits(page_size=100, sort_direction="Descending")
-    for h in hits:
+    dispose_all_hits(conn, do_you_mean_it='YES_I_MEAN_IT')
+"""
+        return 0
+
+    else:
+        count = 0
         try:
-            conn.dispose_hit(h.HITId)
-            print "SUCCESS! Disposed HIT " + h.HITId
-        except Exception, e:
-            print "could not dispose HIT " + h.HITId + "\n" + str(e)
+            hits = conn.search_hits(page_size=100)
+            while len(hits) > 0:
+                for h in hits:
+                    try:
+                        if h.HITStatus == "Reviewable":
+                            # have to approve all, then call dispose_hit
+                            print "Reviewing HIT " + h.HITId
 
+                            assignments = conn.get_assignments(h.HITId, status="Submitted")
+                            while len(assignments) > 0:
+                                for a in assignments:
+                                    print "Approving Assignment " + a.AssignmentId
+                                    conn.approve_assignment(a.AssignmentId)
+                                assignments = conn.get_reviewable_hits(h.HITId)                                
+
+                            print "Assignments approved, Disposing HIT " + h.HITId
+                            conn.dispose_hit(h.HITId)
+
+                        else: # can call disable hit
+                            print "Disabling HIT " + h.HITId
+                            conn.disable_hit(h.HITId)
+
+                        count += 1
+                        print "SUCCESS! THE HIT IS GONE!"
+                    except Exception, e:
+                        print "ERROR DELETING HIT " + h.HITId + "\n" + str(e)
+
+                hits = conn.search_hits(page_size=100)
+
+        except Exception, e:
+                print "Big error: \n" + str(e)
+
+        print "ALL DONE! Deleted " + str(count) + " HITs"
+
+        return count
