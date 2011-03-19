@@ -3,12 +3,12 @@ import MySQLdb
 import simplejson as json
 import settings
 
-from timeutils import parseISO
+from rtsutils.timeutils import parseISO
 
 import rts_logging
 import logging
 
-import verify
+from rtsutils import word_clicker_approver
 
 #BASE_HIT_SUBMIT_URL = "http://planetexpress.stanford.edu/foo.php?"
 BASE_HIT_SUBMIT_URL = "http://www.mturk.com/mturk/externalSubmit?"
@@ -68,7 +68,7 @@ def log_submission_in_db(request):
     try:
         if wordarray != None and textid != None:
             wordarray_parsed = json.loads(wordarray)
-            d = verify.calculateAccuracy(textid, wordarray_parsed)
+            d = word_clicker_approver.calculateAccuracy(textid, wordarray_parsed)
             precision = d['precision']
             recall = d['recall']
     except:
