@@ -3,7 +3,7 @@ from mod_python import apache, util
 import MySQLdb
 import simplejson as json
 from datetime import datetime
-from timeutils import *
+from rtsutils.timeutils import *
 import settings
 
 MIN_BETWEEN_TESTS = 5

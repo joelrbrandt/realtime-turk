@@ -1,6 +1,6 @@
 from datetime import datetime
 import simplejson as json
-from timeutils import *
+from rtsutils.timeutils import *
 
 def servertime(request):
     now = round(unixtime(datetime.now()) * 1000) # javascript uses millis, not seconds

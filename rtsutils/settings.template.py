@@ -15,11 +15,3 @@ DB_USER = 'username'
 DB_PASSWORD = 'password'
 DB_HOST = 'localhost'
 DB_DATABASE = 'dbname'
-
-
-#
-# Bonus settings
-#
-
-bonus_amount = 0.02
-bonus_reason = "$0.02 bonus for quick response. Thank you!"

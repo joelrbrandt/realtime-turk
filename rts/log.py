@@ -3,7 +3,7 @@ from mod_python import util
 import MySQLdb
 from datetime import datetime
 import time
-from timeutils import *
+from rtsutils.timeutils import *
 import settings
 
 def log(request):
