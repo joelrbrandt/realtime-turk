@@ -1,3 +1,31 @@
+/**
+  Expires the given hit using Amazon's ForceExpireHIT call <code>hit</code>.
+
+  From Amazon's documentation:
+
+  The effect is identical to the HIT expiring on its own; the HIT no
+  longer appears on the Amazon Amazon Mechanical Turk web site, and no
+  new Workers are allowed to accept the HIT. Workers who have accepted
+  the HIT prior to expiration are allowed to complete it or return it,
+  or allow the assignment duration to elapse (abandon the HIT). Once all
+  remaining assignments have been submitted, the expired HIT becomes
+  Reviewable, and will be returned by a call to the GetReviewableHITs
+  operation.
+
+  Unlike the DisableHIT operation, the ForceExpireHIT operation does not
+  have any effect on assignments. If assignments have been submitted for
+  the HIT, your application still needs to approve or reject them before
+  disposing of the HIT.
+ */
+MTurk.prototype.expireHITRaw = function(hit) {
+  var hitId = this.tryToGetHITId(hit)
+  var params = ["HITId", hitId]
+  var x = new XML(javaTurKit.restRequest("ForceExpireHIT", params))
+  if (x..Request.IsValid.toString() != "True") throw "ForceExpireHIT failed: " + x
+  verbosePrint("expired hit " + hitId)
+}
+
+
 print("WARNING! WAIT TIME IS SHORT!");
 print("WARNING! WAIT TIME IS SHORT!");
 print("WARNING! WAIT TIME IS SHORT!");
@@ -8,9 +36,9 @@ print("___________________________________");
 
 
 // URL containing the page you want turkers to work on.
-var experimentNum = 30;
+var experimentNum = 31;
 var server = 'flock.csail.mit.edu';
-var userDir = 'msbernst';
+var userDir = 'jbrandt';
 var url = "http://" + server + "/" + userDir + "/word_clicker.mpy?experiment=" + experimentNum + "&retainer=1&waittime=10";
 
 var status_url = "http://" + server + "/" + userDir + "/rts/status?experiment=" + experimentNum;
@@ -87,6 +115,7 @@ for(var j=0; j<currentHITs.length; j++) {
 }
 currentHITs = [];
 database.query("currentHITs = " + json(currentHITs));
+
 print("DONE RETIRING: three seconds to quit\n");
 Packages.java.lang.Thread.currentThread().sleep(3000);
 
@@ -139,7 +168,7 @@ for(var i=0; true; i++) {
 
 
   print("reported low answer: " + lowAnswer);
-	
+  
   // If we already have enough answers, then don't worry about creating more.
   /*if(lowAnswer > numAnswersDesired - steadyStateNum) {
     lowAnswer = numAnswersDesired - steadyStateNum;
@@ -166,35 +195,35 @@ for(var i=0; true; i++) {
   // Refresh the number of current HITs periodically unless there's
   // been activity on the phone.
   if(lowAnswer < numAnswersDesired || lowAnswer != lastLowAnswer || (i%10==0 && activeAssignments>0)) {
-      // Reset activeAssignments for counting next.
-      activeAssignments = 0;
+    // Reset activeAssignments for counting next.
+    activeAssignments = 0;
 
-      //
-      // Review the current HITs to see how many have completed.
-      //
-      for(var j=currentHITs.length-1; j>=0; j--) {
-	//try {
-	  var hit = mturk.getHIT(currentHITs[j].hitID);
+    //
+    // Review the current HITs to see how many have completed.
+    //
+    for(var j=currentHITs.length-1; j>=0; j--) {
+      //try {
+      var hit = mturk.getHIT(currentHITs[j].hitID);
 
-	  var secs = (time() - hit.creationTime) / 1000;
+      var secs = (time() - hit.creationTime) / 1000;
 
-	  if(hit.creationTime > youngestHIT || youngestHIT == 0) {
-	      youngestHIT = hit.creationTime;
-	  }
-
-	  // Count active assignments, delete finished HITs.
-	  if(hit.done || secs > maxChurn) {
-	      // Remove this HIT from our list.
-	    var qth = currentHITs.splice(j, 1)
-	    retireHIT(hit);
-	  } else {
-	    //print("Adding: " + (hit.maxAssignments - hit.assignments.length));
-	      activeAssignments += (hit.maxAssignments - hit.assignments.length);
-	  }
-	  //} catch(e) {
-	  // print("Error in counting HITs: " + e);
-	  //}
+      if(hit.creationTime > youngestHIT || youngestHIT == 0) {
+        youngestHIT = hit.creationTime;
       }
+
+      // Count active assignments, delete finished HITs.
+      if(hit.done || secs > maxChurn) {
+        // Remove this HIT from our list.
+        var qth = currentHITs.splice(j, 1)
+        retireHIT(hit);
+      } else {
+        //print("Adding: " + (hit.maxAssignments - hit.assignments.length));
+        activeAssignments += (hit.maxAssignments - hit.assignments.length);
+      }
+      //} catch(e) {
+      // print("Error in counting HITs: " + e);
+      //}
+    }
   }
   lastLowAnswer = lowAnswer;
 
@@ -266,25 +295,33 @@ for(var i=0; true; i++) {
   } else if(hitsToAdd < 0 && currentHITs.length > 0) {
     for(var j=hitsToAdd; j<0; j++) {
       if(currentHITs.length > 0) {
-	print("retiring here");
-	var qth = currentHITs.shift();
-	//try {
-	  var hit = mturk.getHIT(qth.hitID);
-	  var secs = (time() - hit.creationTime) / 1000;
-	  if(secs > 60*10) {
-	    retireHIT(hit);
-	  }
-	  //} catch(e) {
-	  // print("Error in retiring HITs due to retire: " + e);
-	  //	}
+        print("retiring here");
+        var qth = currentHITs.shift();
+        //try {
+        var hit = mturk.getHIT(qth.hitID);
+        var secs = (time() - hit.creationTime) / 1000;
+        if(secs > 60*10) {
+          retireHIT(hit);
+        }
+        //} catch(e) {
+        // print("Error in retiring HITs due to retire: " + e);
+        //  }
       }
     }
   } else {
     if(activeAssignments==0 && i%10==0) {
       // We're already in a good state, so do nothing.
       // Wait for a little bit before polling again.
-      print("deleting all HITs");
-      mturk.deleteHITsRaw(mturk.getHITs());
+
+      /* JRB 2001-03-19
+
+         I don't understand the two lines below. Looking at TurkIt code,
+         this seems to search turk for ALL of your hits, then delete ALL of them
+         That seems like not what we want, given the above comment. So, I'm commenting
+         out these two lines.
+      */
+      // print("deleting all HITs");
+      // mturk.deleteHITsRaw(mturk.getHITs());
     }
     Packages.java.lang.Thread.currentThread().sleep(1000);
   }
@@ -321,31 +358,32 @@ function createNewHIT(reward, assignments, numhits, tasks) {
   var myurl = url.replace(/%%n%%/g, tasks);
 
   //try {
-    for(var i=0; i<numhits; i++) {
-      var thisreward = reward + (salt<2 ? 0.01 : 0.00);
+  for(var i=0; i<numhits; i++) {
+    var thisreward = reward + (salt<2 ? 0.01 : 0.00);
 
-      // create a HIT on MTurk using the webpage
-      var hitId = mturk.createHITRaw({
-	        title : mytitle,
-	        desc : mydescription,
-    	    keywords: "text verbs reading quick",
-            url : myurl,
-                height : 1200,
-                reward : thisreward,
-                assignmentDurationInSeconds: maxTimeTillDeath,
-                maxAssignments: assignments,
-                autoApprovalDelayInSeconds: 60 * 60 * 24,
-              });
+    // create a HIT on MTurk using the webpage
+    var hitId = mturk.createHITRaw({
+      title : mytitle,
+      desc : mydescription,
+      keywords: "text verbs reading quick",
+      url : myurl,
+      height : 1200,
+      reward : thisreward,
+      assignmentDurationInSeconds: maxTimeTillDeath,
+      lifetimeInSeconds: maxTimeTillDeath,  // JRB 2011-03-19 -- not sure why we weren't setting expiration time before
+      maxAssignments: assignments,
+      autoApprovalDelayInSeconds: 60 * 60 * 24 * 7,
+    });
 
-      var qth = qtHIT(hitId, assignments, thisreward, tasks);
-      newhits += "|" + qth.hitID + ":" + qth.assignments + ":" + qth.reward + ":" + tasks;
-      hitsCreated.push(qth);
+    var qth = qtHIT(hitId, assignments, thisreward, tasks);
+    newhits += "|" + qth.hitID + ":" + qth.assignments + ":" + qth.reward + ":" + tasks;
+    hitsCreated.push(qth);
 
 
-    }
-    // } catch(e) {
-    // print("Error in createNewHIT: " + e);
-    // }
+  }
+  // } catch(e) {
+  // print("Error in createNewHIT: " + e);
+  // }
 
   return hitsCreated;
 }
@@ -393,13 +431,25 @@ function answersForLowest() {
  **/
 function retireHIT(hit) {
   try {
+    /* JRB 2001-03-19
+
+       This function used to call mturk.deleteHITRaw to "retire" the HIT. This seems
+       wrong for our purposes -- we want to be able to approve or reject the assignments
+       to the HIT individually. Deleting a HIT with reviewable assignments auto-approves
+       those assignments. (This function also used to explicitly auto-approve assignments)
+
+       I've changed it to simply expire the HIT. To do this, I had to add an expireHITRaw
+       to the MTurk prototype. That appears at the beginning of this file.
+    */
+
     print("all assignments");
     print(hit.assignments);
-    //mturk.approveAssignments(hit.assignments);
-    mturk.deleteHITRaw(hit);
-    print("Successfully deleted HIT.");
+    // mturk.approveAssignments(hit.assignments);
+    // mturk.deleteHITRaw(hit);
+    mturk.expireHITRaw(hit);
+    print("Successfully expired HIT.");
   } catch(e) {
-    print("Failed to approve/delete HITs: " + e);
+    print("Failed to expire HITs: " + e);
   }
 }
 
