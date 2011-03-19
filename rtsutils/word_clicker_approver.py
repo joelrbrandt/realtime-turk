@@ -14,13 +14,23 @@ import datetime
 
 from timeutils import parseISO
 
+"""
+TODOs:
+
+add "Dry run" options to doit and stuff that gets called by do it (in work_approver)
+add pagination support for getting ALL HITs
+add a main function
+test it more
+"""
+
+
 APPROVE_REASON = "Accurate work. Thank you!"
 REJECT_REASON = "Too many missed/erroneously clicked verbs. Sorry."
 BONUS_AMOUNT = 0.02
 BONUS_REASON = "$0.02 bonus for quick response. Thank you!"
 
-PRECISION_LIMIT = 0.5  # half of what was selected must be verbs
-RECALL_LIMIT = 0.01  # must have gotten 1/3 of all verbs
+PRECISION_LIMIT = 0.66  # 2/3s of what was selected must be verbs
+RECALL_LIMIT = 0.5  # must have gotten 1/2 of all verbs
 
 BONUS_TIME_LIMIT = 2.0 # seconds
 
