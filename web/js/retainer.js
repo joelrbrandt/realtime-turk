@@ -44,7 +44,14 @@ function setRetainerCallback() {
 
 /* Tells the server that we're still watching */
 function pingAlive() {
-    logEvent("ping");
+    // different pings depending on which phase they are in
+    if (times.go != null) {
+        logEvent("ping-working");
+    } else if (times.show != null) {
+        logEvent("ping-showing");    
+    } else if (times.accept != null) {
+        logEvent("ping-waiting");    
+    }
     window.setTimeout(pingAlive, 5000);
 }
 
