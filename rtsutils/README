@@ -1,0 +1,6 @@
+To invoke:
+
+  python bonus_giver.py --log logfile.log
+
+The application itself does not loop. So, this should be started as a cron job.
+ 
