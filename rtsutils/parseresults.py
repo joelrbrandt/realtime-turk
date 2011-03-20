@@ -1,5 +1,5 @@
 import settings
-import condition
+from rts import condition
 
 import MySQLdb
 from datetime import datetime, timedelta
@@ -10,7 +10,7 @@ from scipy import stats
 from padnums import pprint_table
 import sys
 
-EXPERIMENT = 29
+EXPERIMENT = 31
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -21,39 +21,39 @@ class Assignment:
     
     workerid = None
     assignmentid = None
-    detail = None
+    #detail = None
     
     condition = None
     
     def answerDeltaGo(self):
         """ Time between clicking Go and clicking the first answer """
         if self.answer_time is not None and self.go_time is not None:
-            return total_seconds(self.answer_time['client'] - self.go_time['client'])
+            return total_seconds(self.answer_time - self.go_time)
         else:
             return None         
             
     def goDeltaShow(self):
         """ Time between the Go button showing up, and it being clicked """
         if self.go_time is not None and self.show_time is not None:            
-            return total_seconds(self.go_time['client'] - self.show_time['client'])
+            return total_seconds(self.go_time - self.show_time)
         else:
             return None
     
     def showDeltaAccept(self):
         """ Time between accepting the task and the Go button appearing """
         if self.show_time is not None and self.accept_time is not None:
-            return total_seconds(self.show_time['client'] - self.accept_time['client'])
+            return total_seconds(self.show_time - self.accept_time)
         else:
             return None
 
 def parseResults():      
     db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE,
  use_unicode=True)
-    cur = db.cursor()   
+    cur = db.cursor(MySQLdb.cursors.DictCursor)   
 
     # get all the clicks
     assignments = getAssignments(cur, EXPERIMENT)
-    assignments.sort(key=lambda k: k.answer_time['server'])  # we want them in completion order
+    assignments.sort(key=lambda k: k.answer_time)  # we want them in completion order
     
     print("\n\nworker logs")
     printWorkerLogs(assignments)    
@@ -77,39 +77,27 @@ def parseResults():
 def getAssignments(cur, experiment):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 
     
-    cur.execute("""SELECT MIN(time), log.workerid, detail, assignmentid, servertime, is_alert, is_reward from logging log, workers w WHERE experiment = %s AND event='highlight' AND log.workerid = w.workerid GROUP BY assignmentid""" % (experiment, ) )
+    cur.execute("""SELECT * from submissions sub, workers w WHERE experiment = %s AND sub.workerid = w.workerid""" % (experiment, ) )
 
     assignments = []
 
     """ For each assignment, get its completion information """
     for row in cur.fetchall():
         assignment = Assignment()
-        assignment.workerid = row[1]
-        assignment.assignmentid = row[3]
-        assignment.detail = json.loads(row[2])
-        assignment.condition = condition.getConditionName(bool(row[5]), bool(row[6]))
+        assignment.workerid = row['workerid']
+        assignment.assignmentid = row['assignmentid']
+        assignment.condition = condition.getConditionName(bool(row['is_alert']), bool(row['is_reward']), bool(row['is_tetris']))
         
-        assignment.answer_time = { 'client': datetime.fromtimestamp(row[0]),
-                        'server': datetime.fromtimestamp(row[4]) }
+        assignment.answer_time = datetime.fromtimestamp(row['first'])
         
         # when did the worker accept that task?
-        cur.execute("""SELECT time, servertime from logging WHERE event='accept' AND assignmentid = '%s'""" % ( row[3] ))
-        result = cur.fetchone()
-        if result is not None:
-            assignment.accept_time = { 'client': datetime.fromtimestamp(result[0]),
-                            'server': datetime.fromtimestamp(result[1]) }
-            
+        assignment.accept_time = datetime.fromtimestamp(row['accept'])
+        
         # when did the task or 'go' button appear to the user?
-
-        assignment.show_time = { 'client': datetime.fromtimestamp(parseISO(assignment.detail['showTime'])) } # no server time
+        assignment.show_time = datetime.fromtimestamp(row['show'])
             
         # when did the worker click the "go" button?
-        cur.execute("""SELECT time, servertime from logging WHERE event='go' AND assignmentid = '%s'""" % ( row[3] ))
-        result = cur.fetchone()
-        if result is not None:
-            assignment.go_time = { 'client': datetime.fromtimestamp(result[0]),
-                        'server': datetime.fromtimestamp(result[1]) }
-        
+        assignment.go_time = datetime.fromtimestamp(row['go'])
             
         assignments.append(assignment)
 
@@ -143,13 +131,16 @@ def printCurrentlyActiveCount(cur, experiment):
     ping_floor = datetime.now() - timedelta(seconds = 15)
 
     cur.execute("""SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event='ping' AND experiment = '%s' AND servertime >= %s""" % ( experiment, unixtime(ping_floor) ))
-    result = cur.fetchone()[0]
+    result = cur.fetchone()['COUNT(DISTINCT assignmentid)']
     print("unique assignmentId pings in last 15 seconds: " + str(result))
     return result
     
 def printSummary(assignments):
     # TODO?: WARNING: not removing first worker attempt to smooth
     print("N = %d, %d unique workers" % (len(assignments), len(set([assignment.workerid for assignment in assignments]))))
+    
+    if len(assignments) == 0:
+        return
     
     table = [["metric", "10%", "25%", "50%", "75%", "90%", "mean", "std. dev"]]
     accept_show = [click.showDeltaAccept() for click in assignments if click.showDeltaAccept() is not None]
