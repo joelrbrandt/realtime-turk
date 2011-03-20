@@ -73,7 +73,7 @@ def setRandomCondition(worker_id, cursor):
     """ Chooses a random group to assign the worker to, and sets it in the database """
     random_condition = random.choice(CONDITIONS)
     
-    cursor.execute("""INSERT INTO workers (workerid, is_alert, is_reward, is_tetris) VALUES (%s, %s, %s, %s)""", (worker_id, random_condition['is_alert'], random_condition['is_reward'], random_condition['is_tetris']) )
+    cursor.execute("""INSERT INTO workers (workerid, is_alert, is_reward, is_tetris, read_instructions) VALUES (%s, %s, %s, %s, FALSE) ON DUPLICATE KEY UPDATE is_alert=%s, is_reward=%s, is_tetris=%s, read_instructions=FALSE""", (worker_id, random_condition['is_alert'], random_condition['is_reward'], random_condition['is_tetris'], random_condition['is_alert'], random_condition['is_reward'], random_condition['is_tetris']) )
     
     return random_condition
 
@@ -86,3 +86,24 @@ def renderResponse(request, is_alert, is_reward, is_tetris):
                     'is_tetris': is_tetris
                 }
     request.write(json.dumps(response))
+    
+def randomizeConditions(do_you_mean_it="NO"):
+    if do_you_mean_it != "YES_I_MEAN_IT":
+        print """
+This will assign all workerids to a new random condition. Do not do this lightly!
+"""
+        return 0
+
+    else:
+        print("Assigning all workers to a new random condition")
+        db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
+        cur = db.cursor(MySQLdb.cursors.DictCursor)
+        
+        # get all workers, randomize them one by one
+        cur.execute("""SELECT workerid FROM workers""")
+        workers = [row['workerid'] for row in cur.fetchall()]
+        for worker in workers:
+            setRandomCondition(worker, cur)
+            
+        cur.close()
+        db.close()
