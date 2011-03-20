@@ -27,7 +27,7 @@ MTurk.prototype.expireHITRaw = function(hit) {
 
 
 // URL containing the page you want turkers to work on.
-var experimentNum = 31;
+var experimentNum = 33;
 var server = 'flock.csail.mit.edu';
 var userDir = 'msbernst';
 var url = "http://" + server + "/" + userDir + "/word_clicker.mpy?experiment=" + experimentNum + "&retainer=1";
@@ -350,7 +350,7 @@ function createNewHIT(reward, assignments, numhits, tasks) {
 
   //try {
   for(var i=0; i<numhits; i++) {
-    var thisreward = reward + (salt<2 ? 0.01 : 0.00);
+    var thisreward = reward;// + (salt<2 ? 0.01 : 0.00);
 
     // create a HIT on MTurk using the webpage
     var hitId = mturk.createHITRaw({

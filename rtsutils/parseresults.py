@@ -1,5 +1,6 @@
 import settings
 from rts import condition
+from rtsutils.word_clicker_approver import RECALL_LIMIT, PRECISION_LIMIT
 
 import MySQLdb
 from datetime import datetime, timedelta
@@ -10,7 +11,7 @@ from scipy import stats
 from padnums import pprint_table
 import sys
 
-EXPERIMENT = 31
+EXPERIMENT = 33
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -66,7 +67,7 @@ def parseResults():
     printSummary(assignments)
     
     print("\n\n")
-    printConditionSummaries(assignments)
+    printConditionSummaries(assignments, cur)
     
     print("\n\n")
     printCurrentlyActiveCount(cur, EXPERIMENT)
@@ -77,7 +78,7 @@ def parseResults():
 def getAssignments(cur, experiment):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 
     
-    cur.execute("""SELECT * from submissions sub, workers w WHERE experiment = %s AND sub.workerid = w.workerid""" % (experiment, ) )
+    cur.execute("""SELECT * from submissions sub, workers w WHERE experiment = %s AND sub.workerid = w.workerid AND sub.precision >= %s AND sub.recall >= %s""" % (experiment, PRECISION_LIMIT, RECALL_LIMIT) )
 
     assignments = []
 
@@ -129,13 +130,17 @@ def printWorkerLogs(assignments):
 
 def printCurrentlyActiveCount(cur, experiment):
     ping_floor = datetime.now() - timedelta(seconds = 15)
-
-    cur.execute("""SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event='ping' AND experiment = '%s' AND servertime >= %s""" % ( experiment, unixtime(ping_floor) ))
-    result = cur.fetchone()['COUNT(DISTINCT assignmentid)']
-    print("unique assignmentId pings in last 15 seconds: " + str(result))
-    return result
     
-def printSummary(assignments):
+    ping_types = ["ping-waiting", "ping-showing", "ping-working"]
+
+    results = dict()
+    for ping_type in ping_types:
+        cur.execute("""SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event='%s' AND experiment = '%s' AND servertime >= %s""" % ( ping_type, experiment, unixtime(ping_floor) ))
+        results[ping_type] = cur.fetchone()['COUNT(DISTINCT assignmentid)']
+        print(ping_type + ": unique assignmentIds pings in last 15 seconds: " + str(results[ping_type]))
+    return results
+    
+def printSummary(assignments, condition = None, cur = None):
     # TODO?: WARNING: not removing first worker attempt to smooth
     print("N = %d, %d unique workers" % (len(assignments), len(set([assignment.workerid for assignment in assignments]))))
     
@@ -179,14 +184,21 @@ def printSummary(assignments):
     (r, p_val) = stats.pearsonr(accept_show, go_show)
     print("Correlation between accept-show and show-go: %f, p<%f" % (r, p_val))
     (r_answer, p_val_answer) = stats.pearsonr(go_show, go_answer)    
-    print("Correlation between show-go and go-answer: %f, p<%f" % (r_answer, p_val_answer))    
+    print("Correlation between show-go and go-answer: %f, p<%f" % (r_answer, p_val_answer))
     
-def printConditionSummaries(assignments):
+    if condition is not None and cur is not None:
+        if condition == 'tetris':
+            cur.execute(""" SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event = 'tetris_row_clear' AND experiment = %s """, (EXPERIMENT, ) )
+            num_playing = cur.fetchone()['COUNT(DISTINCT assignmentid)']
+            print(str(num_playing) + " assignments out of " + str(len(assignments)) + " (" + str(float(num_playing) / len(assignments) * 100) + "%) cleared a row in Tetris ")
+    
+    
+def printConditionSummaries(assignments, cur):
     all_conditions = set([assignment.condition for assignment in assignments])
     for condition in all_conditions:
         filtered_assignments = filter(lambda assignment: assignment.condition == condition, assignments)
         print("\n" + condition + ":")
-        printSummary(filtered_assignments)
+        printSummary(filtered_assignments, condition, cur)
     
      
 def total_seconds(td):
