@@ -17,10 +17,12 @@ from timeutils import parseISO
 """
 TODOs:
 
-add "Dry run" options to doit and stuff that gets called by do it (in work_approver)
-add pagination support for getting ALL HITs
-add a main function
-test it more
+- add "Dry run" options to doit and stuff that gets called by do it (in work_approver)
+- change it so that the approve reason appends the bonus reason if they get a bonus (so it's more clear)
+- add pagination support for getting ALL HITs
+- add a main function
+- test it more
+
 """
 
 

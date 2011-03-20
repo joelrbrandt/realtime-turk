@@ -44,6 +44,10 @@ def log_submission_in_db(request):
       recall
     """
 
+    """ TODO: add calculation of total focus/blur time to the submission process
+              we'll parse this out of the log table and add it to the submission page
+    """
+
     form = util.FieldStorage(request)
 
     # Get all the items out of the form
