@@ -1045,6 +1045,9 @@ function Tetris()
 					if (lines) {
 						self.tetris.stats.setLines(self.tetris.stats.getLines() + lines);
 						self.tetris.stats.setScore(self.tetris.stats.getScore() + (1000 * self.tetris.stats.getLevel() * lines));
+						
+						// msbernst: log when they score a row
+						logEvent("tetris_row_clear")
 					}
 					// reset puzzle
 					self.reset();
@@ -1084,6 +1087,9 @@ function Tetris()
 					if (lines) {
 						self.tetris.stats.setLines(self.tetris.stats.getLines() + lines);
 						self.tetris.stats.setScore(self.tetris.stats.getScore() + (1000 * self.tetris.stats.getLevel() * lines));
+						
+						// msbernst: log when they score a row
+						logEvent("tetris_row_clear")						
 					}
 					// reset puzzle
 					self.reset();
