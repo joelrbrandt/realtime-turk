@@ -26,20 +26,11 @@ MTurk.prototype.expireHITRaw = function(hit) {
 }
 
 
-print("WARNING! WAIT TIME IS SHORT!");
-print("WARNING! WAIT TIME IS SHORT!");
-print("WARNING! WAIT TIME IS SHORT!");
-print("WARNING! WAIT TIME IS SHORT!");
-print("WARNING! WAIT TIME IS SHORT!");
-print("WARNING! WAIT TIME IS SHORT!");
-print("___________________________________");
-
-
 // URL containing the page you want turkers to work on.
 var experimentNum = 31;
 var server = 'flock.csail.mit.edu';
-var userDir = 'jbrandt';
-var url = "http://" + server + "/" + userDir + "/word_clicker.mpy?experiment=" + experimentNum + "&retainer=1&waittime=10";
+var userDir = 'msbernst';
+var url = "http://" + server + "/" + userDir + "/word_clicker.mpy?experiment=" + experimentNum + "&retainer=1";
 
 var status_url = "http://" + server + "/" + userDir + "/rts/status?experiment=" + experimentNum;
 
