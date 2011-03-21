@@ -6,8 +6,12 @@ import MySQLdb
 from datetime import datetime, timedelta
 import simplejson as json
 from rtsutils.timeutils import *
+
 import numpy
-from scipy import stats
+from scipy import stats, interpolate
+from matplotlib import pyplot
+import scikits.statsmodels
+
 from padnums import pprint_table
 import sys
 
@@ -191,18 +195,44 @@ def printSummary(assignments, condition = None, cur = None):
             cur.execute(""" SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event = 'tetris_row_clear' AND experiment = %s """, (EXPERIMENT, ) )
             num_playing = cur.fetchone()['COUNT(DISTINCT assignmentid)']
             print(str(num_playing) + " assignments out of " + str(len(assignments)) + " (" + str(float(num_playing) / len(assignments) * 100) + "%) cleared a row in Tetris ")
-    
-    
-def printConditionSummaries(assignments, cur):
+
+def groupAssignmentsByCondition(assignments):
+    """Splits all assignments into groups based on their condition (e.g., baseline, tetris). Returns a dict from condition to list of assignments"""
+    condition_assignments = dict()
+
     all_conditions = set([assignment.condition for assignment in assignments])
     for condition in all_conditions:
         filtered_assignments = filter(lambda assignment: assignment.condition == condition, assignments)
+        condition_assignments[condition] = filtered_assignments
+    
+    return condition_assignments
+    
+def printConditionSummaries(assignments, cur):
+    condition_assignments = groupAssignmentsByCondition(assignments)
+    for condition in condition_assignments.keys():
+        filtered_assignments = condition_assignments[condition]
         print("\n" + condition + ":")
         printSummary(filtered_assignments, condition, cur)
     
      
 def total_seconds(td):
     return td.days * 3600 * 24 + td.seconds + td.microseconds / 1000000.0
+    
+# http://matplotlib.sourceforge.net/api/pyplot_api.html#matplotlib.pyplot.step    
+def graphCDF(assignments):
+    pyplot.clf()
+    pyplot.hold(True)
+    x = numpy.linspace(0, 10, num=1000)
+
+    condition_assignments = groupAssignmentsByCondition(assignments)
+    for condition in condition_assignments.keys():
+        go_show = [click.goDeltaShow() for click in condition_assignments[condition]]
+        ecdf = scikits.statsmodels.tools.ECDF(go_show)
+        y = ecdf(x) # plots y in the CDF for each input x
+        
+        pyplot.step(x, y, label=condition, linewidth=2)
+
+    pyplot.legend()
 
 if __name__ == "__main__":
     parseResults()
