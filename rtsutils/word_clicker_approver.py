@@ -14,6 +14,8 @@ import datetime
 
 from timeutils import parseISO
 
+import mt_connection
+
 """
 TODOs:
 
@@ -87,7 +89,7 @@ def bonus_evaluator(answer):
     return result
 
 def doit(verbose=True):
-    c = work_approver.get_mt_conn()
+    c = mt_connection.get_mt_conn()
     work_approver.review_pending_assignments(c,
                                              answer_reviewer=answer_reviewer,
                                              bonus_evaluator=bonus_evaluator,

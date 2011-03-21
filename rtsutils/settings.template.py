@@ -15,3 +15,10 @@ DB_USER = 'username'
 DB_PASSWORD = 'password'
 DB_HOST = 'localhost'
 DB_DATABASE = 'dbname'
+
+#
+# External HIT server info
+#
+
+HIT_SERVER = "flock.csail.mit.edu"
+HIT_SERVER_USER_DIR = '[your username]'
