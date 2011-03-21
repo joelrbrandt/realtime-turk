@@ -24,7 +24,7 @@ class ExternalHit():
 
 
     def post(self, conn):
-        return conn.create_hit(hit_type=None,
+        hits = conn.create_hit(hit_type=None,
                                question=self._question,
                                lifetime=self.lifetime,
                                max_assignments=self.max_assignments,
@@ -39,4 +39,14 @@ class ExternalHit():
                                questions=None,
                                qualifications=None,
                                response_groups=None)
+        register_all_notifications_for_hit_type(conn, hits[0].HITTypeId)
+        return hits[0]
 
+
+
+
+def register_all_notifications_for_hit_type(conn, hit_type):
+    # TODO: maybe some error handling? maybe put in a different file?
+    conn.set_rest_notification(str(hit_type),
+                               "http://" + settings.HIT_SERVER + "/" + settings.HIT_SERVER_USER_DIR + "/rts/mt_notification",
+                               event_types=("AssignmentAccepted", "AssignmentAbandoned", "AssignmentReturned", "AssignmentSubmitted", "HITReviewable", "HITExpired"))
