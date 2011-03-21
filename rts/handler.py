@@ -1,5 +1,8 @@
 from mod_python import apache
 
+import rts_logging
+import logging
+
 def handler(request):
     uri_parts = request.uri.split("/")
     while '' in uri_parts:
@@ -58,6 +61,21 @@ def handler(request):
         import status
         status.status(request)
         return apache.OK
+
+    elif uri_parts[-1] == "mt_notification":
+        """
+        HOW TO CREATE A NOTIFICATION USING BOTO
+        
+        c.set_rest_notification(
+          str(h.HITTypeId),
+          "http://flock.csail.mit.edu/jbrandt/rts/log_entire_request",
+          event_types=("AssignmentAccepted", "AssignmentAbandoned", "AssignmentReturned", "AssignmentSubmitted", "HITReviewable", "HITExpired"))
+        """
+        everything_array = request.readlines()
+        everything = "\n".join(everything_array)
+        logging.info("LOG_ENTIRE_REQUEST:\n\n" + everything)
+        return apache.OK
+        
         
     else:
         # request.content_type = "text/plain"
