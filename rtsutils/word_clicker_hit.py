@@ -13,6 +13,7 @@ DEFAULT_AUTO_APPROVAL_DELAY = 60*60*24*7
 class WordClickerHit(ExternalHit):
     def __init__(self,
                  experiment_number,
+                 waitbucket=120,
                  title = "Find verbs in a paragraph",
                  description = "Click to highlight all the verbs in a paragraph",
                  keywords = "text verbs reading quick",
@@ -26,7 +27,7 @@ class WordClickerHit(ExternalHit):
                              title=title, 
                              description=description,
                              keywords=keywords,
-                             url="http://" + str(settings.HIT_SERVER) + "/" + str(settings.HIT_SERVER_USER_DIR) + "/word_clicker.mpy?experiment=" + str(experiment_number) + "&retainer=1&waittime=10",
+                             url="http://" + str(settings.HIT_SERVER) + "/" + str(settings.HIT_SERVER_USER_DIR) + "/word_clicker.mpy?experiment=" + str(experiment_number) + "&retainer=1&waittime=" + str(waitbucket),
                              frame_height=frame_height,
                              reward_as_usd_float=reward_as_usd_float,
                              assignment_duration=assignment_duration,
@@ -34,13 +35,14 @@ class WordClickerHit(ExternalHit):
                              max_assignments=max_assignments,
                              auto_approval_delay=auto_approval_delay)
         self.experiment_number = experiment_number
+        self.waitbucket = waitbucket
 
     def post(self, mt_conn, db_conn):
         hit = ExternalHit.post(self, mt_conn)
         sql = """INSERT INTO hits 
                     (hitid, hittypeid, experiment, creation_time, title, description, keywords, 
-                     reward, assignment_duration, lifetime, max_assignments, auto_approval_delay)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                     reward, assignment_duration, lifetime, max_assignments, auto_approval_delay, waitbucket)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         db_conn.query_and_return_array(sql, (hit.HITId, hit.HITTypeId, self.experiment_number, unixtime(datetime.now()), self.title, self.description, self.keywords,
-                                             self.reward_as_usd_float, self.assignment_duration, self.lifetime, self.max_assignments, self.auto_approval_delay))
+                                             self.reward_as_usd_float, self.assignment_duration, self.lifetime, self.max_assignments, self.auto_approval_delay, self.waitbucket))
         return hit

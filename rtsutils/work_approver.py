@@ -4,6 +4,9 @@ import settings
 
 import mt_connection
 
+from datetime import datetime
+import timeutils
+
 def print_assignment_details(a, indent=""):
     print indent + "Status: " + a.AssignmentStatus
     print indent + "SubmitTime: " + a.SubmitTime
@@ -27,7 +30,8 @@ def review_assignment(conn,
                       answer_reviewer=lambda x: (True, None), 
                       bonus_evaluator=lambda x: (False, None, None),
                       verbose=True,
-                      indent=""):
+                      indent="",
+                      dry_run=False):
     """
     reviews passed in assignment using the functions passed in
 
@@ -72,26 +76,47 @@ def review_assignment(conn,
         (approved, msg) = review
 
         if approved:
-            conn.approve_assignment(assignment.AssignmentId, msg)
-            if msg:
-                print indent + "ASSIGNMENT APPROVED " + msg
-            else:
-                print indent + "ASSIGNMENT APPROVED"
+            if msg == None:
+                msg = "Assignment approved, thanks."
             (bonused, amount, bonusmsg) = bonus_evaluator(parsed_answers)
-            if bonused and amount != None and msg != None:
-                conn.grant_bonus(assignment.WorkerId, 
-                              assignment.AssignmentId, 
-                              conn.get_price_as_price(amount),
-                              bonusmsg)
-                print indent + "ASSIGNMENT BONUSED: " + str(amount) + " " + str(msg)
+
+            if bonused and amount != None:
+                if bonusmsg == None:
+                    bonusmsg = "Bonus of " + str(amount) + " granted."
+                msg = msg + " " + bonusmsg
+                
+            if not dry_run:
+                conn.approve_assignment(assignment.AssignmentId, msg)
+
+            print indent + "ASSIGNMENT APPROVED " + msg
+
+            if dry_run:
+                print indent + "(dry run -- assignment not actually approved)"
+                
+
+            if bonused and amount != None and bonusmsg != None:
+                if not dry_run:
+                    conn.grant_bonus(assignment.WorkerId, 
+                                     assignment.AssignmentId, 
+                                     conn.get_price_as_price(amount),
+                                     bonusmsg)
+                print indent + "ASSIGNMENT BONUSED: " + str(amount) + " " + str(bonusmsg)
+                if dry_run:
+                    print indent + "(dry run -- no bonus actually granted)"
             else:
                 print indent + "NO BONUS"
+
         else:
-            conn.reject_assignment(assignment.AssignmentId, msg)
+            if not dry_run:
+                conn.reject_assignment(assignment.AssignmentId, msg)
+
             if msg:
                 print indent + "ASSIGNMENT REJECTED " + msg
             else:
                 print indent + "ASSIGNMENT REJECTED"
+
+            if dry_run:
+                print indent + "(dry run -- assignment not actually rejected)"
 
 
     return result
@@ -100,7 +125,8 @@ def review_assignment(conn,
 def review_pending_assignments(conn,
                                answer_reviewer=lambda x: (True, None), 
                                bonus_evaluator=lambda x: (False, None, None),
-                               verbose=True):
+                               verbose=True,
+                               dry_run=False):
     """
     reviews all pending assignments, calling "review assignment" for each
     
@@ -111,7 +137,7 @@ def review_pending_assignments(conn,
 
     count = 0
 
-    hits = conn.get_reviewable_hits(page_size=100, sort_direction="Descending")
+    hits = get_all_reviewable_hits(conn)
     for h in hits:
         print "HIT ID: " + h.HITId
         assignments = conn.get_assignments(h.HITId, status="Submitted")
@@ -119,14 +145,56 @@ def review_pending_assignments(conn,
             result = review_assignment(conn, a, 
                                        answer_reviewer=answer_reviewer, 
                                        bonus_evaluator=bonus_evaluator,
-                                       verbose=verbose, indent="  ")
+                                       verbose=verbose,
+                                       indent="  ",
+                                       dry_run=dry_run)
             if result:
                 count += 1
     return count
         
 
+def get_all_reviewable_hits(conn):
+    hits = []
+    page_size = 100
+
+    page = 1
+    additional_hits = conn.get_reviewable_hits(page_number=page, page_size=page_size, sort_by="Enumeration", status="Reviewable")
+    while len(additional_hits) > 0:
+        hits.extend(additional_hits)
+        page += 1
+        additional_hits = conn.get_reviewable_hits(page_number=page, page_size=page_size, sort_by="Enumeration", status="Reviewable")
+
+    page = 1
+    additional_hits = conn.get_reviewable_hits(page_number=page, page_size=page_size, sort_by="Enumeration", status="Reviewing")
+    while len(additional_hits) > 0:
+        hits.extend(additional_hits)
+        page += 1
+        additional_hits = conn.get_reviewable_hits(page_number=page, page_size=page_size, sort_by="Enumeration", status="Reviewing")
+
+    return hits
+
+def clean_up_old_hits(conn, verbose=True, dry_run=False):
+    hits = get_all_reviewable_hits(conn)
+    now = timeutils.unixtime(datetime.now())
+    for h in hits:
+        print "------------------"
+        print "HIT ID: " + h.HITId
+        thehit = conn.get_hit(h.HITId)
+        if len(thehit) > 0:
+            thehit = thehit[0]
+            expiration = timeutils.parseISO(thehit.Expiration)
+            duration = float(thehit.AssignmentDurationInSeconds)
+            print "Expiration: " + str(expiration)
+            print "AssignmentDuration: " + str(duration)
+            print "Seconds since okay to delete: " + str(now - expiration - duration)
+            print "Submitted assignments: " + str(len(conn.get_assignments(thehit.HITId, status="Submitted")))
+            print "Approved assignments: " + str(len(conn.get_assignments(thehit.HITId, status="Approved")))
+            print "Rejected assignments: " + str(len(conn.get_assignments(thehit.HITId, status="Rejected")))
+
+
+
 def print_all_pending_answers(conn):
-    hits = conn.get_reviewable_hits(page_size=100, sort_direction="Descending")
+    hits = get_all_reviewable_hits(conn)
     for h in hits:
         print "HIT ID: " + h.HITId
         assignments = conn.get_assignments(h.HITId, status="Submitted")
@@ -134,11 +202,12 @@ def print_all_pending_answers(conn):
             print "  Assignment ID: " + a.AssignmentId
             print_assignment_details(a, indent="  ")
 
-def autoapprove_all_reviewable_assignments(conn, verbose=True):
+def autoapprove_all_reviewable_assignments(conn, verbose=True, dry_run=False):
     return review_pending_assignments(conn, 
                                       answer_reviewer=lambda x: (True, None),
                                       bonus_evaluator=lambda x: (False, None, None),
-                                      verbose=verbose)
+                                      verbose=verbose,
+                                      dry_run=dry_run)
                     
 def delete_all_hits(conn, do_you_mean_it="NO"):
     if do_you_mean_it != "YES_I_MEAN_IT":
@@ -167,7 +236,7 @@ if you realy mean it, run:
                                 for a in assignments:
                                     print "Approving Assignment " + a.AssignmentId
                                     conn.approve_assignment(a.AssignmentId)
-                                assignments = conn.get_reviewable_hits(h.HITId)                                
+                                assignments = conn.get_assignments(h.HITId, status="Submitted")                                
 
                             print "Assignments approved, Disposing HIT " + h.HITId
                             conn.dispose_hit(h.HITId)
