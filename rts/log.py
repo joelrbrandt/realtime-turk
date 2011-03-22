@@ -6,11 +6,13 @@ import time
 from rtsutils.timeutils import *
 import settings
 
+
 def log(request):
     db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
     cur = db.cursor()
     
     form = util.FieldStorage(request)
+    
     event = form['event'].value
     detail = form['detail'].value # e.g., word number
     text_id = int(form['textid'].value)

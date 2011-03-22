@@ -3,9 +3,13 @@ from datetime import datetime, timedelta
 import time
 
 def parseISO(input):
-    split_dt = input.split('.')
+    input_no_z = input[:-1]
+    split_dt = input_no_z.split('.')
     no_millis = datetime.strptime( split_dt[0], "%Y-%m-%dT%H:%M:%S" )
-    millis = int(split_dt[1][:-1])  # remove the 'Z' at the end
+    
+    millis = 0
+    if len(split_dt) == 2:
+        millis = int(split_dt[1])  # remove the 'Z' at the end
     
     final_date = no_millis + timedelta(milliseconds = millis)
     

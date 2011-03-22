@@ -76,6 +76,8 @@ def parseResults():
     print("\n\n")
     printCurrentlyActiveCount(cur, EXPERIMENT)
     
+    graphCDF(assignments)
+    
     cur.close()
     db.close()    
 
@@ -222,7 +224,7 @@ def total_seconds(td):
 def graphCDF(assignments):
     pyplot.clf()
     pyplot.hold(True)
-    x = numpy.linspace(0, 10, num=1000)
+    x = numpy.linspace(0, 100, num=1000)
 
     condition_assignments = groupAssignmentsByCondition(assignments)
     for condition in condition_assignments.keys():

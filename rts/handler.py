@@ -71,9 +71,8 @@ def handler(request):
           "http://flock.csail.mit.edu/jbrandt/rts/log_entire_request",
           event_types=("AssignmentAccepted", "AssignmentAbandoned", "AssignmentReturned", "AssignmentSubmitted", "HITReviewable", "HITExpired"))
         """
-        everything_array = request.readlines()
-        everything = "\n".join(everything_array)
-        logging.info("LOG_ENTIRE_REQUEST:\n\n" + everything)
+        import notification
+        notification.notificationLogging(request)
         return apache.OK
         
         
