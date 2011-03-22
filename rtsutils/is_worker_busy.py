@@ -4,9 +4,10 @@ from datetime import datetime, timedelta
 
 #TODO: time out open assignments after 60 minutes anyway, as a precaution
 
-def isWorkerBusy(worker_id):    
+def isWorkerBusy(worker_id, ignore_assignments = []):    
     open_hits = getWorkerOpenHITs(worker_id)
-    return len(open_hits) > 0
+    filtered = [x for x in open_hits if x not in ignore_assignments]
+    return len(filtered) > 0
     
 def getWorkerOpenHITs(worker_id):
     """Returns a list of all HITs where the last word was that the worker had accepted it"""
@@ -14,7 +15,7 @@ def getWorkerOpenHITs(worker_id):
 
     # this gives us the last notification we got for any HIT that this worker touched
     db = DBConnection()
-    results = db.query_and_return_array("""SELECT `assignment_duration`, `accept`, `return`, `submit`, `assignmentid` FROM `hits`, `assignments` WHERE `assignments`.hitid = `hits`.hitid AND `assignments`.workerid   = %s """, (worker_id,) )
+    results = db.query_and_return_array("""SELECT `assignment_duration`, `accept`, `return`, `submit`, `assignmentid` FROM hits, assignments WHERE assignments.hitid = hits.hitid AND assignments.workerid = %s """, (worker_id,) )
     
     for row in results:
         is_done = row['submit'] is not None
