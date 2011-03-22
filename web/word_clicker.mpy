@@ -1,7 +1,7 @@
 <%!
 import rts.condition as condition
 import rts.agreement as agreement
-import rtsutils.is_worker_busy as is_worker_busy
+from rtsutils.is_worker_busy import isWorkerBusy
 %>
 
 <%
@@ -28,11 +28,20 @@ else:
     is_tetris = False
     
 # have they already agreed that they understand the instructions?
+
 if fieldstorage.has_key('workerId'):
-    worker_id = fieldstorage['workerId']
+    worker_id = fieldstorage['workerId']    
     has_agreed = agreement.getAgreementForWorker(worker_id)
 else:
-    has_agreed = False    
+    worker_id = 0
+    has_agreed = False
+    
+if fieldstorage.has_key('assignmentId'):
+    assignment_id = fieldstorage['assignmentId']
+    if assignment_id == "ASSIGNMENT_ID_NOT_AVAILABLE":
+        assignment_id = 0    
+else:
+    assignment_id = 0
 
 # grab wait time from the URL params
 if fieldstorage.has_key('waittime'):
@@ -43,6 +52,13 @@ else:
 # time the user has to dismiss the dialog
 max_reward_time = 2
 %>
+
+% if isWorkerBusy(worker_id, [assignment_id]):
+    <h1>Please return this HIT</h1>
+    Due to the nature of this HIT, you can only have one of our HITs accepted at a time. Our records show that you have another HIT from us accepted, and it has not expired, been submitted, or been returned. Please return this HIT and complete or return that one. You may accept another HIT then. 
+    <% return %>
+% endif
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
