@@ -19,10 +19,10 @@ import mt_connection
 """
 TODOs:
 
-- add "Dry run" options to doit and stuff that gets called by do it (in work_approver)
-- change it so that the approve reason appends the bonus reason if they get a bonus (so it's more clear)
-- add pagination support for getting ALL HITs
-- add a main function
+  (DONE) add "Dry run" options to doit and stuff that gets called by do it (in work_approver)
+  (DONE) change it so that the approve reason appends the bonus reason if they get a bonus (so it's more clear)
+  (DONE) add pagination support for getting ALL HITs
+  (DONE) add a main function
 - test it more
 
 """
@@ -88,13 +88,6 @@ def bonus_evaluator(answer):
         logging.exception('error calculating bonus for answer: ' + str(answer))
     return result
 
-def doit(verbose=True):
-    c = mt_connection.get_mt_conn()
-    work_approver.review_pending_assignments(c,
-                                             answer_reviewer=answer_reviewer,
-                                             bonus_evaluator=bonus_evaluator,
-                                             verbose=verbose)
-
 def calculateAccuracy(text_id, verbs):
     """ Looks up the ground truth in the database and calculates precision and recall. """
     db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
@@ -114,4 +107,19 @@ def calculateAccuracy(text_id, verbs):
         recall = 0
         
     return { 'precision': precision, 'recall': recall }
+
+def approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=False):
+    conn = mt_connection.get_mt_conn()
+    print "== REVIEWING WORD CLICKER HITS =="
+    work_approver.review_pending_assignments(conn,
+                                             answer_reviewer=answer_reviewer,
+                                             bonus_evaluator=bonus_evaluator,
+                                             verbose=verbose,
+                                             dry_run=dry_run)
     
+    review_word_clicker_hits(conn, verbose=True, dry_run=True)
+    print "== CLEANING UP OLD HITS =="
+    work_approver.clean_up_old_hits(conn, verbose=True, dry_run=True)
+    
+if __name__ == "__main__":
+    approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=True)
