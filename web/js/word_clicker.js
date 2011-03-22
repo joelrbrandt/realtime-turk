@@ -216,6 +216,7 @@ function logEvent(eventName, detail, finishedCallback) {
         detail: JSON.stringify(detail), 
         textid: textid, 
         assignmentid: assignmentid,
+        hitid: hitid,
         workerid: workerid,
         experiment: experiment,
         time: getServerTime().toISOString(),
