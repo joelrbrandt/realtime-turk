@@ -17,6 +17,7 @@ def log(request):
     detail = form['detail'].value # e.g., word number
     text_id = int(form['textid'].value)
     assignment = form['assignmentid'].value
+    hit = form['hitid'].value
     worker = form['workerid'].value
     experiment = int(form['experiment'].value)
     ip = request.connection.remote_ip
@@ -24,8 +25,13 @@ def log(request):
     time = parseISO(form['time'].value)
     bucket = parseISO(form['bucket'].value)
     servertime = unixtime(datetime.now())
-        
-    cur.execute("""INSERT INTO logging (textid, event, detail, experiment, time, servertime, bucket, assignmentid, workerid, ip, useragent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", (text_id, event, detail, experiment, time,  servertime, bucket, assignment, worker, ip, useragent))
+    
+    # TODO: factor out of logging any information in the HITs or assignments table
+    cur.execute("""INSERT INTO logging (textid, event, detail, experiment, time, servertime, bucket, assignmentid, workerid, ip, useragent, hitid) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", (text_id, event, detail, experiment, time,  servertime, bucket, assignment, worker, ip, useragent, hit))
+    
+    # if it's an accept event, we start logging information about it in our assignments table
+    if event == "accept":
+        cur.execute("""INSERT INTO assignments (assignmentid, workerid, hitid, textid, accept) VALUES (%s, %s, %s, %s, %s)""", (assignment, worker, hit, text_id, time))
     
     cur.close()
     db.close()

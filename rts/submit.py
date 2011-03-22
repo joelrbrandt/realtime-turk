@@ -78,10 +78,9 @@ def log_submission_in_db(request):
     except:
         logging.exception("Error parsing word array or getting precision/recall")
 
-    sql = """INSERT INTO `submissions` 
-              (`assignmentid`, `workerid`, `experiment`, `textid`, `wordarray`, `accept`, 
-               `show`, `go`, `first`, `submit`, `precision`, `recall`)
-             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+    sql = """UPDATE `assignments` SET
+              `wordarray` = %s, `show` = %s, `go` = %s, `first` = %s, `submit` = %s, `precision` = %s, `recall` = %s
+              WHERE assignmentid = %s;
           """
 
     try:
@@ -91,8 +90,7 @@ def log_submission_in_db(request):
                            db=settings.DB_DATABASE,
                            use_unicode=True)
         cur = db.cursor()
-        cur.execute(sql, (assignmentid, workerid, experiment, textid, wordarray, 
-                          accept, show, go, first, submit, precision, recall))
+        cur.execute(sql, (wordarray, show, go, first, submit, precision, recall, assignmentid))
         cur.close()
         db.close()
     except:
