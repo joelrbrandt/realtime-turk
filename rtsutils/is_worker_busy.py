@@ -1,7 +1,13 @@
 import settings
 import MySQLdb
 
-def isWorkerBusy(worker_id):
+#TODO: time out open assignments after 60 minutes anyway, as a precaution
+
+def isWorkerBusy(worker_id):    
+    open_hits = getWorkerOpenHITs(worker_id)
+    return len(open_hits) > 0
+
+def getWorkerOpenHITs(worker_id):
     db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
     cur = db.cursor(MySQLdb.cursors.DictCursor)
     
@@ -10,8 +16,9 @@ def isWorkerBusy(worker_id):
     
     cur.close()
     db.close()
-    
-    return len(open_and_alive_hits) > 0
+
+    return open_and_alive_hits    
+
     
 def getAcceptedHITs(worker_id, cur):
     """Returns a list of all HITs where the last word was that the worker had accepted it"""
