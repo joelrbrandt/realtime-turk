@@ -34,7 +34,7 @@ BONUS_AMOUNT = 0.02
 BONUS_REASON = "$0.02 bonus for quick response. Thank you!"
 
 PRECISION_LIMIT = 0.66  # 2/3s of what was selected must be verbs
-RECALL_LIMIT = 0.5  # must have gotten 1/2 of all verbs
+RECALL_LIMIT = 0.33  # must have gotten 1/3 of all verbs
 
 BONUS_TIME_LIMIT = 2.0 # seconds
 

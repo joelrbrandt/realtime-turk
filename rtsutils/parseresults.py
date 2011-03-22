@@ -64,7 +64,8 @@ def parseResults():
     # this sort is NECESSARY for groupby:
     # http://docs.python.org/library/itertools.html#itertools.groupby
     all_assignments.sort(key=lambda k: k.wait_bucket)
-    for time_bucket, bucket_assignments in groupby(all_assignments, key=lambda k: k.wait_bucket):    
+    for time_bucket, iter_bucket_assignments in groupby(all_assignments, key=lambda k: k.wait_bucket):    
+        bucket_assignments = list(iter_bucket_assignments)
         # filter out assignments with bad precision or recall
         assignments = filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, bucket_assignments)
         
@@ -79,10 +80,10 @@ def parseResults():
         printAssignments(sorted(assignments, key=lambda k: k.workerid))
         
         print("\n\n")
-        printSummary(assignments)
+        printSummary(assignments, bucket_assignments)
         
         print("\n\n")
-        printConditionSummaries(assignments)
+        printConditionSummaries(assignments, bucket_assignments)
         
         print("\n\n")
         printCurrentlyActiveCount(EXPERIMENT)
@@ -168,7 +169,7 @@ def printCurrentlyActiveCount(experiment):
         print(ping_type + ": unique assignmentIds pings in last 15 seconds: " + str(results[ping_type]))
     return results
     
-def printSummary(assignments, condition = None):
+def printSummary(assignments, assignments_including_incomplete, condition = None):
     # TODO?: WARNING: not removing first worker attempt to smooth
     print("N = %d, %d unique workers" % (len(assignments), len(set([assignment.workerid for assignment in assignments]))))
     
@@ -214,6 +215,10 @@ def printSummary(assignments, condition = None):
     (r_answer, p_val_answer) = stats.pearsonr(go_show, go_answer)    
     print("Correlation between show-go and go-answer: %f, p<%f" % (r_answer, p_val_answer))
     
+    # bounce rate
+    mortality = 1 - float(len(assignments)) / len(assignments_including_incomplete)
+    print("Mortality Rate: " + str(mortality))
+    
     if condition is not None:
         db = DBConnection()
         if condition == 'tetris':
@@ -232,7 +237,7 @@ def groupAssignmentsByCondition(assignments):
     
     return condition_assignments
     
-def printConditionSummaries(assignments):
+def printConditionSummaries(assignments, assignments_including_incomplete):
     condition_assignments = groupAssignmentsByCondition(assignments)
     for condition in condition_assignments.keys():
         filtered_assignments = condition_assignments[condition]
