@@ -2,7 +2,7 @@ import settings
 from rts import condition
 from rtsutils.word_clicker_approver import RECALL_LIMIT, PRECISION_LIMIT
 
-import MySQLdb
+from db_connection import DBConnection
 from datetime import datetime, timedelta
 import simplejson as json
 from rtsutils.timeutils import *
@@ -14,8 +14,9 @@ import scikits.statsmodels
 
 from padnums import pprint_table
 import sys
+from itertools import groupby
 
-EXPERIMENT = 33
+EXPERIMENT = 40
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -23,10 +24,15 @@ class Assignment:
     accept_time = None
     show_time = None
     go_time = None
+    submit_time = None
     
     workerid = None
     assignmentid = None
     #detail = None
+    
+    wait_bucket = None
+    precision = None
+    recall = None
     
     condition = None
     
@@ -51,60 +57,74 @@ class Assignment:
         else:
             return None
 
-def parseResults():      
-    db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE,
- use_unicode=True)
-    cur = db.cursor(MySQLdb.cursors.DictCursor)   
-
+def parseResults():
     # get all the clicks
-    assignments = getAssignments(cur, EXPERIMENT)
-    assignments.sort(key=lambda k: k.answer_time)  # we want them in completion order
+    all_assignments = getAssignments(EXPERIMENT)
     
-    print("\n\nworker logs")
-    printWorkerLogs(assignments)    
-    
-    """ Now we look at each assignment and look at time diffs """
-    print("\n\nassignments")
-    printAssignments(sorted(assignments, key=lambda k: k.workerid))
-    
-    print("\n\n")
-    printSummary(assignments)
-    
-    print("\n\n")
-    printConditionSummaries(assignments, cur)
-    
-    print("\n\n")
-    printCurrentlyActiveCount(cur, EXPERIMENT)
-    
-    graphCDF(assignments)
-    
-    cur.close()
-    db.close()    
+    # this sort is NECESSARY for groupby:
+    # http://docs.python.org/library/itertools.html#itertools.groupby
+    all_assignments.sort(key=lambda k: k.wait_bucket)
+    for time_bucket, bucket_assignments in groupby(all_assignments, key=lambda k: k.wait_bucket):    
+        # filter out assignments with bad precision or recall
+        assignments = filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, bucket_assignments)
+        
+        print("Time bucket: " + str(time_bucket) + " seconds")
+        assignments.sort(key=lambda k: k.answer_time)  # we want them in completion order
+        
+        print("\n\nworker logs")
+        printWorkerLogs(assignments)    
+        
+        """ Now we look at each assignment and look at time diffs """
+        print("\n\nassignments")
+        printAssignments(sorted(assignments, key=lambda k: k.workerid))
+        
+        print("\n\n")
+        printSummary(assignments)
+        
+        print("\n\n")
+        printConditionSummaries(assignments)
+        
+        print("\n\n")
+        printCurrentlyActiveCount(EXPERIMENT)
+        
+        graphCDF(assignments)   
 
-def getAssignments(cur, experiment):
+def getAssignments(experiment):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 
-    
-    cur.execute("""SELECT * from submissions sub, workers w WHERE experiment = %s AND sub.workerid = w.workerid AND sub.precision >= %s AND sub.recall >= %s""" % (experiment, PRECISION_LIMIT, RECALL_LIMIT) )
+
+    db = DBConnection()    
+    results = db.query_and_return_array("""SELECT * from assignments a, workers w, hits h WHERE experiment = %s AND a.workerid = w.workerid AND a.hitid = h.hitid """ % (experiment,) )
 
     assignments = []
 
     """ For each assignment, get its completion information """
-    for row in cur.fetchall():
+    for row in results:
         assignment = Assignment()
         assignment.workerid = row['workerid']
         assignment.assignmentid = row['assignmentid']
+        assignment.wait_bucket = row['waitbucket']
+        
+        assignment.precision = row['precision']
+        assignment.recall = row['recall']
         assignment.condition = condition.getConditionName(bool(row['is_alert']), bool(row['is_reward']), bool(row['is_tetris']))
         
-        assignment.answer_time = datetime.fromtimestamp(row['first'])
+        if row['first'] is not None:
+            assignment.answer_time = datetime.fromtimestamp(row['first'])
         
         # when did the worker accept that task?
-        assignment.accept_time = datetime.fromtimestamp(row['accept'])
+        if row['accept'] is not None:
+            assignment.accept_time = datetime.fromtimestamp(row['accept'])
         
         # when did the task or 'go' button appear to the user?
-        assignment.show_time = datetime.fromtimestamp(row['show'])
+        if row['show'] is not None:
+            assignment.show_time = datetime.fromtimestamp(row['show'])
             
         # when did the worker click the "go" button?
-        assignment.go_time = datetime.fromtimestamp(row['go'])
+        if row['go'] is not None:
+            assignment.go_time = datetime.fromtimestamp(row['go'])
+            
+        if row['submit'] is not None:
+            assignment.submit_time = datetime.fromtimestamp(row['submit'])
             
         assignments.append(assignment)
 
@@ -134,19 +154,21 @@ def printWorkerLogs(assignments):
     for workerid in worker_lags.keys():
         print(workerid + ' ' + str(worker_lags[workerid]))
 
-def printCurrentlyActiveCount(cur, experiment):
+def printCurrentlyActiveCount(experiment):
     ping_floor = datetime.now() - timedelta(seconds = 15)
-    
     ping_types = ["ping-waiting", "ping-showing", "ping-working"]
+
+    db = DBConnection()
 
     results = dict()
     for ping_type in ping_types:
-        cur.execute("""SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event='%s' AND experiment = '%s' AND servertime >= %s""" % ( ping_type, experiment, unixtime(ping_floor) ))
-        results[ping_type] = cur.fetchone()['COUNT(DISTINCT assignmentid)']
+        row = db.query_and_return_array("""SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event='%s' AND experiment = '%s' AND servertime >= %s""" % ( ping_type, experiment, unixtime(ping_floor) ))[0]
+        results[ping_type] = row['COUNT(DISTINCT assignmentid)']
+
         print(ping_type + ": unique assignmentIds pings in last 15 seconds: " + str(results[ping_type]))
     return results
     
-def printSummary(assignments, condition = None, cur = None):
+def printSummary(assignments, condition = None):
     # TODO?: WARNING: not removing first worker attempt to smooth
     print("N = %d, %d unique workers" % (len(assignments), len(set([assignment.workerid for assignment in assignments]))))
     
@@ -192,10 +214,11 @@ def printSummary(assignments, condition = None, cur = None):
     (r_answer, p_val_answer) = stats.pearsonr(go_show, go_answer)    
     print("Correlation between show-go and go-answer: %f, p<%f" % (r_answer, p_val_answer))
     
-    if condition is not None and cur is not None:
+    if condition is not None:
+        db = DBConnection()
         if condition == 'tetris':
-            cur.execute(""" SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event = 'tetris_row_clear' AND experiment = %s """, (EXPERIMENT, ) )
-            num_playing = cur.fetchone()['COUNT(DISTINCT assignmentid)']
+            result = db.query_and_return_array(""" SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event = 'tetris_row_clear' AND experiment = %s """, (EXPERIMENT, ) )[0]
+            num_playing = result['COUNT(DISTINCT assignmentid)']
             print(str(num_playing) + " assignments out of " + str(len(assignments)) + " (" + str(float(num_playing) / len(assignments) * 100) + "%) cleared a row in Tetris ")
 
 def groupAssignmentsByCondition(assignments):
@@ -209,12 +232,12 @@ def groupAssignmentsByCondition(assignments):
     
     return condition_assignments
     
-def printConditionSummaries(assignments, cur):
+def printConditionSummaries(assignments):
     condition_assignments = groupAssignmentsByCondition(assignments)
     for condition in condition_assignments.keys():
         filtered_assignments = condition_assignments[condition]
         print("\n" + condition + ":")
-        printSummary(filtered_assignments, condition, cur)
+        printSummary(filtered_assignments, condition)
     
      
 def total_seconds(td):
