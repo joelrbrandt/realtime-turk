@@ -2,6 +2,9 @@ import settings
 
 from external_hit import *
 
+from timeutils import unixtime
+from datetime import datetime
+
 
 DEFAULT_ASSIGNMENT_DURATION = 60*10
 DEFAULT_LIFETIME = 60*10
@@ -30,5 +33,14 @@ class WordClickerHit(ExternalHit):
                              lifetime=lifetime,
                              max_assignments=max_assignments,
                              auto_approval_delay=auto_approval_delay)
+        self.experiment_number = experiment_number
 
-
+    def post(self, mt_conn, db_conn):
+        hit = ExternalHit.post(self, mt_conn)
+        sql = """INSERT INTO hits 
+                    (hitid, hittypeid, experiment, creation_time, title, description, keywords, 
+                     reward, assignment_duration, lifetime, max_assignments, auto_approval_delay)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        db_conn.query_and_return_array(sql, (hit.HITId, hit.HITTypeId, self.experiment_number, unixtime(datetime.now()), self.title, self.description, self.keywords,
+                                             self.reward_as_usd_float, self.assignment_duration, self.lifetime, self.max_assignments, self.auto_approval_delay))
+        return hit
