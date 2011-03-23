@@ -1,0 +1,159 @@
+<%!
+import rts.condition as condition
+import rts.agreement as agreement
+from rtsutils.is_worker_busy import isWorkerBusy
+%>
+
+<%
+# grab worker condition from the URL or server
+if fieldstorage.has_key('alert'):
+    is_alert = bool(int(fieldstorage['alert']))
+elif fieldstorage.has_key('workerId'):
+    is_alert = condition.isAlert(fieldstorage['workerId'])
+else:
+    is_alert = False
+
+if fieldstorage.has_key('reward'):
+    is_reward = bool(int(fieldstorage['reward']))
+elif fieldstorage.has_key('workerId'):
+    is_reward = condition.isReward(fieldstorage['workerId'])    
+else:
+    is_reward = False
+
+if fieldstorage.has_key('tetris'):
+    is_tetris = bool(int(fieldstorage['tetris']))
+elif fieldstorage.has_key('workerId'):
+    is_tetris = condition.isTetris(fieldstorage['workerId'])    
+else:
+    is_tetris = False
+    
+# have they already agreed that they understand the instructions?
+
+if fieldstorage.has_key('workerId'):
+    worker_id = fieldstorage['workerId']    
+    has_agreed = agreement.getAgreementForWorker(worker_id)
+else:
+    worker_id = 0
+    has_agreed = False
+    
+if fieldstorage.has_key('assignmentId'):
+    assignment_id = fieldstorage['assignmentId']
+    if assignment_id == "ASSIGNMENT_ID_NOT_AVAILABLE":
+        assignment_id = 0    
+else:
+    assignment_id = 0
+
+# grab wait time from the URL params
+if fieldstorage.has_key('waittime'):
+    wait_time = int(fieldstorage['waittime'])
+else:
+    wait_time = 120
+    
+# time the user has to dismiss the dialog
+max_reward_time = 2
+%>
+
+% if isWorkerBusy(worker_id, [assignment_id]):
+    <h1>Please return this HIT</h1>
+    Due to the nature of this HIT, you can only have one of our HITs accepted at a time. Our records show that you have another HIT from us accepted, and it has not expired, been submitted, or been returned. Please return this HIT and complete or return that one. You may accept another HIT then. 
+    <% return %>
+% endif
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Word Clicker</title>
+    <link href="css/word_clicker.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>    
+    <script type="text/javascript" src="js/word_clicker.js"></script>
+    <script type="text/javascript" src="js/retainer.js"></script>    
+    <script type="text/javascript" src="lib/date.js"></script>
+    <script type="text/javascript" src="lib/alert/script/soundmanager2-nodebug-jsmin.js"></script>
+    <script type="text/javascript" src="lib/alert/alert.js"></script>
+    <script src="lib/jquery.getUrlParam.js" type="text/javascript"></script>
+    <script src="js/replay.js" type="text/javascript"></script>
+% if is_tetris:
+    <script src="lib/tetris/tetris.js" type="text/javascript"></script>
+	<link href="lib/tetris/tetris.css"	rel="stylesheet" type="text/css">
+% endif
+    
+    <script type="text/javascript">
+        var userReady = ${str(has_agreed).lower()};     // user says they read the instructions (once)
+    
+        var isAlert = ${str(is_alert).lower()};
+        var isReward = ${str(is_reward).lower()};
+        var isTetris = ${str(is_tetris).lower()};
+        
+        var maxRewardTime = ${max_reward_time};
+        var maxWaitTime = ${wait_time};
+    </script>
+</head>
+<body>
+<h1>Click to Select All the Verbs</h1>
+<div class="task instructions">
+    Instructions:
+    <ol>
+        <li>In ${wait_time} seconds or less, a paragraph will appear below. Act <b>quickly</b> to start when it appears.</li>
+        
+        <li>Use the mouse to click and select all verbs in the  paragraph.<br/><img src='media/preview.png' class='outlined'/><!--<br/>You may ignore all parts of each verb phrase other than the main verb.--></li>
+    </ol>
+    <div id='time-report' style='display: none'></div>
+</div>
+
+<div class="task" id="taskContainer">
+    <div id="retainer">Special instructions:
+        <ul>
+% if is_alert:
+        <li>Your browser will display a dialog box and play a sound when the paragraph is ready. Press 'OK' as quickly as possible.</li>
+% endif
+        <li>Dismiss the dialog box as quickly as possible when it appears.</li>
+% if is_reward:        
+        <li>You get a <b>two cent bonus</b> if you 
+    % if is_alert:
+        dismiss the alert
+    % else:
+        click the Go! button
+    % endif
+    in less than ${max_reward_time} seconds.</li>
+% endif        
+        </ul>
+
+        <div id="agreementContainer">              
+% if not has_agreed:        
+            <button id="instructionsOK">I understand 
+    % if is_alert:
+            about the alert
+        % if is_reward:                
+            and the bonus
+        % endif
+    % endif        
+            </button>
+% else:
+            <span style="color: darkGray">You already agreed that you understand the task. We signaled our server that you are ready.</span>
+% endif
+        </div>
+    </div>
+    <div id="goContainer"></div>
+    <div id="taskText"></div>
+</div>
+
+<div>
+    <div id="donemsg"></div>
+    <button id="donebtn">Done</button>
+    <button id="surebtn" style="display: none">I'm Sure -- Submit My Work</button>
+    <form id="completeForm" action="rts/submit" method="GET" style="display: none">
+        <input type="submit" name="done" value="done"></input>
+    </form>
+</div>
+
+<div id='chatContainer'></div>
+<div id='tetrisContainer'>
+% if is_tetris:
+    <%include file="lib/tetris/tetris.html" />
+% endif
+</div>
+
+</body>
+</html>
