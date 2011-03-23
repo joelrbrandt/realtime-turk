@@ -7,7 +7,7 @@ echo "== STARTING 30 SECOND =="
 for i in {1..38}
   do
     echo "== ITERATION $i OF 30 SECOND =="
-    python word_clicker_poster.py -e 40 -n 10 -b 30 -p 2
+    python word_clicker_poster.py -e 41 -n 10 -b 30 -p 2
     sleep 60
  done
 
@@ -18,7 +18,7 @@ echo "== STARTING 60 SECOND =="
 for i in {1..38}
   do
     echo "== ITERATION $i OF 60 SECOND =="
-    python word_clicker_poster.py -e 40 -n 10 -b 60 -p 3
+    python word_clicker_poster.py -e 41 -n 10 -b 60 -p 3
     sleep 60
  done
 
@@ -29,7 +29,7 @@ echo "== STARTING 120 SECOND =="
 for i in {1..38}
   do
     echo "== ITERATION $i OF 120 SECOND =="
-    python word_clicker_poster.py -e 40 -n 10 -b 120 -p 4
+    python word_clicker_poster.py -e 41 -n 10 -b 120 -p 4
     sleep 60
  done
 
@@ -40,7 +40,7 @@ echo "== STARTING 300 SECOND =="
 for i in {1..38}
   do
     echo "== ITERATION $i OF 300 SECOND =="
-    python word_clicker_poster.py -e 40 -n 10 -b 300 -p 7
+    python word_clicker_poster.py -e 41 -n 10 -b 300 -p 7
     sleep 60
  done
 
@@ -51,7 +51,7 @@ echo "== STARTING 600 SECOND =="
 for i in {1..38}
   do
     echo "== ITERATION $i OF 600 SECOND =="
-    python word_clicker_poster.py -e 40 -n 10 -b 600 -p 12
+    python word_clicker_poster.py -e 41 -n 10 -b 600 -p 12
     sleep 60
  done
 

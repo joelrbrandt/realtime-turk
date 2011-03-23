@@ -7,21 +7,21 @@ from rtsutils.is_worker_busy import isWorkerBusy
 <%
 # grab worker condition from the URL or server
 if fieldstorage.has_key('alert'):
-    is_alert = bool(fieldstorage['alert'])
+    is_alert = bool(int(fieldstorage['alert']))
 elif fieldstorage.has_key('workerId'):
     is_alert = condition.isAlert(fieldstorage['workerId'])
 else:
     is_alert = False
 
 if fieldstorage.has_key('reward'):
-    is_reward = bool(fieldstorage['reward'])
+    is_reward = bool(int(fieldstorage['reward']))
 elif fieldstorage.has_key('workerId'):
     is_reward = condition.isReward(fieldstorage['workerId'])    
 else:
     is_reward = False
 
 if fieldstorage.has_key('tetris'):
-    is_tetris = bool(fieldstorage['tetris'])
+    is_tetris = bool(int(fieldstorage['tetris']))
 elif fieldstorage.has_key('workerId'):
     is_tetris = condition.isTetris(fieldstorage['workerId'])    
 else:

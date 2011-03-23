@@ -22,12 +22,20 @@ class WordClickerHit(ExternalHit):
                  assignment_duration = DEFAULT_ASSIGNMENT_DURATION,
                  lifetime = DEFAULT_LIFETIME,
                  max_assignments = 1,
-                 auto_approval_delay = DEFAULT_AUTO_APPROVAL_DELAY):
+                 auto_approval_delay = DEFAULT_AUTO_APPROVAL_DELAY,
+                 use_conditions = True):
+        
+        url = "http://" + str(settings.HIT_SERVER) + "/" + str(settings.HIT_SERVER_USER_DIR) + "/word_clicker.mpy?experiment=" + str(experiment_number) + "&retainer=1&waittime=" + str(waitbucket)
+        
+        # default to just alert if we're not assigning to conditions
+        if not use_conditions:
+            url += "&alert=1&tetris=0&reward=0"
+        
         ExternalHit.__init__(self, 
                              title=title, 
                              description=description,
                              keywords=keywords,
-                             url="http://" + str(settings.HIT_SERVER) + "/" + str(settings.HIT_SERVER_USER_DIR) + "/word_clicker.mpy?experiment=" + str(experiment_number) + "&retainer=1&waittime=" + str(waitbucket),
+                             url=url,
                              frame_height=frame_height,
                              reward_as_usd_float=reward_as_usd_float,
                              assignment_duration=assignment_duration,
@@ -36,6 +44,7 @@ class WordClickerHit(ExternalHit):
                              auto_approval_delay=auto_approval_delay)
         self.experiment_number = experiment_number
         self.waitbucket = waitbucket
+        self.use_conditions = use_conditions
 
     def post(self, mt_conn, db_conn):
         hit = ExternalHit.post(self, mt_conn)

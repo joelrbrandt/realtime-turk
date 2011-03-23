@@ -219,6 +219,11 @@ def printSummary(assignments, assignments_including_incomplete, condition = None
     mortality = 1 - float(len(assignments)) / len(assignments_including_incomplete)
     print("Mortality Rate: " + str(mortality))
     
+    # preview to accept ratio: we can look for a given HIT id
+    # (which will only have one assignment) how many unique IPs previewed it
+    # it's possible that lots of people previewed and wanted, but only one
+    # was fast enough to grab it?
+    
     if condition is not None:
         db = DBConnection()
         if condition == 'tetris':
