@@ -2,9 +2,18 @@ import settings
 from rtsutils.db_connection import DBConnection
 from datetime import datetime, timedelta
 
-#TODO: time out open assignments after 60 minutes anyway, as a precaution
+from rts import rts_logging
+import logging
+
+#TODO: time out open assignments after 60 minutes anyway, as a precaution?
+
+"""
+ Known bug: if a worker opens up two HITs and gets the message to return it, but doesn't, it will call this method again when reloaded. This means the worker could get the HIT if they reload the page after submitting the other HIT. This would be bad because the worker would then start the HIT but it might expire (assignment_length) before he can finish, since the assignment length timer started when he first got the HIT.
+"""
 
 def isWorkerBusy(worker_id, ignore_assignments = []):    
+    if worker_id == 0:
+        return False
     open_hits = getWorkerOpenHITs(worker_id)
     filtered = [x for x in open_hits if x not in ignore_assignments]
     return len(filtered) > 0
