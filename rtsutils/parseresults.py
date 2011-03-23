@@ -16,7 +16,7 @@ from padnums import pprint_table
 import sys
 from itertools import groupby
 
-EXPERIMENT = 40
+EXPERIMENT = 41
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -64,12 +64,17 @@ def parseResults():
     # this sort is NECESSARY for groupby:
     # http://docs.python.org/library/itertools.html#itertools.groupby
     all_assignments.sort(key=lambda k: k.wait_bucket)
+    
     for time_bucket, iter_bucket_assignments in groupby(all_assignments, key=lambda k: k.wait_bucket):    
         bucket_assignments = list(iter_bucket_assignments)
         # filter out assignments with bad precision or recall
+        print [ass.submit_time for ass in bucket_assignments]
+        
         assignments = filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, bucket_assignments)
         
+        print("\n\n\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         print("Time bucket: " + str(time_bucket) + " seconds")
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")        
         assignments.sort(key=lambda k: k.answer_time)  # we want them in completion order
         
         print("\n\nworker logs")
@@ -255,19 +260,22 @@ def total_seconds(td):
     
 # http://matplotlib.sourceforge.net/api/pyplot_api.html#matplotlib.pyplot.step    
 def graphCDF(assignments):
-    pyplot.clf()
-    pyplot.hold(True)
-    x = numpy.linspace(0, 100, num=1000)
-
-    condition_assignments = groupAssignmentsByCondition(assignments)
-    for condition in condition_assignments.keys():
-        go_show = [click.goDeltaShow() for click in condition_assignments[condition]]
-        ecdf = scikits.statsmodels.tools.ECDF(go_show)
-        y = ecdf(x) # plots y in the CDF for each input x
-        
-        pyplot.step(x, y, label=condition, linewidth=2)
-
-    pyplot.legend()
+    try:
+        pyplot.clf()
+        pyplot.hold(True)
+        x = numpy.linspace(0, 100, num=1000)
+    
+        condition_assignments = groupAssignmentsByCondition(assignments)
+        for condition in condition_assignments.keys():
+            go_show = [click.goDeltaShow() for click in condition_assignments[condition]]
+            ecdf = scikits.statsmodels.tools.ECDF(go_show)
+            y = ecdf(x) # plots y in the CDF for each input x
+            
+            pyplot.step(x, y, label=condition, linewidth=2)
+    
+        pyplot.legend()
+    except Exception, e:
+        print("Graphing exception: " + str(e))
 
 if __name__ == "__main__":
     parseResults()

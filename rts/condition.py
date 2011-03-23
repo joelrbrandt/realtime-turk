@@ -1,7 +1,8 @@
-import MySQLdb
 import settings
 import random
 import simplejson as json
+
+from rtsutils.db_connection import DBConnection
 
 CONDITIONS = [
     {
@@ -53,14 +54,13 @@ def isTetris(worker_id):
 def getCondition(worker_id):
     """ Sees if the worker has already been assigned a condition, and if not, assigns them """
     
-    db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
-    cur = db.cursor(MySQLdb.cursors.DictCursor)
+    db=DBConnection()
     
-    num_rows = cur.execute("""SELECT is_alert, is_reward, is_tetris FROM workers WHERE workerid = %s """, (worker_id, ) )
-    if (num_rows == 0): # not in database yet
+    rows = db.query_and_return_array("""SELECT is_alert, is_reward, is_tetris FROM workers WHERE workerid = %s """, (worker_id, ) )
+    if len(rows) == 0: # not in database yet
         result = setRandomCondition(worker_id, cur)
     else:
-        result = cur.fetchone()
+        result = rows[0]
     is_alert = bool(result['is_alert'])
     is_reward = bool(result['is_reward'])
     is_tetris = bool(result['is_tetris'])
@@ -69,11 +69,12 @@ def getCondition(worker_id):
              'isReward': is_reward,
              'isTetris': is_tetris }
     
-def setRandomCondition(worker_id, cursor):
+def setRandomCondition(worker_id):
     """ Chooses a random group to assign the worker to, and sets it in the database """
     random_condition = random.choice(CONDITIONS)
     
-    cursor.execute("""INSERT INTO workers (workerid, is_alert, is_reward, is_tetris, read_instructions) VALUES (%s, %s, %s, %s, FALSE) ON DUPLICATE KEY UPDATE is_alert=%s, is_reward=%s, is_tetris=%s, read_instructions=FALSE""", (worker_id, random_condition['is_alert'], random_condition['is_reward'], random_condition['is_tetris'], random_condition['is_alert'], random_condition['is_reward'], random_condition['is_tetris']) )
+    db=DBConnection()    
+    db.query_and_return_array("""INSERT INTO workers (workerid, is_alert, is_reward, is_tetris, read_instructions) VALUES (%s, %s, %s, %s, FALSE) ON DUPLICATE KEY UPDATE is_alert=%s, is_reward=%s, is_tetris=%s, read_instructions=FALSE""", (worker_id, random_condition['is_alert'], random_condition['is_reward'], random_condition['is_tetris'], random_condition['is_alert'], random_condition['is_reward'], random_condition['is_tetris']) )
     
     return random_condition
 
@@ -96,14 +97,10 @@ This will assign all workerids to a new random condition. Do not do this lightly
 
     else:
         print("Assigning all workers to a new random condition")
-        db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
-        cur = db.cursor(MySQLdb.cursors.DictCursor)
+        db=DBConnection()
         
         # get all workers, randomize them one by one
-        cur.execute("""SELECT workerid FROM workers""")
-        workers = [row['workerid'] for row in cur.fetchall()]
+        result = db.query_and_return_array("""SELECT workerid FROM workers""")
+        workers = [row['workerid'] for row in result]
         for worker in workers:
             setRandomCondition(worker, cur)
-            
-        cur.close()
-        db.close()
