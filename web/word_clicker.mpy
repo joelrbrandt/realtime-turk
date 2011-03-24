@@ -95,7 +95,13 @@ max_reward_time = 2
 <div class="task instructions">
     Instructions:
     <ol>
-        <li>In ${wait_time} seconds or less, a paragraph will appear below. Act <b>quickly</b> to start when it appears.</li>
+        <li>
+% if wait_time <= 60:
+        In ${wait_time} seconds 
+% else:
+        In ${wait_time / 60} minutes 
+% endif        
+        or less, a paragraph will appear below. Act <b>quickly</b> to start when it appears.</li>
         
         <li>Use the mouse to click and select all verbs in the  paragraph.<br/><img src='media/preview.png' class='outlined'/><!--<br/>You may ignore all parts of each verb phrase other than the main verb.--></li>
     </ol>
