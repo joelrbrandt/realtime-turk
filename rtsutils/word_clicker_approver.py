@@ -16,18 +16,6 @@ from timeutils import parseISO
 
 import mt_connection
 
-"""
-TODOs:
-
-  (DONE) add "Dry run" options to doit and stuff that gets called by do it (in work_approver)
-  (DONE) change it so that the approve reason appends the bonus reason if they get a bonus (so it's more clear)
-  (DONE) add pagination support for getting ALL HITs
-  (DONE) add a main function
-- test it more
-
-"""
-
-
 APPROVE_REASON = "Accurate work. Thank you!"
 REJECT_REASON = "Too many missed/erroneously clicked verbs. Sorry."
 BONUS_AMOUNT = 0.02
@@ -109,17 +97,26 @@ def calculateAccuracy(text_id, verbs):
     return { 'precision': precision, 'recall': recall }
 
 def approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=False):
+    """ NOTE: This function currently does NOT pay bonuses!
+
+        To re-enamble bonuses, pass in the bonus evaluator defined in
+        this file to the "bonus_evaluator" variable of "review_pending_assignments"
+    """
     conn = mt_connection.get_mt_conn()
     print "== REVIEWING WORD CLICKER HITS =="
-    num_approved = work_approver.review_pending_assignments(conn,
-                                             answer_reviewer=answer_reviewer,
-                                             #bonus_evaluator=bonus_evaluator,
-                                             verbose=verbose,
-                                             dry_run=dry_run)
     
-    print "Number of approved hits: " + str(num_approved)
-    #print "== CLEANING UP OLD HITS =="
-    #work_approver.clean_up_old_hits(conn, verbose=True, dry_run=True)
+    reviewed_counts = work_approver.review_pending_assignments(conn,
+                                                               answer_reviewer=answer_reviewer,
+                                                               verbose=verbose,
+                                                               dry_run=dry_run)
+    
+    print "\n\nDONE! Number of reviewed hits: " + str(reviewed_counts) + "\n\n"
+    print "== CLEANING UP OLD HITS =="
+
+    cleaned_counts = work_approver.clean_up_old_hits(conn, verbose=True, dry_run=True)
+
+    print "\n\nDONE! Number of cleaned hits: " + str(cleaned_counts) + "\n\n"
+    return (reviewed_counts, cleaned_counts)
     
 if __name__ == "__main__":
     approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=True)
