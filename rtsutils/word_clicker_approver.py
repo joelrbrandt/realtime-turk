@@ -65,7 +65,7 @@ def answer_reviewer(answer):
         print "calculated precision recall of: " + str(a)
         precision = a['precision']
         recall = a['recall']
-        if precision > PRECISION_LIMIT and recall > RECALL_LIMIT:
+        if precision >= PRECISION_LIMIT and recall >= RECALL_LIMIT:
             result = approve_response
         else:
             result = reject_response
@@ -111,15 +111,15 @@ def calculateAccuracy(text_id, verbs):
 def approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=False):
     conn = mt_connection.get_mt_conn()
     print "== REVIEWING WORD CLICKER HITS =="
-    work_approver.review_pending_assignments(conn,
+    num_approved = work_approver.review_pending_assignments(conn,
                                              answer_reviewer=answer_reviewer,
-                                             bonus_evaluator=bonus_evaluator,
+                                             #bonus_evaluator=bonus_evaluator,
                                              verbose=verbose,
                                              dry_run=dry_run)
     
-    review_word_clicker_hits(conn, verbose=True, dry_run=True)
-    print "== CLEANING UP OLD HITS =="
-    work_approver.clean_up_old_hits(conn, verbose=True, dry_run=True)
+    print "Number of approved hits: " + str(num_approved)
+    #print "== CLEANING UP OLD HITS =="
+    #work_approver.clean_up_old_hits(conn, verbose=True, dry_run=True)
     
 if __name__ == "__main__":
     approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=True)

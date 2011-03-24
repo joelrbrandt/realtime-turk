@@ -58,7 +58,7 @@ def getCondition(worker_id):
     
     rows = db.query_and_return_array("""SELECT is_alert, is_reward, is_tetris FROM workers WHERE workerid = %s """, (worker_id, ) )
     if len(rows) == 0: # not in database yet
-        result = setRandomCondition(worker_id, cur)
+        result = setRandomCondition(worker_id)
     else:
         result = rows[0]
     is_alert = bool(result['is_alert'])
@@ -91,7 +91,8 @@ def renderResponse(request, is_alert, is_reward, is_tetris):
 def randomizeConditions(do_you_mean_it="NO"):
     if do_you_mean_it != "YES_I_MEAN_IT":
         print """
-This will assign all workerids to a new random condition. Do not do this lightly!
+This will assign all workerids to a new random condition. Do not do this lightly!\n
+Call with randomizeConditions('YES_I_MEAN_IT')
 """
         return 0
 
@@ -103,4 +104,4 @@ This will assign all workerids to a new random condition. Do not do this lightly
         result = db.query_and_return_array("""SELECT workerid FROM workers""")
         workers = [row['workerid'] for row in result]
         for worker in workers:
-            setRandomCondition(worker, cur)
+            setRandomCondition(worker)
