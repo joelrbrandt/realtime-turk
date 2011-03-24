@@ -113,10 +113,10 @@ def approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=False):
     print "\n\nDONE! Number of reviewed hits: " + str(reviewed_counts) + "\n\n"
     print "== CLEANING UP OLD HITS =="
 
-    cleaned_counts = work_approver.clean_up_old_hits(conn, verbose=True, dry_run=True)
+    cleaned_counts = work_approver.clean_up_old_hits(conn, verbose=True, dry_run=dry_run)
 
     print "\n\nDONE! Number of cleaned hits: " + str(cleaned_counts) + "\n\n"
     return (reviewed_counts, cleaned_counts)
     
 if __name__ == "__main__":
-    approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=True)
+    approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=False)
