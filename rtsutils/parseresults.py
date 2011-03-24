@@ -249,10 +249,12 @@ def groupAssignmentsByCondition(assignments):
     
 def printConditionSummaries(assignments, assignments_including_incomplete):
     condition_assignments = groupAssignmentsByCondition(assignments)
+    condition_incomplete_assignments = groupAssignmentsByCondition(assignments_including_incomplete)
     for condition in condition_assignments.keys():
         filtered_assignments = condition_assignments[condition]
+        filtered_incomplete = condition_incomplete_assignments[condition]
         print("\n" + condition + ":")
-        printSummary(filtered_assignments, condition)
+        printSummary(filtered_assignments, filtered_incomplete, condition)
     
      
 def total_seconds(td):
