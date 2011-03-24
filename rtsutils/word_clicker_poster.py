@@ -25,6 +25,7 @@ if __name__ == "__main__":
     parser.add_option("-b", "--wait-bucket", dest="waitbucket", help="number of SECONDS to wait on retainer", metavar="SECONDS")
     parser.add_option("-p", "--price", dest="price", help="number of CENTS to pay", metavar="CENTS")
     parser.add_option("-c", "--use-conditions", action="store_true", dest="conditions", help="use between-subjects CONDITIONS", metavar="CONDITIONS", default=False)
+    parser.add_option("-x", "--expiration-time", dest="expiration", help="number of seconds before hit EXPIRES", metavar="EXPIRES")
 
     (options, args) = parser.parse_args()
 
@@ -33,6 +34,8 @@ if __name__ == "__main__":
     e = int(options.experiment_number)
     p = int(options.price)/100.0
     cond = options.conditions
+    x = int(options.expiration)
+
 
     c = get_mt_conn()
     d = DBConnection()
@@ -40,7 +43,7 @@ if __name__ == "__main__":
                        waitbucket=b,
                        reward_as_usd_float=p,
                        assignment_duration=b+120,
-                       lifetime=10*60,
+                       lifetime=x,
                        use_conditions = cond)
 
     for i in range(n):
