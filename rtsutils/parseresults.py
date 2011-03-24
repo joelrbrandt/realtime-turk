@@ -16,7 +16,7 @@ from padnums import pprint_table
 import sys
 from itertools import groupby
 
-EXPERIMENT = 41
+EXPERIMENT = 43
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
