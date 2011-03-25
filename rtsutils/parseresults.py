@@ -16,7 +16,7 @@ from padnums import pprint_table
 import sys
 from itertools import groupby
 
-EXPERIMENT = 43
+EXPERIMENT = 50
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -68,7 +68,6 @@ def parseResults():
     for time_bucket, iter_bucket_assignments in groupby(all_assignments, key=lambda k: k.wait_bucket):    
         bucket_assignments = list(iter_bucket_assignments)
         # filter out assignments with bad precision or recall
-        print [ass.submit_time for ass in bucket_assignments]
         
         assignments = filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, bucket_assignments)
         
@@ -77,18 +76,18 @@ def parseResults():
         print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")        
         assignments.sort(key=lambda k: k.answer_time)  # we want them in completion order
         
-        print("\n\nworker logs")
-        printWorkerLogs(assignments)    
+        #print("\n\nworker logs")
+        #printWorkerLogs(assignments)    
         
         """ Now we look at each assignment and look at time diffs """
-        print("\n\nassignments")
-        printAssignments(sorted(assignments, key=lambda k: k.workerid))
+        # print("\n\nassignments")
+        #printAssignments(sorted(assignments, key=lambda k: k.workerid))
         
         print("\n\n")
         printSummary(assignments, bucket_assignments)
         
-        print("\n\n")
-        printConditionSummaries(assignments, bucket_assignments)
+        #print("\n\n")
+        #printConditionSummaries(assignments, bucket_assignments)
         
         print("\n\n")
         printCurrentlyActiveCount(EXPERIMENT)

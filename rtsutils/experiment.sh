@@ -2,10 +2,10 @@
 
 # START of experimental variables
 
-EXPERIMENT_NUMBER=40  # what we put in the DB as the experiment number
+EXPERIMENT_NUMBER=50  # what we put in the DB as the experiment number
 HITS_PER_ITERATION=10
-BUCKETS_IN_SECONDS=(30 60 120 300 600 1800)
-BUCKET_PRICES_IN_CENTS=(2 3 4 7 12 32)
+BUCKETS_IN_SECONDS=(600 30 1800 60 120 300) #(30 60 120 300 600 1800)
+BUCKET_PRICES_IN_CENTS=(12 2 32 3 4 7) #(2 3 4 7 12 32)
 MAX_HIT_EXPIRATION_IN_MINUTES=10
 DELAY_BETWEEN_POSTS_IN_MINUTES=1
 ITERATIONS_PER_EXPERIMENT=27
@@ -43,12 +43,12 @@ function experiment {
             expiration_time_in_seconds=$iteration_time_left
         fi
         echo "== ITERATION $i OF $7 -- $3 SECOND BUCKET =="
-        echo python word_clicker_poster.py -e $1 -n $2 -b $3 -p $4 -x $expiration_time_in_seconds
-        echo sleep $waittime
+        python word_clicker_poster.py -e $1 -n $2 -b $3 -p $4 -x $expiration_time_in_seconds
+        sleep $waittime
     done
     let time_spent_so_far=$6*60*$7
     let end_of_experiment_sleep=$8*60-time_spent_so_far
-    echo sleep $end_of_experiment_sleep
+    sleep $end_of_experiment_sleep
 }
 
 
