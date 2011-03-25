@@ -16,7 +16,7 @@ from padnums import pprint_table
 import sys
 from itertools import groupby
 
-EXPERIMENT = 50
+EXPERIMENTS = [50, 51]
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -59,7 +59,7 @@ class Assignment:
 
 def parseResults():
     # get all the clicks
-    all_assignments = getAssignments(EXPERIMENT)
+    all_assignments = getAssignments(EXPERIMENTS)
     
     # this sort is NECESSARY for groupby:
     # http://docs.python.org/library/itertools.html#itertools.groupby
@@ -90,15 +90,16 @@ def parseResults():
         #printConditionSummaries(assignments, bucket_assignments)
         
         print("\n\n")
-        printCurrentlyActiveCount(EXPERIMENT)
+        printCurrentlyActiveCount(EXPERIMENTS)
         
         graphCDF(assignments)   
 
-def getAssignments(experiment):
+def getAssignments(experiments):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 
 
     db = DBConnection()    
-    results = db.query_and_return_array("""SELECT * from assignments a, workers w, hits h WHERE experiment = %s AND a.workerid = w.workerid AND a.hitid = h.hitid """ % (experiment,) )
+    experimentString = ', '.join([str(experiment) for experiment in experiments])
+    results = db.query_and_return_array("""SELECT * from assignments a, workers w, hits h WHERE experiment IN (%s) AND a.workerid = w.workerid AND a.hitid = h.hitid """, (experimentString ,) )
 
     assignments = []
 
@@ -159,15 +160,17 @@ def printWorkerLogs(assignments):
     for workerid in worker_lags.keys():
         print(workerid + ' ' + str(worker_lags[workerid]))
 
-def printCurrentlyActiveCount(experiment):
+def printCurrentlyActiveCount(experiments):
     ping_floor = datetime.now() - timedelta(seconds = 15)
     ping_types = ["ping-waiting", "ping-showing", "ping-working"]
 
     db = DBConnection()
 
     results = dict()
+    experimentString = ', '.join([str(experiment) for experiment in experiments])    
     for ping_type in ping_types:
-        row = db.query_and_return_array("""SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event='%s' AND experiment = '%s' AND servertime >= %s""" % ( ping_type, experiment, unixtime(ping_floor) ))[0]
+    
+        row = db.query_and_return_array("""SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event='%s' AND experiment IN (%s) AND servertime >= %s""" % ( ping_type, experimentString, unixtime(ping_floor) ))[0]
         results[ping_type] = row['COUNT(DISTINCT assignmentid)']
 
         print(ping_type + ": unique assignmentIds pings in last 15 seconds: " + str(results[ping_type]))
@@ -231,7 +234,7 @@ def printSummary(assignments, assignments_including_incomplete, condition = None
     if condition is not None:
         db = DBConnection()
         if condition == 'tetris':
-            result = db.query_and_return_array(""" SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event = 'tetris_row_clear' AND experiment = %s """, (EXPERIMENT, ) )[0]
+            result = db.query_and_return_array(""" SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event = 'tetris_row_clear' AND experiment IN (%s) """, (EXPERIMENTS, ) )[0]
             num_playing = result['COUNT(DISTINCT assignmentid)']
             print(str(num_playing) + " assignments out of " + str(len(assignments)) + " (" + str(float(num_playing) / len(assignments) * 100) + "%) cleared a row in Tetris ")
 
