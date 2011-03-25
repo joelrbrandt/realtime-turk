@@ -188,7 +188,6 @@ def get_all_hits(conn):
     page = 1
     additional_hits = conn.search_hits(page_number=page, page_size=page_size, sort_by="Enumeration")
     while len(additional_hits) > 0:
-        print "page"
         hits.extend(additional_hits)
         page += 1
         additional_hits = conn.search_hits(page_number=page, page_size=page_size, sort_by="Enumeration")
