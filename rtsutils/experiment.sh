@@ -2,7 +2,7 @@
 
 # START of experimental variables
 
-EXPERIMENT_NUMBER=50  # what we put in the DB as the experiment number
+EXPERIMENT_NUMBER=51  # what we put in the DB as the experiment number
 HITS_PER_ITERATION=10
 BUCKETS_IN_SECONDS=(600 30 1800 60 120 300) #(30 60 120 300 600 1800)
 BUCKET_PRICES_IN_CENTS=(12 2 32 3 4 7) #(2 3 4 7 12 32)
