@@ -35,8 +35,7 @@ def review_assignment(conn,
     """
     reviews passed in assignment using the functions passed in
 
-    returns True if the assignment was successfully reviewed (assigned either 
-      'approved' or 'rejected', or False otherwise
+    returns one of 'approved', 'approvedbonused', 'rejected', or 'skipped'
     
     conn:
       a mechanical turk connection
@@ -61,7 +60,7 @@ def review_assignment(conn,
     indent: 
       a string to indent each line of output by
     """
-    result = False
+    result = None
 
     print indent + "Assignment ID: " + assignment.AssignmentId
     if verbose:
@@ -71,8 +70,8 @@ def review_assignment(conn,
     review = answer_reviewer(parsed_answers)
     if review == None: # chose not to review this assignment
         print indent + "ASSIGNMENT SKIPPED"
+        result = 'skipped'
     else:
-        result = True
         (approved, msg) = review
 
         if approved:
@@ -90,6 +89,8 @@ def review_assignment(conn,
 
             print indent + "ASSIGNMENT APPROVED " + msg
 
+            result = 'approved'
+
             if dry_run:
                 print indent + "(dry run -- assignment not actually approved)"
                 
@@ -101,12 +102,15 @@ def review_assignment(conn,
                                      conn.get_price_as_price(amount),
                                      bonusmsg)
                 print indent + "ASSIGNMENT BONUSED: " + str(amount) + " " + str(bonusmsg)
+
+                result = 'approvedbonused'
+
                 if dry_run:
                     print indent + "(dry run -- no bonus actually granted)"
             else:
                 print indent + "NO BONUS"
 
-        else:
+        else: # not approved
             if not dry_run:
                 conn.reject_assignment(assignment.AssignmentId, msg)
 
@@ -114,6 +118,8 @@ def review_assignment(conn,
                 print indent + "ASSIGNMENT REJECTED " + msg
             else:
                 print indent + "ASSIGNMENT REJECTED"
+            
+            result = 'rejected'
 
             if dry_run:
                 print indent + "(dry run -- assignment not actually rejected)"
@@ -135,7 +141,7 @@ def review_pending_assignments(conn,
     See documentation for "review_assignment" for description of parameters
     """
 
-    count = 0
+    counts = {'approved':0, 'approvedbonused':0, 'rejected':0, 'skipped':0, 'errors':0}
 
     hits = get_all_reviewable_hits(conn)
     for h in hits:
@@ -148,9 +154,11 @@ def review_pending_assignments(conn,
                                        verbose=verbose,
                                        indent="  ",
                                        dry_run=dry_run)
-            if result:
-                count += 1
-    return count
+            if result != None:
+                counts[result] += 1
+            else:
+                counts['errors'] += 1
+    return counts
         
 
 def get_all_reviewable_hits(conn):
@@ -173,23 +181,55 @@ def get_all_reviewable_hits(conn):
 
     return hits
 
+def get_all_hits(conn):
+    hits = []
+    page_size = 100
+
+    page = 1
+    additional_hits = conn.search_hits(page_number=page, page_size=page_size, sort_by="Enumeration")
+    while len(additional_hits) > 0:
+        print "page"
+        hits.extend(additional_hits)
+        page += 1
+        additional_hits = conn.search_hits(page_number=page, page_size=page_size, sort_by="Enumeration")
+
+    return hits
+    
+
+
 def clean_up_old_hits(conn, verbose=True, dry_run=False):
-    hits = get_all_reviewable_hits(conn)
+    counts = {'cleaned':0, 'remaining':0, 'errors':0}
+    hits = get_all_hits(conn)
     now = timeutils.unixtime(datetime.now())
     for h in hits:
-        print "------------------"
-        print "HIT ID: " + h.HITId
-        thehit = conn.get_hit(h.HITId)
-        if len(thehit) > 0:
-            thehit = thehit[0]
-            expiration = timeutils.parseISO(thehit.Expiration)
-            duration = float(thehit.AssignmentDurationInSeconds)
+        try:
+            print "------------------"
+            print "HIT ID: " + h.HITId
+            expiration = timeutils.parseISO(h.Expiration)
+            duration = float(h.AssignmentDurationInSeconds)
             print "Expiration: " + str(expiration)
+            print "isExpired: " + str(h.expired)
             print "AssignmentDuration: " + str(duration)
-            print "Seconds since okay to delete: " + str(now - expiration - duration)
-            print "Submitted assignments: " + str(len(conn.get_assignments(thehit.HITId, status="Submitted")))
-            print "Approved assignments: " + str(len(conn.get_assignments(thehit.HITId, status="Approved")))
-            print "Rejected assignments: " + str(len(conn.get_assignments(thehit.HITId, status="Rejected")))
+            print "Seconds until last assignment can be turned in: " + str((expiration+duration)-now)
+            print "HITStatus: " + h.HITStatus
+            num_to_be_reviewed = len(conn.get_assignments(h.HITId, status="Submitted")) # yet to be reviewed
+            print "Yet-to-be-reviewed assignments: " + str(num_to_be_reviewed)
+            print "Approved assignments: " + str(len(conn.get_assignments(h.HITId, status="Approved")))
+            print "Rejected assignments: " + str(len(conn.get_assignments(h.HITId, status="Rejected")))
+            if (h.HITStatus == 'Reviewable' or h.HITStatus == 'Reviewing') and num_to_be_reviewed == 0:
+                if not dry_run:
+                    conn.dispose_hit(h.HITId)
+                print "DISPOSED OF HIT"
+                counts['cleaned'] += 1
+                if dry_run:
+                    print "(dry run -- HIT not actually disposed)"
+            else:
+                counts['remaining'] += 1
+        except Exception, e:
+            print "exception processing HIT:\n" + str(e)
+            counts['errors'] += 1
+    return counts
+
 
 
 
