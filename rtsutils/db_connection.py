@@ -6,9 +6,11 @@ import settings
 import logging
 
 class DBConnection():
-    def __init__(self):
+    def __init__(self, elev=False):
         self._db = None
+        self._elev = elev
         self.check_connection()
+
 
     def check_connection(self):
         logging.debug('checking connection to db')
@@ -24,9 +26,17 @@ class DBConnection():
 
             if self._db == None:
                 logging.debug("(re)connecting to the database")
+
+                username = settings.DB_USER
+                password = settings.DB_PASSWORD
+
+                if self._elev:
+                    username = settings.DB_ELEVATED_USER
+                    password = settings.DB_ELEVATED_PASSWORD
+
                 self._db = connect(host=settings.DB_HOST,
-                                   user=settings.DB_USER,
-                                   passwd=settings.DB_PASSWORD,
+                                   user=username,
+                                   passwd=password,
                                    db=settings.DB_DATABASE,
                                    cursorclass=MySQLdb.cursors.DictCursor,
                                    use_unicode=True)
