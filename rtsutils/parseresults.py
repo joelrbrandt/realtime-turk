@@ -99,7 +99,7 @@ def getAssignments(experiments):
 
     db = DBConnection()    
     experimentString = ', '.join([str(experiment) for experiment in experiments])
-    results = db.query_and_return_array("""SELECT * from assignments a, workers w, hits h WHERE experiment IN (%s) AND a.workerid = w.workerid AND a.hitid = h.hitid """, (experimentString ,) )
+    results = db.query_and_return_array("""SELECT * from assignments a, workers w, hits h WHERE experiment IN (""" + experimentString + """) AND a.workerid = w.workerid AND a.hitid = h.hitid """ )
 
     assignments = []
 
@@ -134,6 +134,7 @@ def getAssignments(experiments):
             
         assignments.append(assignment)
 
+    print("Total number of assignments: %s" % (len(assignments)))
     return assignments
 
 def printAssignments(assignments):
