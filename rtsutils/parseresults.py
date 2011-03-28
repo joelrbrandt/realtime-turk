@@ -89,10 +89,10 @@ def parseResults():
         #print("\n\n")
         #printConditionSummaries(assignments, bucket_assignments)
         
-        print("\n\n")
-        printCurrentlyActiveCount(EXPERIMENTS)
-        
-        graphCDF(assignments)   
+    print("\n\n")
+    printCurrentlyActiveCount(EXPERIMENTS)
+    
+    graphCDF(assignments)   
 
 def getAssignments(experiments):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 
