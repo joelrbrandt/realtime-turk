@@ -254,7 +254,7 @@ function logClick(wordid, highlighted) {
     var logTime = getServerTime();
     if (retainer) {
         // we will be benchmarking it against when it showed up        
-        detail.showTime = showTime.toISOString();
+        detail.showTime = times.show.toISOString();
         detail.clickTime = logTime.clone().toISOString();        
         
         // use Unix epoch as zero time
