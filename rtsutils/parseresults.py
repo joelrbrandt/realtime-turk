@@ -16,7 +16,7 @@ from padnums import pprint_table
 import sys
 from itertools import groupby
 
-EXPERIMENTS = [46]
+EXPERIMENTS = [50, 51, 52]
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -92,7 +92,7 @@ def parseResults():
     print("\n\n")
     printCurrentlyActiveCount(EXPERIMENTS)
     
-    graphCDF(all_assignments)   
+    graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments))   
 
 def getAssignments(experiments):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 
@@ -239,19 +239,19 @@ def printSummary(assignments, assignments_including_incomplete, condition = None
             num_playing = result['COUNT(DISTINCT assignmentid)']
             print(str(num_playing) + " assignments out of " + str(len(assignments)) + " (" + str(float(num_playing) / len(assignments) * 100) + "%) cleared a row in Tetris ")
 
-def groupAssignmentsByCondition(assignments):
+def groupAssignmentsByKey(assignments, key):
     """Splits all assignments into groups based on their condition (e.g., baseline, tetris). Returns a dict from condition to list of assignments"""
-    condition_assignments = dict()
+    group_assignments = dict()
 
-    all_conditions = set([assignment.condition for assignment in assignments])
-    for condition in all_conditions:
-        filtered_assignments = filter(lambda assignment: assignment.condition == condition, assignments)
-        condition_assignments[condition] = filtered_assignments
+    all_groups = set([key(assignment) for assignment in assignments])
+    for group in all_groups:
+        filtered_assignments = filter(lambda assignment: key(assignment) == group, assignments)
+        group_assignments[group] = filtered_assignments
     
-    return condition_assignments
+    return group_assignments
     
 def printConditionSummaries(assignments, assignments_including_incomplete):
-    condition_assignments = groupAssignmentsByCondition(assignments)
+    condition_assignments = groupAssignmentsByKey(assignments, lambda x: x.condition)
     condition_incomplete_assignments = groupAssignmentsByCondition(assignments_including_incomplete)
     for condition in condition_assignments.keys():
         filtered_assignments = condition_assignments[condition]
@@ -268,17 +268,18 @@ def graphCDF(assignments):
     try:
         pyplot.clf()
         pyplot.hold(True)
-        x = numpy.linspace(0, 100, num=1000)
+        x = numpy.linspace(0, 4, num=1000)
     
-        condition_assignments = groupAssignmentsByCondition(assignments)
-        for condition in condition_assignments.keys():
-            go_show = [click.goDeltaShow() for click in condition_assignments[condition]]
+        group_assignments = groupAssignmentsByKey(assignments, lambda x: x.wait_bucket)
+        for group in group_assignments.keys():
+            go_show = [click.goDeltaShow() for click in group_assignments[group]]
             ecdf = scikits.statsmodels.tools.ECDF(go_show)
             y = ecdf(x) # plots y in the CDF for each input x
             
-            pyplot.step(x, y, label=condition, linewidth=2)
+            pyplot.step(x, y, label=str(group), linewidth=2)
     
-        pyplot.legend()
+        pyplot.legend(loc = 2)  # 2 = Upper Left http://matplotlib.sourceforge.net/users/plotting/legend.html#legend-location
+        pyplot.show()
     except Exception, e:
         print("Graphing exception: " + str(e))
 
