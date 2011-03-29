@@ -16,7 +16,7 @@ from padnums import pprint_table
 import sys
 from itertools import groupby
 
-EXPERIMENTS = [50, 51]
+EXPERIMENTS = [46]
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -92,7 +92,7 @@ def parseResults():
     print("\n\n")
     printCurrentlyActiveCount(EXPERIMENTS)
     
-    graphCDF(assignments)   
+    graphCDF(all_assignments)   
 
 def getAssignments(experiments):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 

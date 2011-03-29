@@ -10,15 +10,20 @@ DEFAULT_ASSIGNMENT_DURATION = 60*10
 DEFAULT_LIFETIME = 60*10
 DEFAULT_AUTO_APPROVAL_DELAY = 60*60*24*7
 
+TITLE = "Find verbs in a paragraph"
+DESCRIPTION = "Click to highlight all the verbs in a paragraph"
+KEYWORDS = "text verbs reading quick"
+REWARD = 0.02
+
 class WordClickerHit(ExternalHit):
     def __init__(self,
                  experiment_number,
                  waitbucket=120,
-                 title = "Find verbs in a paragraph",
-                 description = "Click to highlight all the verbs in a paragraph",
-                 keywords = "text verbs reading quick",
+                 title = TITLE,
+                 description = DESCRIPTION,
+                 keywords = KEYWORDS,
                  frame_height = 1200,
-                 reward_as_usd_float = 0.02,
+                 reward_as_usd_float = REWARD,
                  assignment_duration = DEFAULT_ASSIGNMENT_DURATION,
                  lifetime = DEFAULT_LIFETIME,
                  max_assignments = 1,
