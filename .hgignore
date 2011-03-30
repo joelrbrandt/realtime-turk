@@ -7,3 +7,4 @@ quik/quik.sh
 *.js.database
 *.pyc
 long-poll-server/rts_config.py
+rts/video/output/*
