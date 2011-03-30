@@ -16,7 +16,7 @@ from padnums import pprint_table
 import sys
 from itertools import groupby
 
-EXPERIMENTS = [50, 51, 52]
+EXPERIMENTS = range(50, 56)
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -271,7 +271,7 @@ def graphCDF(assignments):
         x = numpy.linspace(0, 4, num=1000)
     
         group_assignments = groupAssignmentsByKey(assignments, lambda x: x.wait_bucket)
-        for group in group_assignments.keys():
+        for group in sorted(group_assignments.keys()):
             go_show = [click.goDeltaShow() for click in group_assignments[group]]
             ecdf = scikits.statsmodels.tools.ECDF(go_show)
             y = ecdf(x) # plots y in the CDF for each input x
