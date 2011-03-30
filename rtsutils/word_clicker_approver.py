@@ -63,6 +63,11 @@ def answer_reviewer(answer):
     return result
 
 def bonus_evaluator(answer):
+    """ Returns tuple (True/False [give bonus?], Amount [float], Reason [string])"""
+
+    """TODO: check which condition the person is in"""
+    """TODO: compute hi-bonus and lo-bonus"""
+
     bonus_response = (True, BONUS_AMOUNT, BONUS_REASON)
     no_bonus_response = (False, None, None)
     result = no_bonus_response
@@ -104,7 +109,7 @@ def approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=False):
     """
     conn = mt_connection.get_mt_conn()
     print "== REVIEWING WORD CLICKER HITS =="
-    
+
     reviewed_counts = work_approver.review_pending_assignments(conn,
                                                                answer_reviewer=answer_reviewer,
                                                                verbose=verbose,

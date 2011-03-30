@@ -1,0 +1,21 @@
+#output {
+    display: inline-block; 
+    top: 4px; 
+    position: relative ;
+    border: dotted 1px #ccc; 
+    padding: 2px;
+}
+
+#snapshotBtn {
+    /*border: solid 2px #ccc;*/
+    font-size: 24pt;
+}
+
+.instructions {
+    margin-bottom: 20px;
+}
+
+#photos {
+    float: right;
+    width: 30%;
+}
