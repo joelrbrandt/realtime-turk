@@ -3,27 +3,74 @@
  */
 
 var SCALE_FACTOR = 0.25;
+var RANDOM_TASK_URL = "rts/video/random";
+
 var snapshots = [];
+
 var assignmentId = 0;
+var workerid = 0;
+var hitid = 0;
+
+var isTetris = false;
+var isAlert = true;
+var isReward = false;
+
+var timingLoaded = false;
+
+var times = {
+    accept: null,
+    show: null,
+    go: null,
+    submit: null
+};
 
 try { console.log('Javascript console found.'); } catch(e) { console = { log: function() {} }; }
 
 $(document).ready(function() {
-	getURLParams();
-	setRandomFrame();
+	$.ajaxSetup({ cache: false });
+	loadParameters();
+	initDatePrototype();    // some browsers don't have toISOString()
+	initServerTime();
+
 	$('#snapshotBtn').click(shoot);
-	$('#donebtn').click(submitForm);
+	$('#donebtn').attr("disabled", "true").html("HIT will be submittable after job appears");
 });
 
 /**
  * Initializes any URL parameters
  */
-function getURLParams() {
+function loadParameters() {
     assignmentid = $(document).getUrlParam("assignmentId");
     if (assignmentid == null || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE") {
         assignmentid = 0;
     }
 
+    workerid = $(document).getUrlParam("workerId");
+    if (workerid == null) {
+        workerid = 0;
+    }    
+
+    hitid = $(document).getUrlParam("hitId");
+    if (hitid == null) {
+        hitid = 0;
+    }
+}
+
+/**
+ * Takes video data from the server and adds it to the page
+ */
+function videoDataCallback(data) {
+    var videoElement = $("<video id='vid' width=" + data['width'] + " height=" + data['height'] + " preload='true' controls='true'>")
+    var sources = data['sources'];
+    for (var i=0; i<sources.length; i++) {
+	var source = $("<source src='" + sources[i].src + "' type='" + sources[i].type + "'  />");
+	videoElement.append(source);
+    }
+    videoElement.append( $('If you can see this, please return the HIT. Your browser does not support HTML5 video. You may try it with recent versions of Chrome, Firefox, Safari, or Internet Explorer.') );
+
+    $('#videoContainer').append(videoElement);
+
+    setRandomFrame();
 }
 
 /**
@@ -129,4 +176,114 @@ function submitForm() {
     form.append('<input type="hidden" name="timestamps" value="' + timestamps_json + '" />');
 
     form.submit();
+}
+
+// Date prototype hacking in case the browser does not support it
+// ref: http://williamsportwebdeveloper.com/cgi/wp/?p=503
+
+function initDatePrototype() {
+    if (Date.prototype.toISOString == null) {
+        console.log("Adding to Date prototype.");
+        Date.prototype.toISOString = toISOString;
+    }
+}
+
+function toISOString() {
+    var d = this;
+     return d.getUTCFullYear() + '-' +  padzero(d.getUTCMonth() + 1) + '-' + padzero(d.getUTCDate()) + 'T' + padzero(d.getUTCHours()) + ':' +  padzero(d.getUTCMinutes()) + ':' + padzero(d.getUTCSeconds()) + '.' + pad2zeros(d.getUTCMilliseconds()) + 'Z';
+ }
+ 
+function padzero(n) {
+    return n < 10 ? '0' + n : n;
+}
+
+function pad2zeros(n) {
+    if (n < 100) {
+         n = '0' + n;
+     }
+     if (n < 10) {
+         n = '0' + n;
+     }
+     return n;     
+ }
+
+/**
+ * Gets the time from a CSAIL server, calculates the offset, and stores it.
+ */
+function initServerTime() {
+    var startTime = new Date();
+    $.get("rts/time",
+        function(data) {            
+            var travelTime = (new Date() - startTime)/2;                
+            var serverTime = parseDate(data.date);
+
+            serverTime.addMilliseconds(travelTime);
+            offset = (serverTime - new Date());
+            console.log("clock sync complete. offset: " + offset);
+            
+            timingLoaded = true;
+            testReady();
+        }
+    );
+}
+
+function parseDate(dateString) {
+    var dateInt = parseInt(dateString);
+    var parsedDate = new Date(dateInt)
+    return parsedDate;
+}
+
+function getServerTime() {
+    return (new Date().addMilliseconds(offset));
+}
+
+/**
+ * Calls main if all required AJAX calls have returned
+ */
+function testReady() {
+    if (timingLoaded) {
+        beginTask();
+    }
+}
+
+/**
+ * Starts the timers and shows everything to the user.
+ */
+function beginTask() {
+    if (assignmentid != 0) {
+        logEvent("accept");
+	times.accept = getServerTime();
+    }       
+    
+    scheduleRetainer(videoDataCallback, RANDOM_TASK_URL);
+    retainerHide();
+
+    registerDoneBtnListener();
+    registerFocusBlurListeners(); 
+}
+
+function isPreview() {
+    return (assignmentid == null || assignmentid == 0 || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE");
+}
+
+function registerDoneBtnListener() {
+    if (isPreview()) {
+        $('#donebtn').attr("disabled", "true").html("Accept HIT to submit work");
+    } else {
+            $(this).attr("disabled", "true").html("Submitting..."); 
+	    $('#donebtn').click(submitForm);
+    }
+}
+
+function registerFocusBlurListeners() {
+    $(window).focus(function() {
+        logEvent("focus");
+    });
+    $(window).blur(function() {
+        logEvent("blur");
+    });
+}
+
+function logEvent(eventName) {
+    // do nothing for now
 }
