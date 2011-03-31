@@ -74,7 +74,10 @@ def handler(request):
         import notification
         notification.notificationLogging(request)
         return apache.OK
-        
+
+    elif uri_parts[-2] == 'video':
+        import rts.video.handler as videoHandler
+        return videoHandler.handler(request)
         
     else:
         # request.content_type = "text/plain"
