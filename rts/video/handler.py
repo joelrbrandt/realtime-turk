@@ -12,6 +12,11 @@ def handler(request):
         ready.is_ready(request)
         return apache.OK
 
+    elif uri_parts[-1] == "random":
+        import random
+        random.getRandomVideo(request)
+        return apache.OK
+
     elif uri_parts[-1] == "log":
         import log
         log.log(request)
