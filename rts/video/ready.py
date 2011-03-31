@@ -1,11 +1,9 @@
 from mod_python import apache, util
 
 import json
-from datetime import datetime
 from itertools import groupby
 
 from rtsutils.db_connection import DBConnection
-from rtsutils.timeutils import *
 
 import logging
 
@@ -26,19 +24,17 @@ def is_ready(request):
     workerid = unicode(form['workerid'].value)
     
     # we need distinct workers who have done an assignment on a video with fewer than "3" assignments
-    now = unixtime(datetime.now())
-
-    result = db.query_and_return_array("""SELECT videos.pk, workerid FROM videos LEFT JOIN assignments ON videos.pk = assignments.videoid GROUP BY videos.pk HAVING COUNT(DISTINCT workerid) <= 3 ORDER BY creationtime DESC""" )
+    result = db.query_and_return_array("""SELECT unlabeledVideos.pk AS videoid, workerid FROM ( SELECT videos.pk FROM videos LEFT JOIN assignments ON videos.pk = assignments.videoid GROUP BY videos.pk HAVING COUNT(DISTINCT workerid) < 3 ) AS unlabeledVideos LEFT JOIN assignments ON unlabeledVideos.pk = assignments.videoid ORDER BY unlabeledVideos.pk DESC""")
 
     video_needed = False
     # relying on python groupby maintaining the order of the videos
-    for videoid, rows in groupby(result, key=lambda row: row['pk']):
+    for videoid, rows in groupby(result, key=lambda row: row['videoid']):
         workers = [row['workerid'] for row in rows]
         if workerid not in workers:
             # there's someone who needs our help!
             video_needed = True
             video = getVideo(videoid, request)
-            updateAssignment(videoid, assignmentid)
+            updateAssignment(assignmentid, videoid)
             request.write(json.dumps( video ) )
             break
 
@@ -91,4 +87,7 @@ def createSource(filename, type):
 def updateAssignment(assignmentid, videoid):
     """ Updates the database to map this video onto the assignment """
     db = DBConnection()
-    db.query_and_return_array("""UPDATE assignments SET videoid = %s WHERE assignmentid = %s""", (videoid, assignmentid) )
+    try:
+        db.query_and_return_array("""UPDATE assignments SET videoid = %s WHERE assignmentid = %s""", (videoid, assignmentid) )
+    except:
+        logging.exception("Error updating assignments table to set videoid")
