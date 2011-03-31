@@ -5,6 +5,7 @@ from itertools import groupby
 
 from rtsutils.db_connection import DBConnection
 
+from rts import rts_logging
 import logging
 
 VIDEO_SOURCE_DIR = 'media/videos/'
@@ -33,8 +34,7 @@ def is_ready(request):
         if workerid not in workers:
             # there's someone who needs our help!
             video_needed = True
-            video = getVideo(videoid, request)
-            updateAssignment(assignmentid, videoid)
+            video = getAndAssignVideo(assignmentid, videoid)
             request.write(json.dumps( video ) )
             break
 
@@ -42,9 +42,14 @@ def is_ready(request):
         # if we got here, there's nothing to do yet
         request.write(json.dumps( { 'is_ready' : False } ))
 
+def getAndAssignVideo(assignmentid, videoid):
+    """Gets the given video from the database, and populates a dict with its properties. Assigns the video to the worker in the database. """
+    video = getVideo(videoid)
+    updateAssignment(assignmentid, videoid)    
+    return video
 
-""" Writes the JSON for the video information to the request object"""
-def getVideo(videoid, request):
+""" Gets a Python dict for the video """
+def getVideo(videoid):
     db = DBConnection()
     result = db.query_and_return_array("""SELECT width, height, has_mp4, has_webm, has_ogg, filename FROM videos WHERE pk = %s""", (videoid, ) )[0]
 

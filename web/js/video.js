@@ -60,6 +60,7 @@ function loadParameters() {
  * Takes video data from the server and adds it to the page
  */
 function videoDataCallback(data) {
+    
     var videoElement = $("<video id='vid' width=" + data['width'] + " height=" + data['height'] + " preload='true' controls='true'>")
     var sources = data['sources'];
     for (var i=0; i<sources.length; i++) {
@@ -69,6 +70,7 @@ function videoDataCallback(data) {
     videoElement.append( document.createTextNode('If you can see this, please return the HIT. Your browser does not support HTML5 video. You may try it with recent versions of Chrome, Firefox, Safari, or Internet Explorer.') );
 
     $('#videoContainer').append(videoElement);
+    
 
     setRandomFrame();
 }
