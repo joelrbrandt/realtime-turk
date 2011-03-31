@@ -22,6 +22,7 @@ def is_ready(request):
     db = DBConnection()
     
     form = util.FieldStorage(request)
+    assignmentid = form['assignmentid'].value
     workerid = unicode(form['workerid'].value)
     
     # we need distinct workers who have done an assignment on a video with fewer than "3" assignments
@@ -37,6 +38,7 @@ def is_ready(request):
             # there's someone who needs our help!
             video_needed = True
             video = getVideo(videoid, request)
+            updateAssignment(videoid, assignmentid)
             request.write(json.dumps( video ) )
             break
 
@@ -84,3 +86,9 @@ def createSource(filename, type):
     source['type'] = videotype
 
     return source
+
+
+def updateAssignment(assignmentid, videoid):
+    """ Updates the database to map this video onto the assignment """
+    db = DBConnection()
+    db.query_and_return_array("""UPDATE assignments SET videoid = %s WHERE assignmentid = %s""", (videoid, assignmentid) )

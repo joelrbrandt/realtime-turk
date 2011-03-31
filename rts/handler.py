@@ -8,7 +8,13 @@ def handler(request):
     while '' in uri_parts:
         uri_parts.remove('')
 
-    if uri_parts[-1] == "time":
+    # importing other handlers
+    if uri_parts[-2] == 'video':
+        import rts.video.handler as videoHandler
+        return videoHandler.handler(request)
+
+    # now us
+    elif uri_parts[-1] == "time":
         import servertime
         servertime.servertime(request)
         return apache.OK
@@ -75,10 +81,6 @@ def handler(request):
         notification.notificationLogging(request)
         return apache.OK
 
-    elif uri_parts[-2] == 'video':
-        import rts.video.handler as videoHandler
-        return videoHandler.handler(request)
-        
     else:
         # request.content_type = "text/plain"
         # request.write("Error: can't find a command with the name " + str(uri_parts) + "\n")

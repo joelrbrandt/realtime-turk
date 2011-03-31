@@ -12,6 +12,16 @@ def handler(request):
         ready.is_ready(request)
         return apache.OK
 
+    elif uri_parts[-1] == "log":
+        import log
+        log.log(request)
+        return apache.OK
+
+    elif uri_parts[-1] == "submit":
+        import submit
+        submit.record_and_redirect(request)
+        return apache.OK
+
     else:
         # request.content_type = "text/plain"
         # request.write("Error: can't find a command with the name " + str(uri_parts) + "\n")

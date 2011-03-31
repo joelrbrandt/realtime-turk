@@ -75,30 +75,21 @@ else:
 <div class = "task" id="taskContainer">
   <div id="goContainer"><img src="media/video-directions.png" /></div>
   <div id="taskText">
-    <div id="videoContainer">
-      <!--
-      <video id="vid" width=640 height=360 preload="true" controls="true">
-	<source src="media/videos/charlie-short.webm" type='video/webm; codecs="vp8, vorbis"' />
-	<source src="media/videos/charlie-short.theora.ogv"  type='video/ogg; codecs="theora, vorbis"' />
-	<source src="media/videos/charlie-short.iphone.mp4"  type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'/>
-	If you can see this, please return the HIT. Your browser does not support HTML5 video. You may try it with recent versions of Chrome, Firefox, Safari, or Internet Explorer.
-      </video>
-      -->
-    </div>
-
     <div id="photos">
       <div><button id="snapshotBtn">Good Photo</button></div>
       <div id="output"></div>
     </div>
-    
-    <div>
-      <div style="color: red;" id="submitError"></div>
-      <button id="donebtn">Done</button>
-    </div>
+
+    <div id="videoContainer"></div>
   </div>
 </div>
 
-<form id="completeForm" action="http://www.mturk.com/mturk/externalSubmit" method="GET" style="display: none">
+<div>
+  <div style="color: red;" id="submitError"></div>
+  <button id="donebtn">Done</button>
+</div>
+
+<form id="completeForm" action="rts/video/submit" method="GET" style="display: none">
       <input type="submit" name="done" value="done"></input>
 </form>
 

@@ -66,7 +66,7 @@ function videoDataCallback(data) {
 	var source = $("<source src='" + sources[i].src + "' type='" + sources[i].type + "'  />");
 	videoElement.append(source);
     }
-    videoElement.append( $('If you can see this, please return the HIT. Your browser does not support HTML5 video. You may try it with recent versions of Chrome, Firefox, Safari, or Internet Explorer.') );
+    videoElement.append( document.createTextNode('If you can see this, please return the HIT. Your browser does not support HTML5 video. You may try it with recent versions of Chrome, Firefox, Safari, or Internet Explorer.') );
 
     $('#videoContainer').append(videoElement);
 
@@ -167,13 +167,36 @@ function submitForm() {
 	return;
     }
 
+    // record the time of submission in the times array
+    times.submit = getServerTime();
+
     var form = $('#completeForm');
 
-    // assignmentid = assignmentId  (Amazon requires this to be called "assignmentId")                                                                                                   
+    // assignmentid = assignmentId  (Amazon requires this to be called "assignmentId"
     form.append('<input type="hidden" name="assignmentId" value="' + assignmentid + '" />');
 
+    // workerid = w
+    form.append('<input type="hidden" name="w" value="' + workerid + '" />');
+
+    // accept = a
+    a = times.accept == null ? "" : times.accept.toISOString()
+    form.append('<input type="hidden" name="a" value="' + a + '" />');
+
+    // show = sh
+    sh = times.show == null ? "" : times.show.toISOString()
+    form.append('<input type="hidden" name="sh" value="' + sh + '" />');
+
+    // go = g
+    g = times.go == null ? "" : times.go.toISOString()
+    form.append('<input type="hidden" name="g" value="' + g + '" />');
+
+    // submit = su
+    su = times.submit == null ? "" : times.submit.toISOString()
+    form.append('<input type="hidden" name="su" value="' + su + '" />');
+
+    // framearray = fa
     timestamps_json = JSON.stringify(getSnapshotTimestamps());
-    form.append('<input type="hidden" name="timestamps" value="' + timestamps_json + '" />');
+    form.append('<input type="hidden" name="fa" value="' + timestamps_json + '" />');
 
     form.submit();
 }
@@ -285,5 +308,33 @@ function registerFocusBlurListeners() {
 }
 
 function logEvent(eventName) {
-    // do nothing for now
+    logEvent(eventName, {}, null);
+}
+
+// eventName: "submit", "preview", "blur", etc.
+// data: any context-specific JSON to send to the server
+// finishedCallback: any function to call when done logging
+function logEvent(eventName, detail, finishedCallback) {
+    if (detail == null) {
+        detail = {};
+    }
+    
+    var logData = {
+        event: eventName,
+        detail: JSON.stringify(detail), 
+        assignmentid: assignmentid,
+	workerid: workerid,
+	hitid: hitid,
+        time: getServerTime().toISOString()
+    }
+    
+    $.post("rts/video/log", logData,        
+        function(reply) {
+            console.log(logData.event + " " + logData.time + " " + JSON.stringify(detail));
+            if (finishedCallback != null) {
+                finishedCallback(reply);
+            }
+        }
+    );
+    
 }

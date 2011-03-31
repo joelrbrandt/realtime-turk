@@ -57,7 +57,7 @@ function pingAlive() {
 
 function generatePoll(callback) {
     var theFunction = function() {
-	var theURL = 'rts/video/ready?workerid=' + workerid;
+	var theURL = 'rts/video/ready?workerid=' + workerid + '&assignmentid=' + assignmentid;
 	$.get(theURL, function(data) {
 		if (data['is_ready']) {
 		    window.clearTimeout(checkInterval);
