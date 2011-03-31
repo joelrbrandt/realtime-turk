@@ -28,7 +28,7 @@ def log(request):
         
         # if it's an accept event, we start logging information about it in our assignments table
         if event == "accept":
-            db.query_and_return_array("""INSERT INTO assignments (assignmentid, workerid, hitid, accept) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE `accept` = %s, `show` = NULL, `go` = NULL, `first` = NULL, `videoid` = NULL""", (assignment, worker, hit, time, time))
+            db.query_and_return_array("""INSERT INTO assignments (assignmentid, workerid, hitid, accept) VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE workerid = %s, `accept` = %s, `show` = NULL, `go` = NULL, `first` = NULL, `submit` = NULL, `videoid` = NULL""", (assignment, worker, hit, time, worker, time))
     except:
         logging.exception("Logging exception:")
     
