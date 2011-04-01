@@ -7,9 +7,12 @@ def handler(request):
     uri_parts = request.uri.split("/")
     while '' in uri_parts:
         uri_parts.remove('')
-
+    
+    # parts[0] == rts
+    # parts[1] == username, e.g. 'msbernst'
+    
     # importing other handlers
-    if uri_parts[-2] == 'video':
+    if uri_parts[2] == 'video':
         import rts.video.handler as videoHandler
         return videoHandler.handler(request)
 
