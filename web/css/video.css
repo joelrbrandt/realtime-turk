@@ -16,8 +16,7 @@
 }
 
 #photos {
-    float: right;
-    width: 30%;
+    margin-top: 20px;
 }
 
 #slider {

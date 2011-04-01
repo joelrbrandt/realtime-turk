@@ -32,7 +32,7 @@ function setMaxWaitCallback(showCallback, defaultWorkURL) {
 	    window.clearTimeout(showTimeout);
 
 	    // get a random piece of work
-	    $.get(defaultWorkURL, function(data) {
+	    $.get(defaultWorkURL + "?assignmentid=" + assignmentid, function(data) {
 		    showCallback(data);
 		    showGoButton();
 		});

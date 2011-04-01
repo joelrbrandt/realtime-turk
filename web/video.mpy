@@ -80,12 +80,12 @@ else:
 <div class = "task" id="taskContainer">
   <div id="goContainer"><img src="media/video-directions.png" /></div>
   <div id="taskText">
+    <div id="videoContainer"></div>  
+  
     <div id="photos">
       <div><button id="snapshotBtn">Good Photo</button></div>
       <div id="output"></div>
     </div>
-
-    <div id="videoContainer"></div>
   </div>
 </div>
 
@@ -97,62 +97,6 @@ else:
 <form id="completeForm" action="rts/video/submit" method="GET" style="display: none">
       <input type="submit" name="done" value="done"></input>
 </form>
-
-<a
-	href="media/videos/greg2.flv"
-	style="display:block;width:500px;height:300px;"
-	id="player">
-</a>
-
-<div id="slider" style="width:500px"></div>
-
-<script language="JavaScript">
-
-$(document).ready(function() { 
-    $f("player", "http://releases.flowplayer.org/swf/flowplayer-3.2.7.swf", {
-		// don't start automcatically
-		clip: {
-			autoPlay: false,
-			autoBuffering: true
-		},
-			
-		// disable default controls
-		plugins: {
-		    controls: null
-		},
-		
-	    onLoad: function() {
-		    $f().getPlugin("play").hide();
-    	},
-    	
-    	onBeforeFullscreen: function() { return false; }
-	});
-
-
-$( "#slider" ).slider( {
-    slide: function(event, ui) {
-        var percent = ui.value / 100;
-        var duration = $f().getClip().fullDuration;
-        $f().getPlugin("play").hide();
-        $f().seek(duration * percent).getPlugin("play").hide();
-        
-    }
-});	
-	//$(
-});	
-/*flowplayer("player", "lib/flowplayer/flowplayer-3.2.7.swf",
-    {
-        plugins: {
-           controls: {
-              all: false
-           }
-        }    
-        
-        //getPlugin("play").hide()
-
-    });
-*/
-</script>
 
 </body>
 </html>
