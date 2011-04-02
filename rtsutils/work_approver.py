@@ -1,5 +1,3 @@
-import logging
-
 import settings
 
 import mt_connection

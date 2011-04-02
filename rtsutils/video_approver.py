@@ -2,6 +2,8 @@ import work_approver
 
 from db_connection import DBConnection
 
+import logging
+
 import sys
 from optparse import OptionParser
 
@@ -37,6 +39,7 @@ def answer_reviewer(answer):
     result = None
     approve_response = (True, APPROVE_REASON)
     reject_response = (False, REJECT_REASON)
+    print(answer)
 
     try:
         frames = json.loads(answer['fa'])

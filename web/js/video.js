@@ -7,7 +7,7 @@ var RANDOM_TASK_URL = "rts/video/random";
 
 var snapshots = [];
 
-var assignmentId = 0;
+var assignmentid = 0;
 var workerid = 0;
 var hitid = 0;
 
@@ -325,8 +325,8 @@ function logEvent(eventName, detail, finishedCallback) {
         event: eventName,
         detail: JSON.stringify(detail), 
         assignmentid: assignmentid,
-	workerid: workerid,
-	hitid: hitid,
+        workerid: workerid,
+        hitid: hitid,
         time: getServerTime().toISOString()
     }
     
