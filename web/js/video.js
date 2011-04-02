@@ -130,13 +130,14 @@ function shoot(){
     var snapshot = $f().getTime();
 
     if ($.inArray(snapshot, snapshots) != -1) {
-	$('#submitError').html("You already have that picture. Choose another one.");
+        $('#submitError').html("You already have that picture. Choose another one.");
     }
     else {
-	snapshots.unshift(snapshot);
-	$('#submitError').html('');
+        snapshots.unshift(snapshot);
+        $('#submitError').html('');
     }
     
+    logEvent("picture", { 'timestamp': snapshot }, null);
     refreshShots();
 }
 

@@ -13,7 +13,7 @@ class DBConnection():
 
 
     def check_connection(self):
-        logging.debug('checking connection to db')
+        #logging.debug('checking connection to db')
         result = False
         try:
             if self._db != None:
@@ -25,7 +25,7 @@ class DBConnection():
                     self._db = None
 
             if self._db == None:
-                logging.debug("(re)connecting to the database")
+                #logging.debug("(re)connecting to the database")
 
                 username = settings.DB_USER
                 password = settings.DB_PASSWORD

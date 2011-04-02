@@ -202,19 +202,20 @@ def clean_up_old_hits(conn, verbose=True, dry_run=False):
     now = timeutils.unixtime(datetime.now())
     for h in hits:
         try:
-            print "------------------"
-            print "HIT ID: " + h.HITId
-            expiration = timeutils.parseISO(h.Expiration)
-            duration = float(h.AssignmentDurationInSeconds)
-            print "Expiration: " + str(expiration)
-            print "isExpired: " + str(h.expired)
-            print "AssignmentDuration: " + str(duration)
-            print "Seconds until last assignment can be turned in: " + str((expiration+duration)-now)
-            print "HITStatus: " + h.HITStatus
-            num_to_be_reviewed = len(conn.get_assignments(h.HITId, status="Submitted")) # yet to be reviewed
-            print "Yet-to-be-reviewed assignments: " + str(num_to_be_reviewed)
-            print "Approved assignments: " + str(len(conn.get_assignments(h.HITId, status="Approved")))
-            print "Rejected assignments: " + str(len(conn.get_assignments(h.HITId, status="Rejected")))
+            num_to_be_reviewed = len(conn.get_assignments(h.HITId, status="Submitted")) # yet to be reviewed        
+            if verbose:
+                print "------------------"
+                print "HIT ID: " + h.HITId
+                expiration = timeutils.parseISO(h.Expiration)
+                duration = float(h.AssignmentDurationInSeconds)
+                print "Expiration: " + str(expiration)
+                print "isExpired: " + str(h.expired)
+                print "AssignmentDuration: " + str(duration)
+                print "Seconds until last assignment can be turned in: " + str((expiration+duration)-now)
+                print "HITStatus: " + h.HITStatus
+                print "Yet-to-be-reviewed assignments: " + str(num_to_be_reviewed)
+                print "Approved assignments: " + str(len(conn.get_assignments(h.HITId, status="Approved")))
+                print "Rejected assignments: " + str(len(conn.get_assignments(h.HITId, status="Rejected")))
             if (h.HITStatus == 'Reviewable' or h.HITStatus == 'Reviewing') and num_to_be_reviewed == 0:
                 if not dry_run:
                     conn.dispose_hit(h.HITId)
@@ -247,6 +248,29 @@ def autoapprove_all_reviewable_assignments(conn, verbose=True, dry_run=False):
                                       bonus_evaluator=lambda x: (False, None, None),
                                       verbose=verbose,
                                       dry_run=dry_run)
+
+def expire_all_hits(conn):
+    """This will expire all the HITs in your account so that
+    nobody else can grab them. Good thing to do to clean up quikTurKit"""
+    count = 0
+    try:
+        assignable_hits = [hit for hit in get_all_hits(conn) if hit.HITStatus == "Assignable"]
+        
+        for h in assignable_hits:
+            try:
+                print "Expiring HIT " + h.HITId
+                conn.expire_hit(h.HITId)
+                count += 1
+            except Exception, e:
+                print "ERROR EXPIRING HIT " + h.HITId + "\n" + str(e)
+
+    except Exception, e:
+            print "Big error: \n" + str(e)
+
+    print "ALL DONE! Expired " + str(count) + " HITs"
+
+    return count
+    
                     
 def delete_all_hits(conn, do_you_mean_it="NO"):
     if do_you_mean_it != "YES_I_MEAN_IT":
