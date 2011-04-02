@@ -259,10 +259,6 @@ def printConditionSummaries(assignments, assignments_including_incomplete):
         print("\n" + condition + ":")
         printSummary(filtered_assignments, filtered_incomplete, condition)
     
-     
-def total_seconds(td):
-    return td.days * 3600 * 24 + td.seconds + td.microseconds / 1000000.0
-    
 # http://matplotlib.sourceforge.net/api/pyplot_api.html#matplotlib.pyplot.step    
 def graphCDF(assignments):
     try:

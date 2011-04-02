@@ -20,7 +20,7 @@ def is_ready(request):
     
     form = util.FieldStorage(request)
     assignmentid = form['assignmentid'].value
-    workerid = unicode(form['workerid'].value)
+    workerid = form['workerid'].value
     
     # we need videos that not enough people have done AND you have not done
     result = db.query_and_return_array("""
@@ -40,6 +40,7 @@ def is_ready(request):
         request.write(json.dumps( { 'is_ready' : False } ))
     else:
         # grab the most recent video upload
+        logging.debug("Videos needing labels: " + str(result))        
         videoid = result[0]['pk']
         video = getAndAssignVideo(assignmentid, videoid)
         request.write(json.dumps( video ) )

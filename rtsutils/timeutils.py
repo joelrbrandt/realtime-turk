@@ -18,6 +18,9 @@ def parseISO(input):
 def unixtime(dt):
     millis = dt.microsecond/1000000.
     return time.mktime(dt.timetuple()) + millis    
+
+def total_seconds(td):
+    return td.days * 3600 * 24 + td.seconds + td.microseconds / 1000000.0
     
 os.environ['TZ'] = 'America/NewYork'
 time.tzset()
