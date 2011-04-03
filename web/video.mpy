@@ -68,13 +68,12 @@ else:
 % else:
         In ${wait_time / 60} minutes 
 % endif        
-        or less, a video will appear below. Act <b>quickly</b> to start when it appears.</li>
+        or less, an alert and a video will appear. Act <b>quickly</b> to dismiss the alert.</li>
         
-        <li>Move the slider on the video around to find <i>at least three</i> good pictures.</li>
-	<li>When you see a good photo, click the "Good Photo" button to save it.</li>
-	<li>When you have at least three pictures, submit.</li>
+        <li>You will have <b>six seconds</b> to move the slider under the video <b>to find a good still photo</b>.</li>
+        <li>After six seconds, we will automatically save the photo you have selected. Then, the timer will restart for another six seconds. You will take a total of three still photos.</li>
+        <li>To get paid: a) do not repeat any photographs, and b) other workers must have also chosen at least one of the same photos.</li>
     </ol>
-    <div id='time-report' style='display: none'></div>
 </div>
 
 <div class = "task" id="taskContainer">
@@ -83,7 +82,8 @@ else:
     <div id="videoContainer"></div>  
   
     <div id="photos">
-      <div><button id="snapshotBtn">Good Photo</button></div>
+      <!--<div><button id="snapshotBtn">Good Photo</button></div>-->
+      <div class="countdown">6 seconds</div>
       <div id="output"></div>
     </div>
   </div>
@@ -91,7 +91,7 @@ else:
 
 <div>
   <div style="color: red;" id="submitError"></div>
-  <button id="donebtn">Done</button>
+  <button id="donebtn">Submit</button>
 </div>
 
 <form id="completeForm" action="rts/video/submit" method="GET" style="display: none">

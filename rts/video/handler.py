@@ -11,6 +11,11 @@ def handler(request):
         import ready
         ready.is_ready(request)
         return apache.OK
+        
+    elif uri_parts[-1] == "location":
+        import location_ping
+        location_ping.locationPing(request)
+        return apache.OK
 
     elif uri_parts[-1] == "random":
         import random
