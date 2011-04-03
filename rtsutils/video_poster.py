@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import time
 import random
 
+
 from video_hit import *
 from db_connection import *
 from mt_connection import *

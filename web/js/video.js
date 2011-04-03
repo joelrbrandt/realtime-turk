@@ -4,6 +4,7 @@
 
 var SCALE_FACTOR = 0.25;
 var RANDOM_TASK_URL = "rts/video/random";
+var TOTAL_PHOTOS = 3;
 
 var snapshots = [];
 
@@ -29,7 +30,7 @@ try { console.log('Javascript console found.'); } catch(e) { console = { log: fu
 $(document).ready(function() {
 	$.ajaxSetup({ cache: false });
 	loadParameters();
-	initDatePrototype();    // some browsers don't have toISOString()
+	initPrototypes();    // some browsers don't have toISOString()
 	initServerTime();
 
 	$('#snapshotBtn').click(shoot);
@@ -76,14 +77,16 @@ function videoDataCallback(data) {
  */
 function initializeVideo() {
     $f("player", "http://releases.flowplayer.org/swf/flowplayer-3.2.7.swf", {
-            // don't start automcatically
+            // don't start automatically
             clip: {
                 autoPlay: false,
                 autoBuffering: true,
-                onBegin: function() {
+                onMetaData: function() {
                     // Go to random frame so everyone
                     // doesn't choose the first frame
-                    window.setTimeout(setRandomFrame, 500); // this seems like a hack
+                    
+                    // HACK: video isn't ready when it says it is
+                    window.setTimeout(setRandomFrame(), 250);
                 }                 
             },
                 
@@ -100,14 +103,19 @@ function initializeVideo() {
         });
     
     
+    var slider_max = 1000;
     $( "#slider" ).slider( {
         slide: function(event, ui) {
-            var percent = ui.value / 100;
+            var percent = ui.value / slider_max;
             var duration = $f().getClip().fullDuration;
             $f().getPlugin("play").hide();
             $f().seek(duration * percent).getPlugin("play").hide();
             
-        }
+        },
+        
+        min: 0,
+        max: slider_max,
+        step: 1
     });
 }
 
@@ -120,6 +128,8 @@ function setRandomFrame() {
     
     $('#slider').slider("value", rand * 100);
     $f().seek(duration * rand).getPlugin("play").hide();    
+    console.log("starting timer now");
+    startTimer();
 } 
  
 /**
@@ -164,7 +174,7 @@ function refreshShots() {
 }
 
 function submitForm() {
-    if (snapshots.length < 3) {
+    if (snapshots.length < TOTAL_PHOTOS) {
 	$('#submitError').html("You have selected fewer than three photos. Please select at least three photos and then submit.");
 	return;
     }
@@ -206,10 +216,16 @@ function submitForm() {
 // Date prototype hacking in case the browser does not support it
 // ref: http://williamsportwebdeveloper.com/cgi/wp/?p=503
 
-function initDatePrototype() {
+function initPrototypes() {
     if (Date.prototype.toISOString == null) {
         console.log("Adding to Date prototype.");
         Date.prototype.toISOString = toISOString;
+    }
+    if (!Number.prototype.toFixed) {
+        Number.prototype.toFixed = function(precision) {
+            var power = Math.pow(10, precision || 0);
+            return String(Math.round(this * power)/power);
+        };
     }
 }
 
@@ -339,4 +355,47 @@ function logEvent(eventName, detail, finishedCallback) {
         }
     );
     
+}
+
+var timerStart = null;
+var countdownInterval;
+var TIME_PER_COUNTDOWN = 6000;
+/**
+ * Starts the snapshot timer. Sets the start time
+ * and starts the first timer. It will continue until three
+ * shots have been taken.
+ */
+function startTimer() {
+    timerStart = new Date();
+    countdownInterval = window.setInterval(timer, 150);
+    timer();    // do it once immediately.
+}
+
+/**
+ * Called upon each interval fire. When time runs out,
+ * will take a photo and start a new interval until
+ * it has enough photos
+ */
+function timer()
+{    
+    left = (new Date())-timerStart;
+    if (left >= TIME_PER_COUNTDOWN)
+    {
+        fireSnapshot();         
+        if (snapshots.length >= TOTAL_PHOTOS) {
+            window.clearInterval(countdownInterval);
+            $('.countdown').html("Done! Submitting...");
+            submitForm();
+            return;
+        }
+    }
+
+    var display = Math.max(0, ((TIME_PER_COUNTDOWN - left) / 1000).toFixed(1));
+    $('.countdown').html(display + "sec")
+}
+
+function fireSnapshot() {
+    $('#taskContainer').effect('highlight', {}, 500);
+    shoot();
+    timerStart = new Date();
 }

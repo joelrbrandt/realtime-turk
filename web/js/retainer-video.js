@@ -128,13 +128,13 @@ function showText() {
         $('#time-report').html(timeString).fadeIn();
     }
     
-    $('#donebtn').show();
+    //$('#donebtn').show();
     $('#goContainer').hide();
     if (assignmentid != 0) {
         $('#donebtn').attr("disabled", "").html("Done");    
     }
     $('#taskText').show();
-    $('#taskContainer').effect('highlight', {}, 3000);    
+    $('#taskContainer').effect('highlight', {}, 3000);
 }
 
 function grantBonus() {

@@ -58,3 +58,9 @@ class DBConnection():
         rs = cursor.fetchall()
         cursor.close()
         return rs
+    
+    def query_and_return_insert_id(self, query, parameters=tuple()):
+        cursor = self.query_and_return_cursor(query, parameters)
+        insert_id = self._db.insert_id()
+        cursor.close()
+        return insert_id
