@@ -10,3 +10,5 @@ long-poll-server/rts_config.py
 rts/video/output/*
 web/media/videos/*.3gp
 web/media/videos/*.flv
+.DS_Store
+logfile.log
