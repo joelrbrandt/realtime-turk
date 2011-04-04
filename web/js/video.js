@@ -23,6 +23,7 @@ var videoid = 0;
 var phase = null;
 
 var locationTimeout = null;
+var has_moved_slider = false;
 
 var times = {
     accept: null,
@@ -79,7 +80,7 @@ function videoDataCallback(data) {
         + 'height: ' + data['height'] + 'px;" id="player"></a>');
 
     // idea for range background slider from http://stackoverflow.com/questions/2992148/jquery-slider-set-background-color-to-show-desired-range
-    var sliderElement = $('<div id="slider" style="width: ' + data['width'] + 'px"><div id="range"></div></div>');
+    var sliderElement = $('<div id="slider" style="width: ' + data['width'] + 'px"><div class="range"></div><div class="range below"></div></div>');
 
     $('#videoContainer').append(videoElement).append(sliderElement);
     
@@ -131,6 +132,9 @@ function initializeVideo() {
             $f().getPlugin("play").hide();
             $f().seek(duration * percent).getPlugin("play").hide();
             
+            if (!has_moved_slider) {
+                has_moved_slider = true;
+            }
         },
         
         min: 0,
@@ -148,7 +152,7 @@ function initializeVideo() {
 function updateSliderBackgroundRange() {
     var left = phase['min'] * 100;
     var width = (phase['max'] - phase['min']) * 100; // percent
-    $("#range").css( { "left": left + "%", 
+    $(".range").css( { "left": left + "%", 
                         "width": width + "%" } )
 
     // make sure the slider's current position is in range
@@ -416,28 +420,44 @@ function logEvent(eventName, detail, finishedCallback) {
 /**
  * Tells the server what frame of the video I'm looking at.
  */
-function locationPing() {
-    var url = "rts/video/location";
-    url += "?phase=" + phase['phase'];
-    url += "&assignmentid=" + assignmentid;
-    url += "&videoid=" + videoid;
-    
+var lastLocation = null;
+var MAX_MOVEMENT_PER_PING = 0.03; // make rate the worker can be paging around at and still have this fire
+var LOCATION_PING_FREQUENCY = 750;  // millis
+function locationPing() {    
     var sliderLoc = $('#slider').slider('value') / SLIDER_MAX;
-    url += "&location=" + sliderLoc;
-    $.getJSON(url,
-        function(data) {
-            if (data['phase'] != phase['phase']) {
-                console.log("We have a new phase: " + phase['phase'] + " --> " + data['phase'] )
-                phase = data;
-                updateSliderBackgroundRange();
-            }
+    
+    // TODO: reorganize so we don't need to repeat setTimeout
+    if (!has_moved_slider) {
+        window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);
+    }
+    if (lastLocation != null && 
+    Math.abs(lastLocation - sliderLoc) > MAX_MOVEMENT_PER_PING) {
+        console.log("Moving too fast: " + (lastLocation - sliderLoc));
+        lastLocation = sliderLoc;
+        window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);
+    } else{
+        lastLocation = sliderLoc;
         
-            // Have we converged?
-            if (data['max'] - data['min'] == 0) {
-                console.log("We converged!");
-            } else {
-                window.setTimeout(locationPing, 750);
+        var url = "rts/video/location";
+        url += "?phase=" + phase['phase'];
+        url += "&assignmentid=" + assignmentid;
+        url += "&videoid=" + videoid;                
+        url += "&location=" + sliderLoc;
+        $.getJSON(url,
+            function(data) {
+                if (data['phase'] != phase['phase']) {
+                    console.log("We have a new phase: " + phase['phase'] + " --> " + data['phase'] )
+                    phase = data;
+                    updateSliderBackgroundRange();
+                }
+            
+                // Have we converged?
+                if (data['max'] - data['min'] == 0) {
+                    console.log("We converged!");
+                } else {
+                    window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);
+                }
             }
-        }
-    );
+        );
+    }
 }

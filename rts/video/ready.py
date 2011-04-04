@@ -21,19 +21,18 @@ def is_ready(request):
     assignmentid = form['assignmentid'].value
     workerid = form['workerid'].value
     
-    # we need videos that not enough people have done AND you have not done
+    # we need videos that have no pictures yet
     result = db.query_and_return_array("""
         SELECT pk FROM videos
-
-        LEFT JOIN (SELECT videoid, COUNT(DISTINCT workerid) AS numCompleted FROM assignments WHERE `submit` IS NOT NULL GROUP BY videoid) AS completedWork
-        ON videos.pk = completedWork.videoid 
         
-        LEFT JOIN (SELECT videoid, COUNT(*) AS workerCompleted FROM assignments WHERE workerid = %s AND `submit` IS NOT NULL GROUP BY videoid) AS workerStatus 
-        ON workerStatus.videoid = videos.pk 
+        LEFT JOIN (SELECT COUNT(*) AS numPictures, 
+        videoid FROM pictures GROUP BY videoid)
+        AS pictureCount
+        ON pictureCount.videoid = videos.pk        
         
-        WHERE (numCompleted < 3 OR numCompleted IS NULL) AND (workerCompleted IS NULL OR workerCompleted = 0)
+        WHERE pictureCount.numPictures IS NULL
         
-        ORDER BY videos.pk DESC """, (workerid, ))
+        ORDER BY videos.pk DESC """)
 
     if len(result) == 0:
         request.write(json.dumps( { 'is_ready' : False } ))
