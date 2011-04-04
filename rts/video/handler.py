@@ -18,8 +18,8 @@ def handler(request):
         return apache.OK
 
     elif uri_parts[-1] == "random":
-        import random
-        random.getRandomVideo(request)
+        import random_video
+        random_video.getRandomVideo(request)
         return apache.OK
 
     elif uri_parts[-1] == "log":

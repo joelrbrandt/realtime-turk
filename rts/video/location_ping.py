@@ -1,5 +1,5 @@
 from mod_python import apache, util
-import json
+import simplejson as json
 from datetime import datetime
 
 from rtsutils.db_connection import DBConnection
@@ -16,32 +16,40 @@ AGREEMENT_RANGE = .15   # Agreement must occur within this %
 AGREEMENT_PERCENT = (1.0 / 3) # This % of workers must agree on a range
 AGREEMENT_MINIMUM = 2   # At least this many must agree (no single person!)
 
+MIN_SECS_BETWEEN_PHASES = 2
+
 def locationPing(request):
+    request.content_type = "application/json"
+    
     db = DBConnection()
 
     (phase, assignment, location, video_id) = getArgs(request)    
     servertime = unixtime(datetime.now())
-    logging.debug("Location %s for video %s" % (location, video_id))
+    logging.debug("Location %s for video %s on phase %s" % (location, video_id, phase))
     
-    cur_phase = getMostRecentPhase(video_id, db)
-    if cur_phase['phase'] != phase:
-        # There is a newer phase than the one we're looking at,
-        # use that one instead and return to the client
-        request.write(json.dumps(cur_phase))
-        return
-    
-    # Now we know that we are on the right phase
-    pushLocation(location, phase, assignment, video_id, servertime, db)
-    (is_new_phase, new_min, new_max) = compareLocations(cur_phase, db)
-    
-    if is_new_phase:
-        # Agreement! Create a new phase.
-        id = createPhase(video_id, new_min, new_max, servertime, db)
-        result = dict(phase=id, min=new_min, max=new_max)
-        request.write(json.dumps(result))
-    else:
-        # Nobody agrees yet, return the current phase
-        request.write(json.dumps(cur_phase))
+    cur_phase = getMostRecentPhase(video_id, db)    
+    # Ensure that there isn't already a newer phase that
+    # we should be returning to the client
+    if cur_phase['phase'] == phase:
+        # Now we know that we are on the right phase
+        
+        # Record where we are
+        pushLocation(location, phase, assignment, video_id, servertime, db)
+        
+        # Has the phase already converged? (i.e., too small to be divisible)
+        if phaseIsDivisible(cur_phase):
+            (is_new_phase, new_min, new_max) = compareLocations(cur_phase, db)        
+            if is_new_phase:
+                # Agreement! Create a new phase.
+                new_phase = createPhase(video_id, new_min, new_max, 
+                                        servertime, db)
+                request.write(json.dumps(new_phase, use_decimal=True))
+                return
+        else:
+            logging.debug("Picture has converged!")
+
+    # No reason to have a new phase; write the current phase back out
+    request.write(json.dumps(cur_phase, use_decimal=True))
     
 def getArgs(request):
     """ 
@@ -59,14 +67,18 @@ def getArgs(request):
     
 def getMostRecentPhase(video_id, db):
     """
-    Returns the most recent phase created for this video.
-    Assumes that there is always at least one phase for this video.
-    (Should have been created in ready.py)
+    Returns the most recent phase created for this video, or None
+    if there are no such phases yet
     """
     
-    sql = """SELECT phase, max, min FROM phases WHERE videoid = %s ORDER BY start DESC LIMIT 1"""
+    sql = """SELECT phase, max, min, start FROM phases WHERE videoid = %s ORDER BY start DESC LIMIT 1"""
     
-    return db.query_and_return_array(sql, (video_id,) )[0]
+    result = db.query_and_return_array(sql, (video_id,) )
+    if len(result) > 0:
+        return result[0]
+    else:
+        # No phases for this video yet, create a first one
+        return createPhase( video_id, 0.0, 1.0, unixtime(datetime.now()), db)
 
         
 def createPhase(video_id, new_min, new_max, servertime, db):
@@ -83,7 +95,7 @@ def createPhase(video_id, new_min, new_max, servertime, db):
     sql = """INSERT INTO phases (videoid, min, max, start) 
     VALUES (%s, %s, %s, %s)"""
     id = db.query_and_return_insert_id(sql, (video_id, new_min, new_max, servertime) )
-    return id
+    return dict(phase = id, max = new_max, min = new_min, start = servertime)
 
 
 def pushLocation(location, phase, assignment, video_id, servertime, db):
@@ -102,12 +114,25 @@ def compareLocations(phase, db):
     then compares them to see if we should start a new phase
     """
     
-    sql = """SELECT location, MAX(servertime) FROM locations WHERE phase = %s GROUP BY assignmentid"""
-    result = db.query_and_return_array(sql, (phase['phase'],))
+    # have to get the entire row containing the MAX(servertime), ugh ugly SQL.
+    sql = """SELECT locations.location FROM locations, 
+            (SELECT MAX(servertime) AS maxtime, assignmentid, phase FROM locations WHERE phase = %s AND servertime >= %s GROUP BY assignmentid) AS most_recent
+            WHERE most_recent.assignmentid = locations.assignmentid
+            AND most_recent.maxtime = locations.servertime
+            AND most_recent.phase = locations.phase"""
+    result = db.query_and_return_array(sql, (phase['phase'], phase['start'] + MIN_SECS_BETWEEN_PHASES))
     locations = sorted([row['location'] for row in result])
+
+    logging.debug("len(locations): " + str(len(locations)))
+    
+    if len(locations) == 0:
+        # all locations are too recent
+        return (False, None, None)
+    
+    logging.debug("Effective locations: " + str(locations))
     
     # The effective range that workers must agree on
-    agreement_range = max(AGREEMENT_RANGE * float(phase['max'] - phase['min']), 1)
+    agreement_range = AGREEMENT_RANGE * float(phase['max'] - phase['min'])
     
     # We need to find out if at least required_workers have agreed on
     # a range that is at most agreement_range
@@ -121,13 +146,18 @@ def compareLocations(phase, db):
         
         range['min'] = location
         range['max'] = location + agreement_range
+        
+        #logging.debug("All locations: " + str(locations))
+        
         # We're going to do this the easy-to-code way since the list is
         # likely to be small: just filter the entire list dynamically each time
-        range['agreement'] = len( filter( lambda x: x >= range['min'] and x < range['max'], locations ) )
+        agreeing_locations = sorted(filter( lambda x: x >= range['min'] and x <= range['max'], locations ))
+        #logging.debug("Agreeing locations: " + str(agreeing_locations))
+        range['agreement'] = len( agreeing_locations )
         logging.debug("Agreement %s in [%s, %s)" % (range['agreement'], range['min'], range['max']) )
         
         # set the effective max of the new range to be the largest item in the range
-        range['max'] = locations[i + (range['agreement'] - 1)]
+        range['max'] = agreeing_locations[-1]
         
         ranges.append(range)
     
@@ -142,4 +172,7 @@ def compareLocations(phase, db):
     else:
         return (False, None, None)
         
-    
+def phaseIsDivisible(phase):
+    """ Returns True if the phase is large enough that 
+    it can still be subdivided. """
+    return (phase['max'] - phase['min'] > 0)

@@ -1,17 +1,16 @@
 from mod_python import apache, util
-import json
+import simplejson as json
 
 from rtsutils.db_connection import DBConnection
+from rts.video import location_ping
 
 from rts import rts_logging
 import logging
 
-VIDEO_SOURCE_DIR = 'media/videos/'
+from rtsutils.timeutils import unixtime
+from datetime import datetime
 
-# source types
-WEB_M = "webm"
-OGG = "ogg"
-MP4 = "mp4"
+VIDEO_SOURCE_DIR = 'media/videos/'
 
 """ Writes to the request whether we need this particular worker to attack a video right now"""
 def is_ready(request):
@@ -43,7 +42,8 @@ def is_ready(request):
         logging.debug("Videos needing labels: " + str(result))        
         videoid = result[0]['pk']
         video = getAndAssignVideo(assignmentid, videoid)
-        request.write(json.dumps( video ) )
+        
+        request.write(json.dumps(video, use_decimal = True) )
 
 def getAndAssignVideo(assignmentid, videoid):
     """Gets the given video from the database, and populates a dict with its properties. Assigns the video to the worker in the database. """
@@ -54,13 +54,16 @@ def getAndAssignVideo(assignmentid, videoid):
 """ Gets a Python dict for the video """
 def getVideo(videoid):
     db = DBConnection()
-    result = db.query_and_return_array("""SELECT width, height, filename FROM videos WHERE pk = %s""", (videoid, ) )[0]
+    result = db.query_and_return_array("""SELECT pk, width, height, filename FROM videos WHERE pk = %s""", (videoid, ) )[0]
 
-    json_out = dict()
-    json_out['is_ready'] = True
-    json_out['width'] = result['width']
-    json_out['height'] = result['height']
-    json_out['filename'] = result['filename']
+    json_out = dict(is_ready = True, width = result['width'],
+                    height = result['height'], filename = result['filename'],
+                    videoid = result['pk'])
+    
+    # get or create a video labeling phase
+    phase = location_ping.getMostRecentPhase(videoid, db)
+
+    json_out['phase'] = phase
 
     return json_out
 
