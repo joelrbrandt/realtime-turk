@@ -23,7 +23,7 @@ def log(request):
     time = parseISO(form['time'].value)
     servertime = unixtime(datetime.now())
     
-    logging.debug("Logging assignment %s event %s" % (assignment, event))
+    #logging.debug("Logging assignment %s event %s" % (assignment, event))
     
     try:    
         db.query_and_return_array("""INSERT INTO logging (event, detail, assignmentid, time, servertime, ip, useragent) VALUES (%s, %s, %s, %s, %s, %s, %s)""", (event, detail, assignment, time, servertime, ip, useragent))
