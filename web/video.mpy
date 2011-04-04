@@ -83,7 +83,7 @@ else:
   
     <div id="photos">
       <!--<div><button id="snapshotBtn">Good Photo</button></div>-->
-      <div class="countdown">6 seconds</div>
+      <!--<div class="countdown">6 seconds</div>-->
       <div id="output"></div>
     </div>
   </div>

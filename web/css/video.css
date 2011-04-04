@@ -26,3 +26,16 @@
 .countdown {
     font-size: 20pt;
 }
+
+#range {
+    position: absolute;
+    height:100%;
+    width:20%;
+    top: 0;
+    left: 65%;
+    background-color: #54DE04;
+}
+
+#slider {
+    background: #D6C9C9;
+}

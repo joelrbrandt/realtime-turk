@@ -5,6 +5,7 @@
 var SCALE_FACTOR = 0.25;
 var RANDOM_TASK_URL = "rts/video/random";
 var TOTAL_PHOTOS = 3;
+var SLIDER_MAX = 100;
 
 var snapshots = [];
 
@@ -17,6 +18,11 @@ var isAlert = true;
 var isReward = false;
 
 var timingLoaded = false;
+
+var videoid = 0;
+var phase = null;
+
+var locationTimeout = null;
 
 var times = {
     accept: null,
@@ -55,6 +61,13 @@ function loadParameters() {
     if (hitid == null) {
         hitid = 0;
     }
+    
+    video_url = $(document).getUrlParam("videoid");
+    if (video_url == null) {
+        videoid = 0;
+    } else {
+        videoid = parseInt(video_url);
+    }
 }
 
 /**
@@ -65,9 +78,14 @@ function videoDataCallback(data) {
         + 'style="display:block; width: ' + data['width'] + 'px; ' 
         + 'height: ' + data['height'] + 'px;" id="player"></a>');
 
-    var sliderElement = $('<div id="slider" style="width: ' + data['width'] + 'px"></div>');
+    // idea for range background slider from http://stackoverflow.com/questions/2992148/jquery-slider-set-background-color-to-show-desired-range
+    var sliderElement = $('<div id="slider" style="width: ' + data['width'] + 'px"><div id="range"></div></div>');
 
     $('#videoContainer').append(videoElement).append(sliderElement);
+    
+    phase = data['phase'];
+    videoid = data['videoid'];
+    
     initializeVideo();
 }
 
@@ -86,7 +104,7 @@ function initializeVideo() {
                     // doesn't choose the first frame
                     
                     // HACK: video isn't ready when it says it is
-                    window.setTimeout(setRandomFrame(), 250);
+                    window.setTimeout(videoReady, 250);
                 }                 
             },
                 
@@ -102,11 +120,13 @@ function initializeVideo() {
             onBeforeFullscreen: function() { return false; }
         });
     
-    
-    var slider_max = 1000;
     $( "#slider" ).slider( {
         slide: function(event, ui) {
-            var percent = ui.value / slider_max;
+            var percent = ui.value / SLIDER_MAX;
+            if (percent < phase['min'] || percent > phase['max']) {
+                return false;
+            }
+            
             var duration = $f().getClip().fullDuration;
             $f().getPlugin("play").hide();
             $f().seek(duration * percent).getPlugin("play").hide();
@@ -114,9 +134,41 @@ function initializeVideo() {
         },
         
         min: 0,
-        max: slider_max,
+        max: SLIDER_MAX,
         step: 1
     });
+    
+    updateSliderBackgroundRange();
+}
+
+/**
+ * Colors the slider and prevents it from 
+ * moving outside the given range
+ */
+function updateSliderBackgroundRange() {
+    var left = phase['min'] * 100;
+    var width = (phase['max'] - phase['min']) * 100; // percent
+    $("#range").css( { "left": left + "%", 
+                        "width": width + "%" } )
+
+    // make sure the slider's current position is in range
+    var slider = $('#slider');
+    var currentValue = slider.slider('value');
+    var minSlider = (phase['min'] * SLIDER_MAX);
+    var maxSlider = (phase['max'] * SLIDER_MAX);
+    if (currentValue < minSlider) {
+        slider.slider('value', minSlider);
+    } else if (currentValue > maxSlider) {
+        slider.slider('value', maxSlider);
+    }
+}
+
+/**
+ * Event called when the video is ready to navigate
+ */
+function videoReady() {
+    setRandomFrame();
+    locationPing();     // start the notification
 }
 
 /**
@@ -124,13 +176,17 @@ function initializeVideo() {
  */
 function setRandomFrame() {
     var duration = $f().getClip().fullDuration;
-    var rand = Math.random();
+    var rand = getRandomArbitrary(phase['min'], phase['max']);
     
     $('#slider').slider("value", rand * 100);
-    $f().seek(duration * rand).getPlugin("play").hide();    
-    console.log("starting timer now");
-    startTimer();
-} 
+    $f().seek(duration * rand).getPlugin("play").hide();
+}
+
+// Returns a random number between min and max
+function getRandomArbitrary(min, max)
+{
+  return Math.random() * (max - min) + min;
+}
  
 /**
  * Invokes the <code>capture</code> function and attaches the canvas element to the DOM.
@@ -175,8 +231,8 @@ function refreshShots() {
 
 function submitForm() {
     if (snapshots.length < TOTAL_PHOTOS) {
-	$('#submitError').html("You have selected fewer than three photos. Please select at least three photos and then submit.");
-	return;
+        $('#submitError').html("You have selected fewer than three photos. Please select at least three photos and then submit.");
+        return;
     }
 
     // record the time of submission in the times array
@@ -357,45 +413,31 @@ function logEvent(eventName, detail, finishedCallback) {
     
 }
 
-var timerStart = null;
-var countdownInterval;
-var TIME_PER_COUNTDOWN = 6000;
 /**
- * Starts the snapshot timer. Sets the start time
- * and starts the first timer. It will continue until three
- * shots have been taken.
+ * Tells the server what frame of the video I'm looking at.
  */
-function startTimer() {
-    timerStart = new Date();
-    countdownInterval = window.setInterval(timer, 150);
-    timer();    // do it once immediately.
-}
-
-/**
- * Called upon each interval fire. When time runs out,
- * will take a photo and start a new interval until
- * it has enough photos
- */
-function timer()
-{    
-    left = (new Date())-timerStart;
-    if (left >= TIME_PER_COUNTDOWN)
-    {
-        fireSnapshot();         
-        if (snapshots.length >= TOTAL_PHOTOS) {
-            window.clearInterval(countdownInterval);
-            $('.countdown').html("Done! Submitting...");
-            submitForm();
-            return;
+function locationPing() {
+    var url = "rts/video/location";
+    url += "?phase=" + phase['phase'];
+    url += "&assignmentid=" + assignmentid;
+    url += "&videoid=" + videoid;
+    
+    var sliderLoc = $('#slider').slider('value') / SLIDER_MAX;
+    url += "&location=" + sliderLoc;
+    $.getJSON(url,
+        function(data) {
+            if (data['phase'] != phase['phase']) {
+                console.log("We have a new phase: " + phase['phase'] + " --> " + data['phase'] )
+                phase = data;
+                updateSliderBackgroundRange();
+            }
+        
+            // Have we converged?
+            if (data['max'] - data['min'] == 0) {
+                console.log("We converged!");
+            } else {
+                window.setTimeout(locationPing, 750);
+            }
         }
-    }
-
-    var display = Math.max(0, ((TIME_PER_COUNTDOWN - left) / 1000).toFixed(1));
-    $('.countdown').html(display + "sec")
-}
-
-function fireSnapshot() {
-    $('#taskContainer').effect('highlight', {}, 500);
-    shoot();
-    timerStart = new Date();
+    );
 }

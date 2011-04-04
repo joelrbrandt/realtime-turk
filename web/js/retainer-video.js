@@ -32,7 +32,12 @@ function setMaxWaitCallback(showCallback, defaultWorkURL) {
 	    window.clearTimeout(showTimeout);
 
 	    // get a random piece of work
-	    $.get(defaultWorkURL + "?assignmentid=" + assignmentid, function(data) {
+	    var randomURL = defaultWorkURL + "?assignmentid=" + assignmentid;
+	    if (videoid != 0) {
+	        // manually specify video
+	        randomURL += "&videoid=" + videoid
+	    }
+	    $.get(randomURL, function(data) {
 		    showCallback(data);
 		    showGoButton();
 		});
