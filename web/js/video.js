@@ -417,7 +417,7 @@ function logEvent(eventName, detail, finishedCallback) {
     
     $.post("rts/video/log", logData,        
         function(reply) {
-            console.log(logData.event + " " + logData.time + " " + JSON.stringify(detail));
+            //console.log(logData.event + " " + logData.time + " " + JSON.stringify(detail));
             if (finishedCallback != null) {
                 finishedCallback(reply);
             }
