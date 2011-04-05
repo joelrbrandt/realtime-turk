@@ -27,13 +27,11 @@ def locationPing(request):
     
     db = DBConnection()
 
-    logging.debug('-----new request')
     (phase, assignment, location, video_id) = getArgs(request)    
     servertime = unixtime(datetime.now())
     # logging.debug("Location %s for video %s on phase %s" % (location, video_id, phase))
     
     cur_phase = getMostRecentPhase(video_id, db)
-    logging.debug("current phase: %s, transition phase: %s/%s" % (phase, cur_phase['phase'], cur_phase['phase_list']))
     
     # Ensure that there isn't already a newer phase that
     # we should be returning to the client    
@@ -76,7 +74,6 @@ def getArgs(request):
 
 def getMostRecentPhase(video_id, db):
     phase = getByVideo(video_id, db)
-    logging.debug("by video: %s" % (phase, ))
     
     # is there a phase ongoing?
     if phase is not None and not phase['is_abandoned']:
@@ -186,12 +183,18 @@ def compareLocations(phase, servertime, db):
     
     # has the user been waiting alone?
     num_workers = len(set([row['assignmentid'] for row in result]))
-    phase_time =  servertime - phase['start']
-    if num_workers == 1 and phase_time > MAX_TIME_TO_WAIT_ALONE_IN_SECS:
-        abandonPhase(phase['phase'], db)
-        # forever alone :(
-        logging.debug("User has been waiting alone too long. Going to use an old phase.")
-        return compareToHistoricalPhase(phase, servertime, db)
+    if num_workers == 1:
+        # get the earliest ping
+        sql = """SELECT MIN(servertime) FROM locations WHERE
+                 phase = %s AND assignmentid = %s"""
+        earliest_ping = db.query_and_return_array(sql, (phase['phase'], result[0]['assignmentid']))[0]['MIN(servertime)']
+        
+        waiting_time = servertime - earliest_ping
+        logging.debug("waiting time: %s " % waiting_time)
+        if waiting_time > MAX_TIME_TO_WAIT_ALONE_IN_SECS:        
+            # forever alone :(
+            logging.debug("User has been waiting alone too long. Going to use an old phase.")
+            return compareToHistoricalPhase(phase, servertime, db)
     
     ranges = getAgreement(phase['min'], phase['max'], locations)    
     best = max(ranges, key = lambda k: k['agreement'])
@@ -261,8 +264,6 @@ def takePicture(phase, video_id, db):
     
 
 def compareToHistoricalPhase(phase, servertime, db):
-    logging.error("Turned off historical phrases")
-    return (False, None, None)
     """ Uses an older phase to mimic other people when there
     is nobody else around for this user to play with """
     older_phase = getNextHistoricalPhase(phase, db)
@@ -270,12 +271,10 @@ def compareToHistoricalPhase(phase, servertime, db):
     if older_phase is None:
         # logging.info("For now we are going to just keep waiting; there are no historical phases to refer to.") 
         return (False, None, None)
-    else:        
-        # logging.debug("Historical phase is phase %s" % older_phase['phase'])    
+    else:         
         # we should be able to call compareLocations on the older
         # phase and get the older result back, which we can use
         # to simulate what happened in the past
-        # logging.debug(compareLocations(older_phase, servertime, db))
         return compareLocations(older_phase, servertime, db)    
 
 
