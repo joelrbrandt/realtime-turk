@@ -128,9 +128,7 @@ function initializeVideo() {
                 return false;
             }
             
-            var duration = $f().getClip().fullDuration;
-            $f().getPlugin("play").hide();
-            $f().seek(duration * percent).getPlugin("play").hide();
+            seekVideoToPercent(percent);
             
             if (!has_moved_slider) {
                 has_moved_slider = true;
@@ -143,6 +141,15 @@ function initializeVideo() {
     });
     
     updateSliderBackgroundRange();
+}
+
+/**
+ * Moves the video playhead to the desired position
+ */
+function seekVideoToPercent(percent) {
+    var duration = $f().getClip().fullDuration;
+    $f().getPlugin("play").hide();
+    $f().seek(duration * percent).getPlugin("play").hide();
 }
 
 /**
@@ -162,8 +169,10 @@ function updateSliderBackgroundRange() {
     var maxSlider = (phase['max'] * SLIDER_MAX);
     if (currentValue < minSlider) {
         slider.slider('value', minSlider);
+        seekVideoToPercent(phase['min']);
     } else if (currentValue > maxSlider) {
         slider.slider('value', maxSlider);
+        seekVideoToPercent(phase['max']);
     }
 }
 
@@ -430,8 +439,7 @@ function locationPing() {
     if (!has_moved_slider) {
         window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);
     }
-    if (lastLocation != null && 
-    Math.abs(lastLocation - sliderLoc) > MAX_MOVEMENT_PER_PING) {
+    else if (lastLocation != null &&  Math.abs(lastLocation - sliderLoc) > MAX_MOVEMENT_PER_PING) {
         console.log("Moving too fast: " + (lastLocation - sliderLoc));
         lastLocation = sliderLoc;
         window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);

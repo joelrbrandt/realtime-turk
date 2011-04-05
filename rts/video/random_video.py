@@ -28,7 +28,7 @@ def getRandomVideo(request):
             GROUP BY phase
             ORDER BY MAX(servertime) DESC
         """
-        max_age = datetime.now() - timedelta(minutes = PHASE_MAX_AGE_IN_MINUTES)
+        max_age = datetime.now() - timedelta(minutes = location_ping.PHASE_MAX_AGE_IN_SECONDS)
         unfinished_phases = db.query_and_return_array(sql, (max_age, ) )
         if len(unfinished_phases) > 0:
             videoid = unfinished_phases[0]['videoid']
