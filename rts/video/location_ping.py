@@ -38,27 +38,26 @@ def locationPing(request):
         # we should be returning to the client    
         if cur_phase['phase'] != phase:
             request.write(json.dumps(cur_phase, use_decimal=True))
-            return
-        
-        # Record where we are
-        pushLocation(location, phase, assignment, video_id, servertime, db)
-        
-        # Has the phase already converged? (i.e., too small to be divisible)
-        (is_new_phase, new_min, new_max) = compareLocations(cur_phase, servertime, db)        
-        if is_new_phase:
-            closePhase(cur_phase['phase'], servertime, False, db)
-            # Agreement! Create a new phase.
-            new_phase = createPhase(video_id, new_min, new_max, 
-                                    servertime, cur_phase['phase_list'], db)
-            logging.debug("Creating new phase: %s" % new_phase)
-            if not phaseIsDivisible(new_phase):                                        
-                logging.debug("Picture has converged!")
-                closePhase(new_phase['phase'], servertime, False, db)
-                takePicture(new_phase, video_id, db)                                        
-                                    
-            request.write(json.dumps(new_phase, use_decimal=True))
         else:
-            request.write(json.dumps(cur_phase, use_decimal=True))
+            # Record where we are
+            pushLocation(location, phase, assignment, video_id, servertime, db)
+            
+            # Has the phase already converged? (i.e., too small to be divisible)
+            (is_new_phase, new_min, new_max) = compareLocations(cur_phase, servertime, db)        
+            if is_new_phase:
+                closePhase(cur_phase['phase'], servertime, False, db)
+                # Agreement! Create a new phase.
+                new_phase = createPhase(video_id, new_min, new_max, 
+                                        servertime, cur_phase['phase_list'], db)
+                logging.debug("Creating new phase: %s" % new_phase)
+                if not phaseIsDivisible(new_phase):                                        
+                    logging.debug("Picture has converged!")
+                    closePhase(new_phase['phase'], servertime, False, db)
+                    takePicture(new_phase, video_id, db)                                        
+                                        
+                request.write(json.dumps(new_phase, use_decimal=True))
+            else:
+                request.write(json.dumps(cur_phase, use_decimal=True))
         
         db.commit()
         
@@ -86,7 +85,7 @@ def getMostRecentPhase(video_id, db, restart_if_converged = False):
     # is there a phase ongoing?
     if phase is not None and not phase['is_abandoned'] and not (phase['end'] is not None and restart_if_converged):
         # if it's not a closed phase and we're forcing restart of converged phases (e.g., choosing a random video)
-            
+        
         # how old is this -- is it abandoned?
         sql = """SELECT servertime FROM locations WHERE
         phase = %s ORDER BY servertime DESC LIMIT 1"""
@@ -100,7 +99,7 @@ def getMostRecentPhase(video_id, db, restart_if_converged = False):
             # it's an old phase and we need to abandon it
             abandonPhase(phase['phase'], db)
         
-    # if we got here, we need to create a new phase    
+    # if we got here, we need to create a new phase
     return createPhase( video_id, Decimal(0), Decimal(1), unixtime(datetime.now()), None, db)
     
     

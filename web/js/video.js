@@ -90,7 +90,7 @@ function videoDataCallback(data) {
     $('#videoContainer').append(videoElement).append(sliderElement);
     
     phase = data['phase'];
-    phases.push(phase['phase'])
+    phases.push(phase)
     videoid = data['videoid'];
     
     console.log("Phase " + phase['phase']);
@@ -293,9 +293,10 @@ function submitForm() {
     su = times.submit == null ? "" : times.submit.toISOString()
     form.append('<input type="hidden" name="su" value="' + su + '" />');
 
-    // framearray = fa
-    timestamps_json = JSON.stringify(snapshots);
-    form.append('<input type="hidden" name="fa" value="' + timestamps_json + '" />');
+    // phases = p
+    var phase_nums = $.map(phases, function(elem, index) { return elem['phase']; } )
+    phases_json = JSON.stringify(phase_nums);
+    form.append('<input type="hidden" name="p" value="' + phases_json + '" />');
 
     form.submit();
 }
