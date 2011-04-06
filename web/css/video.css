@@ -33,13 +33,20 @@
     width:100%;
     top: 0;
     left: 0%;
-    background-color: #54DE04;
+    background-color: #3F48FF;
 }
 
 .below {
+    background-color: #FFFFFF;
     position: relative;
     top: 20px;
     height: 25%;
+    text-align: center;
+    font-size: 8pt;
+    border-bottom: 2px solid #3F48FF;
+    border-left: 2px solid #3F48FF;
+    border-right: 2px solid #3F48FF;
+    color: #3F48FF;
 }
 
 #slider {

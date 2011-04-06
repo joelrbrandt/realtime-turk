@@ -24,7 +24,7 @@ function setMaxWaitCallback(showCallback, defaultWorkURL) {
     var waitTime = maxWaitTime * 1000; 
 
     console.log("max wait time: " + waitTime);
-    showTimeout = window.setTimeout(function() {
+   showTimeout = window.setTimeout(function() {
         // if we haven't already shown work, do it now
         if (times.show == null) {
 	    console.log("No work -- showing random work")
