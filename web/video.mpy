@@ -71,10 +71,10 @@ else:
         In ${wait_time / 60} minutes 
 % endif        
         or less, you will receive an alert. Act <b>quickly</b> to dismiss the alert and a 5-10 second video will appear.</li>
-        <li>Work simultaneously with other Turkers who have this task to <b>find the best single photograph in the video</b>.</li>
-        <li>Move the slider to find a photograph that you think the other Turkers will also vote for.</li>
-        <li>If a majority of the Turkers also have moved their slider into the same region, we will narrow down the video to that region and keep going. This should happen every few seconds until you have a single photo.</li>
-        <li>To get paid, you should agree with the majority on at least one of the votes.</li>
+        <li>Work simultaneously with other Turkers who have this task by moving the slider to agree on <b>the best photo in the video</b>.</li>
+        <li>If your slider is near other workers's sliders, we will narrow down  the video to that clip and keep going. You get a point if your slider was inside the clip when this happens.</li>
+        <li>Keep going, working with other Turkers and narrowing down the video, until you have agreed on one photo.</li>
+        <li>You will get paid if you earn at least one point.</li>
     </ol>
 </div>
 

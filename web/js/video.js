@@ -85,13 +85,15 @@ function videoDataCallback(data) {
         + 'height: ' + data['height'] + 'px;" id="player"></a>');
 
     // idea for range background slider from http://stackoverflow.com/questions/2992148/jquery-slider-set-background-color-to-show-desired-range
-    var sliderElement = $('<div id="slider" style="width: ' + data['width'] + 'px"><div class="range"></div><div class="range below"></div></div>');
+    var sliderElement = $('<div id="slider" style="width: ' + data['width'] + 'px"><div class="range"></div><div class="range below">Find photo in this clip</div></div>');
 
     $('#videoContainer').append(videoElement).append(sliderElement);
     
     phase = data['phase'];
     phases.push(phase['phase'])
     videoid = data['videoid'];
+    
+    console.log("Phase " + phase['phase']);
     
     initializeVideo();
 }
@@ -165,6 +167,16 @@ function updateSliderBackgroundRange() {
     var width = (phase['max'] - phase['min']) * 100; // percent
     $(".range").css( { "left": left + "%", 
                         "width": width + "%" } )
+    
+    if (width < 5) {
+        $(".range.below").text("");
+    }    
+    else if (width < 10) {
+        $(".range.below").text("clip");
+    }    
+    else if (width < 20) {
+        $(".range.below").text("In this clip");
+    }
 
     // make sure the slider's current position is in range
     var slider = $('#slider');
@@ -441,12 +453,12 @@ function checkAccuracy(sliderLocation, newPhase) {
     if (newPhase['min'] <= sliderLocation && sliderLocation <= newPhase['max']) {
         // They agreed
         accurateCount++;
-        $('#output').html("You agreed! ").addClass("rightAnswer").removeClass("wrongAnswer");
+        $('#output').html("You agreed with other workers! ").addClass("rightAnswer").removeClass("wrongAnswer");
     } else {
         $('#output').html("The other workers disagreed with you. ").addClass("wrongAnswer").removeClass("rightAnswer");
     }
     
-    $('#output').append("You have matched on " + accurateCount + " out of " + phases.length + " so far.").effect("highlight");
+    $('#output').append("Use your slider to agree on a picture in this smaller clip. <br>" + accurateCount + " points").effect("highlight");
 }
 
 

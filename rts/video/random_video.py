@@ -22,13 +22,21 @@ def getRandomVideo(request):
     else:
         # are there any videos with incomplete phases that we can join?
         # grab the most recently touched one
+#         sql = """
+#             SELECT phase, videoid, MAX(servertime) FROM locations WHERE phase IN 
+#             (SELECT phase FROM phases
+#             WHERE end IS NULL AND is_abandoned = 0 AND start >= %s)
+#             GROUP BY phase
+#             ORDER BY MAX(servertime) DESC
+#         """
+
         sql = """
-            SELECT phase, videoid, MAX(servertime) FROM locations WHERE phase IN 
-            (SELECT phase FROM phases
-            WHERE end IS NULL AND is_abandoned = 0 AND start >= %s)
-            GROUP BY phase
-            ORDER BY MAX(servertime) DESC
-        """
+            SELECT videoid FROM phases, phase_lists
+            WHERE end IS NULL AND is_abandoned = 0 AND start >= %s
+            AND phases.phase_list = phase_lists.pk
+            ORDER BY start DESC LIMIT 1
+            """
+
         max_age = unixtime(datetime.now() - timedelta(seconds = location_ping.PHASE_MAX_AGE_IN_SECONDS))
         unfinished_phases = db.query_and_return_array(sql, (max_age, ) )
         if len(unfinished_phases) > 0:
