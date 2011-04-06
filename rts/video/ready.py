@@ -44,14 +44,14 @@ def is_ready(request):
         
         request.write(json.dumps(video, use_decimal = True) )
 
-def getAndAssignVideo(assignmentid, videoid):
+def getAndAssignVideo(assignmentid, videoid, restart_if_converged = False):
     """Gets the given video from the database, and populates a dict with its properties. Assigns the video to the worker in the database. """
-    video = getVideo(videoid)
+    video = getVideo(videoid, restart_if_converged = restart_if_converged)
     updateAssignment(assignmentid, videoid)    
     return video
 
 """ Gets a Python dict for the video """
-def getVideo(videoid):
+def getVideo(videoid, restart_if_converged = False):
     db = DBConnection()
     result = db.query_and_return_array("""SELECT pk, width, height, filename FROM videos WHERE pk = %s""", (videoid, ) )[0]
 
@@ -60,7 +60,7 @@ def getVideo(videoid):
                     videoid = result['pk'])
     
     # get or create a video labeling phase
-    phase = location_ping.getMostRecentPhase(videoid, db)
+    phase = location_ping.getMostRecentPhase(videoid, db, restart_if_converged = restart_if_converged)
 
     json_out['phase'] = phase
 

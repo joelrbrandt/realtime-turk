@@ -17,6 +17,7 @@ from timeutils import parseISO
 
 import mt_connection
 
+MINIMUM_ACCURACY = 1;
 APPROVE_REASON = "Accurate work. Thank you!"
 REJECT_REASON = "You did not choose enough meaningful or good-looking photos. Sorry."
 #BONUS_AMOUNT = 0.02

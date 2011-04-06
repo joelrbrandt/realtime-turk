@@ -136,7 +136,7 @@ function showText() {
     //$('#donebtn').show();
     $('#goContainer').hide();
     if (assignmentid != 0) {
-        $('#donebtn').attr("disabled", "").html("Done");    
+        $('#donebtn').attr("disabled", "").html("Submit");    
     }
     $('#taskText').show();
     $('#taskContainer').effect('highlight', {}, 3000);
