@@ -458,9 +458,11 @@ function converged() {
     
     var output = $('#output');
     if (accurateCount >= MIN_ACCURACY) {
-        output.html("Great, you agreed " + accurateCount + " times out of " + phases.length + ". ");    
+        output.html("Great, you agreed " + accurateCount + " times out of " + (phases.length-1) + ". ");
+        output.removeClass("wrongAnswer").addClass("rightAnswer");
     } else {
-        output.html("Oops. You agreed only " + accurateCount + " times out of " + phases.length + ". We'll be reviewing your work to make sure you are making a good faith effort and should be paid. ");
+        output.html("Oops. You agreed only " + accurateCount + " times out of " + (phases.length-1) + ". We'll be reviewing your work to make sure you are making a good faith effort and should be paid. ");
+        output.addClass("wrongAnswer").removeClass("rightAnswer");        
     }
     output.append("Click the submit button below to finish.");
     
