@@ -34,6 +34,7 @@ var times = {
     submit: null
 };
 
+// var MIN_ACCURACY comes from video.mpy
 var accurateCount = 0;
 
 try { console.log('Javascript console found.'); } catch(e) { console = { log: function() {} }; }
@@ -247,11 +248,12 @@ function refreshShots() {
 }
 
 function submitForm() {
+/*
     if (snapshots.length < TOTAL_PHOTOS) {
         $('#submitError').html("You have selected fewer than three photos. Please select at least three photos and then submit.");
         return;
     }
-
+*/
     // record the time of submission in the times array
     times.submit = getServerTime();
 
@@ -453,7 +455,18 @@ function checkAccuracy(sliderLocation, newPhase) {
  * the opportunity to submit.
  */
 function converged() {
-
+    
+    var output = $('#output');
+    if (accurateCount >= MIN_ACCURACY) {
+        output.html("Great, you agreed " + accurateCount + " times out of " + phases.length + ". ");    
+    } else {
+        output.html("Oops. You agreed only " + accurateCount + " times out of " + phases.length + ". We'll be reviewing your work to make sure you are making a good faith effort and should be paid. ");
+    }
+    output.append("Click the submit button below to finish.");
+    
+    $('#donebtn').fadeIn();
+    
+    // add styles
 }
 
 
@@ -463,6 +476,7 @@ function converged() {
 var lastLocation = null;
 var MAX_MOVEMENT_PER_PING = 0.03; // make rate the worker can be paging around at and still have this fire
 var LOCATION_PING_FREQUENCY = 750;  // millis
+var CONVERGE_WAIT_TIME = 750;   // millis
 function locationPing() {    
     var sliderLoc = $('#slider').slider('value') / SLIDER_MAX;
     
@@ -487,8 +501,14 @@ function locationPing() {
                 if (data['phase'] != phase['phase']) {
                     console.log("We have a new phase: " + phase['phase'] + " --> " + data['phase'] );
                     
-                    checkAccuracy(sliderLoc, data);
-                    
+                    // Make sure this isn't just a new name for an old phase
+                    // e.g., if the old one just took forever and expired
+                    if (data['min'] == phase['min'] && data['max'] == phase['max']) {
+                        phases.pop();   // get rid of the old one
+                    } else {
+                        // OK, this is the real deal. Better test accuracy
+                        checkAccuracy(sliderLoc, data);
+                    }                        
                     phase = data;
                     phases.push(phase);
                     
@@ -498,7 +518,7 @@ function locationPing() {
                 // Have we converged?
                 if (data['max'] - data['min'] == 0) {
                     console.log("We converged!");
-                    converged();
+                    window.setTimeout(converged, CONVERGE_WAIT_TIME);
                 } else {
                     window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);
                 }

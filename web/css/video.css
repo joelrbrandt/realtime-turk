@@ -53,3 +53,8 @@
 .wrongAnswer {
     color: red;
 }
+
+#donebtn {
+    font-size: 24pt;
+    margin-top: 20px;
+}

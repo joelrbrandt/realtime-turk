@@ -1,5 +1,6 @@
 <%!
 from rtsutils.is_worker_busy import isWorkerBusy
+from rtsutils.video_approver import MINIMUM_ACCURACY
 %>
 
 
@@ -54,6 +55,7 @@ else:
 
     <script type="text/javascript">
         var maxWaitTime = ${wait_time};
+        var MIN_ACCURACY = ${MINIMUM_ACCURACY};
     </script>
 
 </head>
@@ -87,11 +89,11 @@ else:
       <div id="output"></div>
     </div>
   </div>
-</div>
-
-<div>
-  <div style="color: red;" id="submitError"></div>
-  <button id="donebtn">Submit</button>
+  
+    <div>
+      <div style="color: red;" id="submitError"></div>
+      <button id="donebtn">Submit</button>
+    </div>  
 </div>
 
 <form id="completeForm" action="rts/video/submit" method="GET" style="display: none">

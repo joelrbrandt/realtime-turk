@@ -73,11 +73,15 @@ def getArgs(request):
     return (phase, assignment, location, video_id)
 
 
-def getMostRecentPhase(video_id, db):
+def getMostRecentPhase(video_id, db, restart_if_converged = False):
+    logging.debug("restart if converged? %s" % restart_if_converged)
+
     phase = getByVideo(video_id, db)
     
     # is there a phase ongoing?
-    if phase is not None and not phase['is_abandoned']:
+    if phase is not None and not phase['is_abandoned'] and not (phase['end'] is not None and restart_if_converged):
+        # if it's not a closed phase and we're forcing restart of converged phases (e.g., choosing a random video)
+            
         # how old is this -- is it abandoned?
         sql = """SELECT servertime FROM locations WHERE
         phase = %s ORDER BY servertime DESC LIMIT 1"""
