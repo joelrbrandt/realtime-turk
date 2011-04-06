@@ -20,7 +20,9 @@ var isReward = false;
 var timingLoaded = false;
 
 var videoid = 0;
+
 var phase = null;
+var phases = [];
 
 var locationTimeout = null;
 var has_moved_slider = false;
@@ -31,6 +33,8 @@ var times = {
     go: null,
     submit: null
 };
+
+var accurateCount = 0;
 
 try { console.log('Javascript console found.'); } catch(e) { console = { log: function() {} }; }
 
@@ -85,6 +89,7 @@ function videoDataCallback(data) {
     $('#videoContainer').append(videoElement).append(sliderElement);
     
     phase = data['phase'];
+    phases.push(phase['phase'])
     videoid = data['videoid'];
     
     initializeVideo();
@@ -100,7 +105,7 @@ function initializeVideo() {
             clip: {
                 autoPlay: false,
                 autoBuffering: true,
-                onMetaData: function() {
+                onStart: function() {
                     // Go to random frame so everyone
                     // doesn't choose the first frame
                     
@@ -139,8 +144,6 @@ function initializeVideo() {
         max: SLIDER_MAX,
         step: 1
     });
-    
-    updateSliderBackgroundRange();
 }
 
 /**
@@ -181,6 +184,7 @@ function updateSliderBackgroundRange() {
  */
 function videoReady() {
     setRandomFrame();
+    updateSliderBackgroundRange();    
     locationPing();     // start the notification
 }
 
@@ -427,6 +431,33 @@ function logEvent(eventName, detail, finishedCallback) {
 }
 
 /**
+ * Checks whether the user was in the agreeing group,
+ * then updates the UI and DB with that information
+ */
+function checkAccuracy(sliderLocation, newPhase) {
+    console.log(sliderLocation);
+    if (newPhase['min'] <= sliderLocation && sliderLocation <= newPhase['max']) {
+        // They agreed
+        accurateCount++;
+        $('#output').html("You agreed! ").addClass("rightAnswer").removeClass("wrongAnswer");
+    } else {
+        $('#output').html("The other workers disagreed with you. ").addClass("wrongAnswer").removeClass("rightAnswer");
+    }
+    
+    $('#output').append("You have matched on " + accurateCount + " out of " + phases.length + " so far.").effect("highlight");
+}
+
+
+/**
+ * Reports end-of-game statistics to the Turker and gives them
+ * the opportunity to submit.
+ */
+function converged() {
+
+}
+
+
+/**
  * Tells the server what frame of the video I'm looking at.
  */
 var lastLocation = null;
@@ -454,14 +485,20 @@ function locationPing() {
         $.getJSON(url,
             function(data) {
                 if (data['phase'] != phase['phase']) {
-                    console.log("We have a new phase: " + phase['phase'] + " --> " + data['phase'] )
+                    console.log("We have a new phase: " + phase['phase'] + " --> " + data['phase'] );
+                    
+                    checkAccuracy(sliderLoc, data);
+                    
                     phase = data;
+                    phases.push(phase);
+                    
                     updateSliderBackgroundRange();
                 }
             
                 // Have we converged?
                 if (data['max'] - data['min'] == 0) {
                     console.log("We converged!");
+                    converged();
                 } else {
                     window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);
                 }

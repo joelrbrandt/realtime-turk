@@ -12,7 +12,7 @@ from decimal import Decimal
 # TODO: this stuff may need to go into transactions
 # to avoid bugs
 
-AGREEMENT_RANGE = Decimal(15) / Decimal(100)   # Agreement must occur within this % 
+AGREEMENT_RANGE = Decimal(20) / Decimal(100)   # Agreement must occur within this % 
                         # of the current phase range
 AGREEMENT_PERCENT = (1.0 / 3) # This % of workers must agree on a range
 AGREEMENT_MINIMUM = 2   # At least this many must agree (no single person!)
@@ -45,6 +45,7 @@ def locationPing(request):
     # Has the phase already converged? (i.e., too small to be divisible)
     (is_new_phase, new_min, new_max) = compareLocations(cur_phase, servertime, db)        
     if is_new_phase:
+        closePhase(cur_phase['phase'], servertime, False, db)
         # Agreement! Create a new phase.
         new_phase = createPhase(video_id, new_min, new_max, 
                                 servertime, cur_phase['phase_list'], db)
@@ -298,7 +299,6 @@ def getNextHistoricalPhase(phase, db):
     # get converted in such a way that the two are not considered equal
     # but if I just % the string directly, it works. Go fig yur.
     result = db.query_and_return_array(sql % (phase['phase_list'], phase['min'], phase['max']))
-    logging.debug("Older phase: %s" % (result, ))
     
     if len(result) == 0:
         return None
