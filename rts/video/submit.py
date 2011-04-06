@@ -26,7 +26,7 @@ def log_submission_in_db(request):
     Mapping of db columns (left) to form keys (right):
       assignmentid = assignmentId
       workerid = w
-      framearray = fa
+      phases = p
       accept = a
       show = sh
       go = g
@@ -43,7 +43,7 @@ def log_submission_in_db(request):
 
     assignmentid = get_value_or_none(form, "assignmentId")
     workerid = get_value_or_none(form, "w")
-    framearray = get_value_or_none(form, "fa")
+    phases = get_value_or_none(form, "p")
 
     # Parse the times
     accept = get_time_or_none(form, "a")
@@ -53,12 +53,12 @@ def log_submission_in_db(request):
     
 
     sql = """UPDATE `assignments` SET
-              `framearray` = %s, `show` = %s, `go` = %s, `submit` = %s WHERE assignmentid = %s;
+              `phases` = %s, `show` = %s, `go` = %s, `submit` = %s WHERE assignmentid = %s;
           """
 
     try:
         db=DBConnection()
-        db.query_and_return_array(sql, (framearray, show, go, submit, assignmentid))
+        db.query_and_return_array(sql, (phases, show, go, submit, assignmentid))
     except:
         logging.exception("couldn't insert into the database")
 

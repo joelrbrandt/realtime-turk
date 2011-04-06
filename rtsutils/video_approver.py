@@ -29,7 +29,7 @@ Mapping of answer dict keys (right) to meaning (left)
 
 assignmentid = assignmentId
 workerid = w
-framearray = fa
+phases = p
 accept = a
 show = sh
 go = g
@@ -43,17 +43,12 @@ def answer_reviewer(answer):
     print(answer)
 
     try:
-        frames = json.loads(answer['fa'])
-        enough_pictures = len(frames) >= 3
-        print "enough pictures?: " + str(enough_pictures)
-        if enough_pictures:
-            result = approve_response
-        else:
-            result = reject_response
+        phases = json.loads(answer['p'])
+        print "phases: " + str(phases)
     except:
         logging.exception("error reviewing answer: " + str(answer))
 
-    return result
+    return approve_response
 
 def approve_video_hits_and_clean_up(verbose=True, dry_run=False):
     conn = mt_connection.get_mt_conn()
