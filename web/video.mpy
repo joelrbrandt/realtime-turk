@@ -70,11 +70,11 @@ else:
 % else:
         In ${wait_time / 60} minutes 
 % endif        
-        or less, an alert and a video will appear. Act <b>quickly</b> to dismiss the alert.</li>
-        
-        <li>You will have <b>six seconds</b> to move the slider under the video <b>to find a good still photo</b>.</li>
-        <li>After six seconds, we will automatically save the photo you have selected. Then, the timer will restart for another six seconds. You will take a total of three still photos.</li>
-        <li>To get paid: a) do not repeat any photographs, and b) other workers must have also chosen at least one of the same photos.</li>
+        or less, you will receive an alert. Act <b>quickly</b> to dismiss the alert and a 5-10 second video will appear.</li>
+        <li>Work simultaneously with other Turkers who have this task to <b>find the best single photograph in the video</b>.</li>
+        <li>Move the slider to find a photograph that you think the other Turkers will also vote for.</li>
+        <li>If a majority of the Turkers also have moved their slider into the same region, we will narrow down the video to that region and keep going. This should happen every few seconds until you have a single photo.</li>
+        <li>To get paid, you should agree with the majority on at least one of the votes.</li>
     </ol>
 </div>
 

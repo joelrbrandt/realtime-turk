@@ -46,7 +46,7 @@ $(document).ready(function() {
 	initServerTime();
 
 	$('#snapshotBtn').click(shoot);
-	$('#donebtn').attr("disabled", "true").html("HIT will be submittable after job appears");
+	$('#donebtn').hide().attr("disabled", "true").html("HIT will be submittable after job appears");
 });
 
 /**
