@@ -6,9 +6,10 @@ import settings
 import logging
 
 class DBConnection():
-    def __init__(self, elev=False):
+    def __init__(self, elev=False, autocommit = True):
         self._db = None
         self._elev = elev
+        self._autocommit = autocommit
         self.check_connection()
 
 
@@ -41,6 +42,10 @@ class DBConnection():
                                    cursorclass=MySQLdb.cursors.DictCursor,
                                    use_unicode=True)
                 self._db.set_character_set('utf8')
+                
+                if self._autocommit:
+                    self._db.autocommit(True)
+                
                 result = True
         except:
             logging.exception("exception connecting to the database")
@@ -64,3 +69,16 @@ class DBConnection():
         insert_id = self._db.insert_id()
         cursor.close()
         return insert_id
+        
+    ### Only use these if you are managing transactions yourself
+    def commit(self):
+        if self._autocommit:
+            raise Exception("Trying to commit a database transaction on an automatically-committing connection")
+        
+        self._db.commit()
+        
+    def rollback(self):
+        if self._autocommit:
+            raise Exception("Trying to roll back a database transaction on an automatically-committing connection")
+        
+        self._db.rollback()
