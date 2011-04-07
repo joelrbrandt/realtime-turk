@@ -421,6 +421,7 @@ function Tetris()
 			for (var i = 0; i < self.keys.length; i++) {
 				if (e.keyCode == self.keys[i]) {
 					self.funcs[i]();
+					return false;
 				}
 			}
 		};

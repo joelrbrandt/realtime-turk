@@ -11,12 +11,13 @@ function scheduleRetainer(showCallback, defaultWorkURL) {
     
     pollDataReady(showCallback);
     setMaxWaitCallback(showCallback, defaultWorkURL);
+    showCountdown();
     pingAlive();
 }
 
 // Hides the text from the user
 function retainerHide() {
-    $('#taskText').hide()
+    $('#taskText').css("visibility", "hidden")
 }
 
 // Sets a callback to fire and show the text to the user
@@ -88,6 +89,7 @@ function showGoButton() {
     console.log("GO!");
     $('#retainer').hide();
     $('#donebtn').hide();
+    $('#waitContainer').hide();
     
     if (isTetris) {
         simulatePause();
@@ -138,7 +140,7 @@ function showText() {
     if (assignmentid != 0) {
         $('#donebtn').attr("disabled", "").html("Submit");    
     }
-    $('#taskText').show();
+    $('#taskText').css("visibility", "visible");
     $('#taskContainer').effect('highlight', {}, 3000);
 }
 
@@ -170,4 +172,9 @@ function stopSound() {
     } catch (e) {
         // it's fine, there probably was no sound playing
     }
+}
+
+function showCountdown() {
+    var waitUntil = (new Date()).add({seconds: maxWaitTime});
+    $('#countdown').countdown({until: waitUntil, format: 'MS'});      
 }

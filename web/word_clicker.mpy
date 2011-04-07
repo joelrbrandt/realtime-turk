@@ -145,6 +145,12 @@ max_reward_time = 2
     <div id="taskText"></div>
 </div>
 
+<div id='tetrisContainer'>
+% if is_tetris:
+    <%include file="lib/tetris/tetris.html" />
+% endif
+</div>
+
 <div>
     <div id="donemsg"></div>
     <button id="donebtn">Done</button>
@@ -155,11 +161,6 @@ max_reward_time = 2
 </div>
 
 <div id='chatContainer'></div>
-<div id='tetrisContainer'>
-% if is_tetris:
-    <%include file="lib/tetris/tetris.html" />
-% endif
-</div>
 
 </body>
 </html>
