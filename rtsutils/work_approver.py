@@ -210,7 +210,7 @@ def clean_up_old_hits(conn, verbose=True, dry_run=False):
                 print "Expiration: " + str(expiration)
                 print "isExpired: " + str(h.expired)
                 print "AssignmentDuration: " + str(duration)
-                print "Seconds until last assignment can be turned in: " + str((expiration+duration)-now)
+                print "Seconds until last assignment can be turned in: " + str((float(expiration)+float(duration))-float(now))
                 print "HITStatus: " + h.HITStatus
                 print "Yet-to-be-reviewed assignments: " + str(num_to_be_reviewed)
                 print "Approved assignments: " + str(len(conn.get_assignments(h.HITId, status="Approved")))

@@ -2,7 +2,7 @@ import settings
 import random
 import simplejson as json
 
-from rtsutils.db_connection import DBConnection
+from db_connection import DBConnection
 
 CONDITIONS = [
     {
@@ -103,9 +103,8 @@ Call with randomizeConditions('YES_I_MEAN_IT')
         print("Assigning all workers to a new random condition")
         db=DBConnection()
         
-        db.query_and_return_array("""DELETE FROM workers WHERE 1""")
-        
         # get all workers, randomize them one by one
-        import temp_workers
-        for worker in temp_workers.workers:
+        result = db.query_and_return_array("""SELECT workerid FROM workers""")
+        workers = [row['workerid'] for row in result]
+        for worker in workers:
             setRandomCondition(worker)
