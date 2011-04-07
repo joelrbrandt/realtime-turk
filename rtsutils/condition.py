@@ -70,10 +70,13 @@ def getCondition(worker_id):
              'isTetris': is_tetris }
     
 def setRandomCondition(worker_id):
-    """ Chooses a random group to assign the worker to, and sets it in the database """
-    random_condition = random.choice(CONDITIONS)
+    """ Chooses a random group to assign the worker to, and sets it in the database """    
+    db=DBConnection()
     
-    db=DBConnection()    
+    count = db.query_and_return_array("""SELECT COUNT(*) FROM workers""")[0]['COUNT(*)']
+    index = count % len(CONDITIONS)
+    random_condition = CONDITIONS[index]
+    
     db.query_and_return_array("""INSERT INTO workers (workerid, is_alert, is_reward, is_tetris, read_instructions) VALUES (%s, %s, %s, %s, FALSE) ON DUPLICATE KEY UPDATE is_alert=%s, is_reward=%s, is_tetris=%s, read_instructions=FALSE""", (worker_id, random_condition['is_alert'], random_condition['is_reward'], random_condition['is_tetris'], random_condition['is_alert'], random_condition['is_reward'], random_condition['is_tetris']) )
     
     return random_condition
@@ -100,8 +103,9 @@ Call with randomizeConditions('YES_I_MEAN_IT')
         print("Assigning all workers to a new random condition")
         db=DBConnection()
         
+        db.query_and_return_array("""DELETE FROM workers WHERE 1""")
+        
         # get all workers, randomize them one by one
-        result = db.query_and_return_array("""SELECT workerid FROM workers""")
-        workers = [row['workerid'] for row in result]
-        for worker in workers:
+        import temp_workers
+        for worker in temp_workers.workers:
             setRandomCondition(worker)
