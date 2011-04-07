@@ -16,7 +16,7 @@ from padnums import pprint_table
 import sys
 from itertools import groupby
 
-EXPERIMENTS = range(50, 56)
+EXPERIMENTS = [71]#range(50, 56)
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -86,13 +86,13 @@ def parseResults():
         print("\n\n")
         printSummary(assignments, bucket_assignments)
         
-        #print("\n\n")
-        #printConditionSummaries(assignments, bucket_assignments)
+        print("\n\n")
+        printConditionSummaries(assignments, bucket_assignments)
         
     print("\n\n")
     printCurrentlyActiveCount(EXPERIMENTS)
     
-    graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments))   
+    graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments), lambda x: x.condition)   
 
 def getAssignments(experiments):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 
@@ -235,7 +235,8 @@ def printSummary(assignments, assignments_including_incomplete, condition = None
     if condition is not None:
         db = DBConnection()
         if condition == 'tetris':
-            result = db.query_and_return_array(""" SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event = 'tetris_row_clear' AND experiment IN (%s) """, (EXPERIMENTS, ) )[0]
+            experiments_string = ','.join([str(ex) for ex in EXPERIMENTS])
+            result = db.query_and_return_array(""" SELECT COUNT(DISTINCT assignmentid) FROM logging WHERE event = 'tetris_row_clear' AND experiment IN (%s) """, (experiments_string, ) )[0]
             num_playing = result['COUNT(DISTINCT assignmentid)']
             print(str(num_playing) + " assignments out of " + str(len(assignments)) + " (" + str(float(num_playing) / len(assignments) * 100) + "%) cleared a row in Tetris ")
 
@@ -252,7 +253,7 @@ def groupAssignmentsByKey(assignments, key):
     
 def printConditionSummaries(assignments, assignments_including_incomplete):
     condition_assignments = groupAssignmentsByKey(assignments, lambda x: x.condition)
-    condition_incomplete_assignments = groupAssignmentsByCondition(assignments_including_incomplete)
+    condition_incomplete_assignments = groupAssignmentsByKey(assignments_including_incomplete, lambda x: x.condition)
     for condition in condition_assignments.keys():
         filtered_assignments = condition_assignments[condition]
         filtered_incomplete = condition_incomplete_assignments[condition]
@@ -260,13 +261,13 @@ def printConditionSummaries(assignments, assignments_including_incomplete):
         printSummary(filtered_assignments, filtered_incomplete, condition)
     
 # http://matplotlib.sourceforge.net/api/pyplot_api.html#matplotlib.pyplot.step    
-def graphCDF(assignments):
+def graphCDF(assignments, keylambda):
     try:
         pyplot.clf()
         pyplot.hold(True)
         x = numpy.linspace(0, 4, num=1000)
     
-        group_assignments = groupAssignmentsByKey(assignments, lambda x: x.wait_bucket)
+        group_assignments = groupAssignmentsByKey(assignments, keylambda)
         for group in sorted(group_assignments.keys()):
             go_show = [click.goDeltaShow() for click in group_assignments[group]]
             ecdf = scikits.statsmodels.tools.ECDF(go_show)
