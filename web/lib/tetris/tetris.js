@@ -216,7 +216,7 @@ function Tetris()
 		document.getElementById("tetris-nextpuzzle").style.display = "none";
 		document.getElementById("tetris-gameover").style.display = "block";
 		if (this.highscores.mayAdd(this.stats.getScore())) {
-			var name = prompt("Game Over !\nEnter your name:", "");
+			var name = workerid;
 			if (name && name.trim().length) {
 				this.highscores.add(name, this.stats.getScore());
 			}

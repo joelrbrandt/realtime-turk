@@ -2,6 +2,7 @@
 import rtsutils.condition as condition
 import rtsutils.agreement as agreement
 from rtsutils.is_worker_busy import isWorkerBusy
+from rtsutils.word_clicker_approver import BONUS_TIME_LIMIT, BONUS_AMOUNT
 %>
 
 <%
@@ -50,7 +51,7 @@ else:
     wait_time = 120
     
 # time the user has to dismiss the dialog
-max_reward_time = 2
+max_reward_time = BONUS_TIME_LIMIT
 %>
 
 % if isWorkerBusy(worker_id, [assignment_id]):
@@ -116,13 +117,13 @@ max_reward_time = 2
 % endif
         <li>Dismiss the dialog box as quickly as possible when it appears.</li>
 % if is_reward:        
-        <li>You get a <b>two cent bonus</b> if you 
+        <li>You get a <b><u>${int(BONUS_AMOUNT*100)} cent bonus</b></u> if you 
     % if is_alert:
         dismiss the alert
     % else:
         click the Go! button
     % endif
-    in less than ${max_reward_time} seconds.</li>
+    in less than ${int(max_reward_time)} seconds.</li>
 % endif        
         </ul>
 
