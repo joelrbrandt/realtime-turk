@@ -85,9 +85,9 @@ if __name__ == "__main__":
     # Parse the options
     parser = OptionParser()
     parser.add_option("-n", "--number-of-hits", dest="number_of_hits", help="NUMBER of hits", metavar="NUMBER", default = 3)
-    parser.add_option("-b", "--wait-bucket", dest="waitbucket", help="number of SECONDS to wait on retainer", metavar="SECONDS", default = 120)
-    parser.add_option("-p", "--price", dest="price", help="number of CENTS to pay", metavar="CENTS", default = 2)
-    parser.add_option("-x", "--expiration-time", dest="expiration", help="number of seconds before hit EXPIRES", metavar="EXPIRES", default = 5 * 60)
+    parser.add_option("-b", "--wait-bucket", dest="waitbucket", help="number of SECONDS to wait on retainer", metavar="SECONDS", default = 180)
+    parser.add_option("-p", "--price", dest="price", help="number of CENTS to pay", metavar="CENTS", default = 4)
+    parser.add_option("-x", "--expiration-time", dest="expiration", help="number of seconds before hit EXPIRES", metavar="EXPIRES", default = 6 * 60)
     
     print("TODO: clean up existing HITs")
 
