@@ -47,6 +47,7 @@ $(document).ready(function() {
 
 	$('#snapshotBtn').click(shoot);
 	$('#donebtn').hide().attr("disabled", "true").html("HIT will be submittable after job appears");
+    initializeVideo()
 });
 
 /**
@@ -80,6 +81,7 @@ function loadParameters() {
  * Takes video data from the server and adds it to the page
  */
 function videoDataCallback(data) {
+/*
     var videoElement = $('<a href="media/videos/' + data['filename'] + '.flv"'
         + 'style="display:block; width: ' + data['width'] + 'px; ' 
         + 'height: ' + data['height'] + 'px;" id="player"></a>');
@@ -88,14 +90,18 @@ function videoDataCallback(data) {
     var sliderElement = $('<div id="slider" style="width: ' + data['width'] + 'px"><div class="range"></div><div class="range below">Find photo in this clip</div></div>');
 
     $('#videoContainer').append(videoElement).append(sliderElement);
+*/    
+
     
     phase = data['phase'];
     phases.push(phase)
     videoid = data['videoid'];
     
     console.log("Phase " + phase['phase']);
-    
-    initializeVideo();
+
+    $f().play( { url: 'media/videos/' + data['filename'] + '.flv' } )
+
+    //initializeVideo();
 }
 
 /**
@@ -111,9 +117,8 @@ function initializeVideo() {
                 onStart: function() {
                     // Go to random frame so everyone
                     // doesn't choose the first frame
-                    
-                    // HACK: video isn't ready when it says it is
-                    window.setTimeout(videoReady, 250);
+                    $f().stop();
+                    videoReady();
                 }                 
             },
                 
@@ -126,7 +131,9 @@ function initializeVideo() {
                 $f().getPlugin("play").hide();
             },
             
-            onBeforeFullscreen: function() { return false; }
+            onBeforeFullscreen: function() { return false; },
+            
+            onBeforeResume: function() { return false; }
         });
     
     $( "#slider" ).slider( {
@@ -388,7 +395,7 @@ function beginTask() {
     retainerHide();
 
     registerDoneBtnListener();
-    registerFocusBlurListeners(); 
+    registerFocusBlurListeners();
 }
 
 function isPreview() {
@@ -446,6 +453,25 @@ function logEvent(eventName, detail, finishedCallback) {
 }
 
 /**
+ * Tells the user how many others are working
+ */
+function updateCount(numWorkers) {
+    // in the worst case they will be playing history
+    if (numWorkers == 0) {
+        numWorkers = 1;
+    }
+
+    var message = numWorkers + " other Turker";
+    if (numWorkers > 1) {
+        message += "s are "
+    } else {
+        message += " is "
+    }
+    message += "working with you."
+    $('#workerCount').html(message);
+}
+
+/**
  * Checks whether the user was in the agreeing group,
  * then updates the UI and DB with that information
  */
@@ -459,7 +485,7 @@ function checkAccuracy(sliderLocation, newPhase) {
         $('#output').html("The other workers disagreed with you. ").addClass("wrongAnswer").removeClass("rightAnswer");
     }
     
-    $('#output').append("Use your slider to agree on a picture in this smaller clip. <br>" + accurateCount + " points").effect("highlight");
+    $('#output').append("Use your slider to agree on a picture in this smaller clip. <br>" + accurateCount + " point" + (accurateCount == 1 ? "" : "s")).effect("highlight");
 }
 
 
@@ -471,7 +497,7 @@ function converged() {
     
     var output = $('#output');
     if (accurateCount >= MIN_ACCURACY) {
-        output.html("Great, you agreed " + accurateCount + " times out of " + (phases.length-1) + ". ");
+        output.html("Great, you agreed " + accurateCount + " time" + (accurateCount == 1 ? '' : 's') + " out of " + (phases.length-1) + ". ");
         output.removeClass("wrongAnswer").addClass("rightAnswer");
     } else {
         output.html("Oops. You agreed only " + accurateCount + " times out of " + (phases.length-1) + ". We'll be reviewing your work to make sure you are making a good faith effort and should be paid. ");
@@ -489,7 +515,7 @@ function converged() {
  * Tells the server what frame of the video I'm looking at.
  */
 var lastLocation = null;
-var MAX_MOVEMENT_PER_PING = 0.03; // make rate the worker can be paging around at and still have this fire
+var MAX_MOVEMENT_PER_PING = 0.01; // make rate the worker can be paging around at and still have this fire
 var LOCATION_PING_FREQUENCY = 750;  // millis
 var CONVERGE_WAIT_TIME = 750;   // millis
 function locationPing() {    
@@ -529,6 +555,8 @@ function locationPing() {
                     
                     updateSliderBackgroundRange();
                 }
+                
+                updateCount(data['numworkers']);
             
                 // Have we converged?
                 if (data['max'] - data['min'] == 0) {

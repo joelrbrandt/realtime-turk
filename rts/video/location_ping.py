@@ -12,7 +12,7 @@ from decimal import Decimal
 # TODO: this stuff may need to go into transactions
 # to avoid bugs
 
-AGREEMENT_RANGE = Decimal(20) / Decimal(100)   # Agreement must occur within this % 
+AGREEMENT_RANGE = Decimal(25) / Decimal(100)   # Agreement must occur within this % 
                         # of the current phase range
 AGREEMENT_PERCENT = (1.0 / 3) # This % of workers must agree on a range
 AGREEMENT_MINIMUM = 2   # At least this many must agree (no single person!)
@@ -102,6 +102,11 @@ def getMostRecentPhase(video_id, db, restart_if_converged = False):
     # if we got here, we need to create a new phase
     return createPhase( video_id, Decimal(0), Decimal(1), unixtime(datetime.now()), None, db)
     
+
+def getPhase(phase_id, db):
+    phase = db.query_and_return_array("""SELECT phases.phase, phases.min, phases.max, phases.start, phases.end, phases.is_abandoned, phases.phase_list, COUNT(DISTINCT assignmentid) AS numworkers FROM phases, locations WHERE locations.phase = phases.phase AND phases.phase = %s""", (phase_id, ) )[0]    
+
+    return phase
     
 def getByVideo(video_id, db):
     """
@@ -116,14 +121,14 @@ def getByVideo(video_id, db):
     phase_list = result[0]['MAX(pk)']
 
     # get the most recent known phase    
-    sql = """SELECT * FROM phases WHERE phase_list = %s
+    sql = """SELECT phase FROM phases WHERE phase_list = %s
             ORDER BY phase DESC LIMIT 1"""
     result = db.query_and_return_array(sql, (phase_list, ))
     #logging.debug("most recent known phrase in phrase list %s: %s" % (phase_list, result))
     if len(result) == 0:
         return None # no phase in that phase list
     else:
-        return result[0]
+        return getPhase(result[0]['phase'], db)
 
 
 def abandonPhase(phase_id, db):
@@ -157,7 +162,7 @@ def createPhase(video_id, new_min, new_max, servertime, phase_list, db):
     sql = """INSERT INTO phases (min, max, start, phase_list) 
     VALUES (%s, %s, %s, %s)"""
     id = db.query_and_return_insert_id(sql, (new_min, new_max, servertime, phase_list) )
-    return db.query_and_return_array("""SELECT * FROM phases WHERE phase = %s""", (id, ) )[0]
+    return getPhase(id, db)
 
 
 def pushLocation(location, phase, assignment, video_id, servertime, db):
@@ -275,6 +280,14 @@ def takePicture(phase, video_id, db):
 def compareToHistoricalPhase(phase, servertime, db):
     """ Uses an older phase to mimic other people when there
     is nobody else around for this user to play with """
+    
+    # note that this phase list is using historical data
+    sql = """UPDATE phase_lists, phases SET is_historical = TRUE
+            WHERE phases.phase = %s 
+            AND phases.phase_list = phase_lists.pk
+    """
+    db.query_and_return_array(sql, (phase['phase'], ))
+    
     older_phase = getNextHistoricalPhase(phase, db)
     
     if older_phase is None:
