@@ -15,11 +15,12 @@ import datetime
 from timeutils import parseISO
 
 import mt_connection
+import condition
 
 APPROVE_REASON = "Accurate work. Thank you!"
 REJECT_REASON = "Too many missed/erroneously clicked verbs. Sorry."
-BONUS_AMOUNT = 0.02
-BONUS_REASON = "$0.02 bonus for quick response. Thank you!"
+BONUS_AMOUNT = 0.03
+BONUS_REASON = "$0.03 bonus for quick response. Thank you!"
 
 PRECISION_LIMIT = 0.66  # 2/3s of what was selected must be verbs
 RECALL_LIMIT = 0.33  # must have gotten 1/3 of all verbs
@@ -65,18 +66,18 @@ def answer_reviewer(answer):
 def bonus_evaluator(answer):
     """ Returns tuple (True/False [give bonus?], Amount [float], Reason [string])"""
 
-    """TODO: check which condition the person is in"""
-    """TODO: compute hi-bonus and lo-bonus"""
-
     bonus_response = (True, BONUS_AMOUNT, BONUS_REASON)
     no_bonus_response = (False, None, None)
     result = no_bonus_response
+    
     try:
-        show = parseISO(answer['sh'])
-        go = parseISO(answer['g'])
-        diff = go-show
-        if diff < BONUS_TIME_LIMIT:
-            result = bonus_response
+        workerid = answer['w']
+        if condition.isReward(workerid):
+            show = parseISO(answer['sh'])
+            go = parseISO(answer['g'])
+            diff = go-show
+            if diff < BONUS_TIME_LIMIT:
+                result = bonus_response
     except:
         logging.exception('error calculating bonus for answer: ' + str(answer))
     return result
