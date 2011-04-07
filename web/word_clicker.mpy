@@ -1,6 +1,6 @@
 <%!
-import rts.condition as condition
-import rts.agreement as agreement
+import rtsutils.condition as condition
+import rtsutils.agreement as agreement
 from rtsutils.is_worker_busy import isWorkerBusy
 %>
 

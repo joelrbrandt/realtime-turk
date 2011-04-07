@@ -1,5 +1,5 @@
 import settings
-from rts import condition
+from rtsutils import condition
 from rtsutils.word_clicker_approver import RECALL_LIMIT, PRECISION_LIMIT
 
 from db_connection import DBConnection

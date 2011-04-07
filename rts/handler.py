@@ -22,11 +22,6 @@ def handler(request):
         servertime.servertime(request)
         return apache.OK
         
-    elif uri_parts[-1] == "condition":
-        import condition
-        condition.loadCondition(request)
-        return apache.OK 
-
     elif uri_parts[-1] == "testtimer":
         import testtimer
         testtimer.testTimer(request)
@@ -48,7 +43,7 @@ def handler(request):
         return apache.OK
         
     elif uri_parts[-2] == "agreement":
-        import agreement    
+        import rtsutils.agreement as agreement    
         if uri_parts[-1] == "get":
             agreement.getAgreement(request)
             return apache.OK
