@@ -1,6 +1,9 @@
 from db_connection import DBConnection
 from datetime import datetime
 from timeutils import *
+from padnums import pprint_table
+import sys
+import numpy
 
 def parseVideos():
     """
@@ -8,41 +11,111 @@ def parseVideos():
     about its lag
     """
     db = DBConnection()
-    all_videos = db.query_and_return_array("""SELECT pk, filename, creationtime FROM videos""")
-    for video in all_videos:
-        print("Video: %s" % (video['filename']))
+    all_videos = db.query_and_return_array("""SELECT pk, filename FROM videos""")
     
-        creation_time = datetime.fromtimestamp(video['creationtime'])
-        parseVideo(video['pk'], creation_time, db)
+    printPhaseTimes(db, all_videos)
+    print('\n')
+    printVideoTimes(db)
+    
+def printVideoTimes(db):
+    result = db.query_and_return_array(
+    """SELECT pictures.videoid, MIN(start), MAX(end), MAX(end) - MIN(start) AS elapsed FROM pictures, phase_lists, phases
+    WHERE pictures.phase_list = phase_lists.pk
+    AND phase_lists.pk = phases.phase_list
+    AND phase_lists.is_historical = FALSE
+    GROUP BY pictures.videoid""")
+    
+    table = [["video", "elapsed"]]
+    for picture in result:
+        table.append([str(picture['videoid']), str(picture['elapsed'])])
+    pprint_table(sys.stdout, table)
 
-def parseVideo(videoid, creation_time, db):
+def printPhaseTimes(db, all_videos):
+    table = [["video", "phase list", "phase", "first go", "crowd go", "first ping", "crowd ping", "agreement", "num workers", "on retainer"]]
+    
+    rows = []
+    for video in all_videos:
+        video_rows = parseVideo(video['pk'], db)
+        rows.extend(video_rows)
+        
+    numpy_data = numpy.array(rows)
+    medians = numpy.median(numpy_data, axis=0)
+    rows = [list(medians)] + rows
+
+    rows[0][0] = "median"
+    rows[0][1] = "median"
+    rows[0][2] = "median"
+
+    for row in rows:
+        table.append([str(i) for i in row])
+    
+    pprint_table(sys.stdout, table)
+
+def parseVideo(videoid, db):
     """
     Gets timing information for each video
     """
-    
-    submissions = db.query_and_return_array("""SELECT go, submit FROM assignments WHERE videoid = %s AND submit IS NOT NULL ORDER BY submit""", (videoid,))
-    
-    submit_deltas = []
-    for submission in submissions:
-        go_time = datetime.fromtimestamp(submission['go'])    
-        submit_time = datetime.fromtimestamp(submission['submit'])
-        
-        create_go = go_time - creation_time
-        go_submit = submit_time - creation_time
-        print('\t%s\t%s' % (total_seconds(create_go), total_seconds(go_submit)))
 
-    pictures = db.query_and_return_array("""SELECT logging.assignmentid, servertime, go FROM logging, assignments WHERE logging.assignmentid = assignments.assignmentid AND videoid = %s AND event = 'picture' AND submit IS NOT NULL ORDER BY servertime ASC""", (videoid,) )
-    picture_times = []
-    for picture in pictures:
-        picture_time = datetime.fromtimestamp(picture['servertime'])
-        go_time = datetime.fromtimestamp(picture['go'])
-        
-        create_picture = total_seconds(picture_time - creation_time)
-        go_picture = total_seconds(picture_time - go_time)
-        picture_times.append(create_picture)
+    video_rows = []
     
-    picture_times.sort()
-    print(picture_times)
+    phase_lists = db.query_and_return_array("""SELECT DISTINCT(phase_lists.pk) FROM phase_lists, phases, pictures WHERE phase_lists.pk = pictures.phase_list AND
+    phase_lists.pk = phases.phase_list AND is_historical = FALSE AND phase_lists.videoid = %s""", (videoid,))
+    
+    for phase_list in phase_lists:
+        phases = db.query_and_return_array("""SELECT *, COUNT(DISTINCT assignmentid) FROM phases, locations WHERE phases.phase_list = %s AND locations.phase = phases.phase GROUP BY phases.phase ORDER BY start""", (phase_list['pk'],))
+    
+        for (i, phase) in enumerate(phases):
+            start = datetime.fromtimestamp(phase['start'])
+            end = datetime.fromtimestamp(phase['end'])                    
+        
+            workers = db.query_and_return_array("""SELECT MIN(servertime), assignmentid FROM locations WHERE phase = %s GROUP BY assignmentid ORDER BY MIN(servertime)""", (phase['phase'],))
+            
+            first_ping = datetime.fromtimestamp(workers[0]['MIN(servertime)'])
+            second_ping = datetime.fromtimestamp(workers[1]['MIN(servertime)'])
+            
+            retainers = db.query_and_return_array("""SELECT COUNT(DISTINCT assignmentid) FROM logging, phases WHERE event="ping-waiting" AND servertime >= (phases.start - 10) AND servertime <= phases.start AND phases.phase = %s""", (phase['phase'], ))[0]['COUNT(DISTINCT assignmentid)']
+            
+            assignments = db.query_and_return_array("""SELECT * FROM assignments, locations WHERE assignments.assignmentid = locations.assignmentid AND phase = %s AND `submit` IS NOT NULL""", (phase['phase'], ))
+            
+            readies = sorted([datetime.fromtimestamp(row['go']) for row in assignments])
+            shows = sorted([datetime.fromtimestamp(row['show']) for row in assignments])
+            
+            if len(readies) < 2:
+                continue
+            
+            first_go = total_seconds(readies[0] - shows[0])
+            crowd_go = total_seconds(readies[1] - shows[0])
+            
+            first_ping_wait = total_seconds(first_ping - shows[0])
+            crowd_wait = total_seconds(second_ping - shows[0])
+            agreement = total_seconds(end - shows[0])
+            
+            video_rows.append([videoid, phase_list['pk'], i+1, first_go, crowd_go, first_ping_wait, crowd_wait, agreement, phase['COUNT(DISTINCT assignmentid)'], retainers])
+    
+    return video_rows
+
+    
+#     submit_deltas = []
+#     for submission in submissions:
+#         go_time = datetime.fromtimestamp(submission['go'])    
+#         submit_time = datetime.fromtimestamp(submission['submit'])
+#         
+#         create_go = go_time - creation_time
+#         go_submit = submit_time - creation_time
+#         print('\t%s\t%s' % (total_seconds(create_go), total_seconds(go_submit)))
+# 
+#     pictures = db.query_and_return_array("""SELECT logging.assignmentid, servertime, go FROM logging, assignments WHERE logging.assignmentid = assignments.assignmentid AND videoid = %s AND event = 'picture' AND submit IS NOT NULL ORDER BY servertime ASC""", (videoid,) )
+#     picture_times = []
+#     for picture in pictures:
+#         picture_time = datetime.fromtimestamp(picture['servertime'])
+#         go_time = datetime.fromtimestamp(picture['go'])
+#         
+#         create_picture = total_seconds(picture_time - creation_time)
+#         go_picture = total_seconds(picture_time - go_time)
+#         picture_times.append(create_picture)
+#     
+#     picture_times.sort()
+#     print(picture_times)
     
 if __name__ == "__main__":
     parseVideos()
@@ -58,15 +131,16 @@ if __name__ == "__main__":
 SELECT pictures.videoid, pictures.phase_list, MIN(start), MAX(end), MAX(end) - MIN(start) AS elapsed FROM pictures, phase_lists, phases
 WHERE pictures.phase_list = phase_lists.pk
 AND phase_lists.pk = phases.phase_list
+AND phase_lists.is_historical = FALSE
 GROUP BY phase_lists.pk
 """
 
 # how long was each phase?
 """
-SELECT *, end - start FROM pictures, phase_lists, phases WHERE pictures.videoid = 17 AND phase_lists.pk = pictures.phase_list AND phases.phase_list = phase_lists.pk
+SELECT *, end - start, COUNT(DISTINCT assignmentid) FROM pictures, phase_lists, phases, locations WHERE phase_lists.pk = pictures.phase_list AND phases.phase_list = phase_lists.pk AND locations.phase = phases.phase AND is_historical = FALSE GROUP BY phases.phase
 """
 
 # how long were they waiting in that long phase?
 """
-SELECT (end - MIN(servertime)) FROM locations, phases WHERE phases.phase=258 AND phases.phase = locations.phase GROUP BY assignmentid
+SELECT (end - MIN(servertime)) FROM locations, phases, phase_lists, pictures WHERE phases.phase_list=phase_lists.pk AND phases.phase = locations.phase AND pictures.phase_list = phase_lists.pk GROUP BY pictures.pk, assignmentid
 """
