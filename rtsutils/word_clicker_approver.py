@@ -7,7 +7,7 @@ import sys
 from optparse import OptionParser
 
 import simplejson as json
-
+from decimal import Decimal
 import settings
 
 import datetime
@@ -25,7 +25,7 @@ BONUS_REASON = "$0.03 bonus for quick response. Thank you!"
 PRECISION_LIMIT = 0.66  # 2/3s of what was selected must be verbs
 RECALL_LIMIT = 0.33  # must have gotten 1/3 of all verbs
 
-BONUS_TIME_LIMIT = 2.0 # seconds
+BONUS_TIME_LIMIT = Decimal(2) # seconds
 
 """
 Mapping of answer dict keys (right) to meaning (left)
@@ -112,9 +112,10 @@ def approve_word_clicker_hits_and_clean_up(verbose=True, dry_run=False):
     print "== REVIEWING WORD CLICKER HITS =="
 
     reviewed_counts = work_approver.review_pending_assignments(conn,
-                                                               answer_reviewer=answer_reviewer,
-                                                               verbose=verbose,
-                                                               dry_run=dry_run)
+                                                     bonus_evaluator = bonus_evaluator,
+                                                     answer_reviewer=answer_reviewer,
+                                                     verbose=verbose,
+                                                     dry_run=dry_run)
     
     print "\n\nDONE! Number of reviewed hits: " + str(reviewed_counts) + "\n\n"
     print "== CLEANING UP OLD HITS =="

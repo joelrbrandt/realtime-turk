@@ -1,6 +1,7 @@
 import settings
 
 import mt_connection
+from decimal import Decimal
 
 from datetime import datetime
 import timeutils
@@ -205,7 +206,7 @@ def clean_up_old_hits(conn, verbose=True, dry_run=False):
                 print "------------------"
                 print "HIT ID: " + h.HITId
                 expiration = timeutils.parseISO(h.Expiration)
-                duration = float(h.AssignmentDurationInSeconds)
+                duration = Decimal(h.AssignmentDurationInSeconds)
                 print "Expiration: " + str(expiration)
                 print "isExpired: " + str(h.expired)
                 print "AssignmentDuration: " + str(duration)
@@ -226,6 +227,7 @@ def clean_up_old_hits(conn, verbose=True, dry_run=False):
         except Exception, e:
             print "exception processing HIT:\n" + str(e)
             counts['errors'] += 1
+            
     return counts
 
 

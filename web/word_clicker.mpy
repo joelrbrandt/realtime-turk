@@ -114,8 +114,16 @@ max_reward_time = BONUS_TIME_LIMIT
         <ul>
 % if is_alert:
         <li>Your browser will display a dialog box and play a sound when the paragraph is ready. Press 'OK' as quickly as possible.</li>
+% else:
+        <li>Your browser will display a large "Go!" button when the paragraph is ready.</li>
 % endif
+
+% if is_alert:
         <li>Dismiss the dialog box as quickly as possible when it appears.</li>
+% else:        
+        <li>Press 'Go!' as quickly as possible.</li>
+% endif
+        
 % if is_reward:        
         <li>You get a <b><u>${int(BONUS_AMOUNT*100)} cent bonus</b></u> if you 
     % if is_alert:
@@ -135,6 +143,8 @@ max_reward_time = BONUS_TIME_LIMIT
         % if is_reward:                
             and the bonus
         % endif
+    % else:
+        about quickly clicking the 'Go!' button
     % endif        
             </button>
 % else:
@@ -146,12 +156,6 @@ max_reward_time = BONUS_TIME_LIMIT
     <div id="taskText"></div>
 </div>
 
-<div id='tetrisContainer'>
-% if is_tetris:
-    <%include file="lib/tetris/tetris.html" />
-% endif
-</div>
-
 <div>
     <div id="donemsg"></div>
     <button id="donebtn">Done</button>
@@ -159,6 +163,12 @@ max_reward_time = BONUS_TIME_LIMIT
     <form id="completeForm" action="rts/submit" method="GET" style="display: none">
         <input type="submit" name="done" value="done"></input>
     </form>
+</div>
+
+<div id='tetrisContainer'>
+% if is_tetris:
+    <%include file="lib/tetris/tetris.html" />
+% endif
 </div>
 
 <div id='chatContainer'></div>
