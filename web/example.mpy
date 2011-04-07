@@ -1,0 +1,11 @@
+<%!
+import rts.settings
+%>
+
+% if fieldstorage.has_key('name'):
+<p>Hello ${fieldstorage['name']}</p>
+% else:
+<p>Hello World</p>
+% endif
+
+<p>Our db user: ${rts.settings.DB_USER}</p>
