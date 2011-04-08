@@ -476,7 +476,6 @@ function updateCount(numWorkers) {
  * then updates the UI and DB with that information
  */
 function checkAccuracy(sliderLocation, newPhase) {
-    console.log(sliderLocation);
     if (newPhase['min'] <= sliderLocation && sliderLocation <= newPhase['max']) {
         // They agreed
         accurateCount++;
@@ -514,9 +513,7 @@ function converged() {
 /**
  * Tells the server what frame of the video I'm looking at.
  */
-var lastLocation = null;
-var MAX_MOVEMENT_PER_PING = 0.01; // make rate the worker can be paging around at and still have this fire
-var LOCATION_PING_FREQUENCY = 750;  // millis
+var LOCATION_PING_FREQUENCY = 500;  // millis
 var CONVERGE_WAIT_TIME = 750;   // millis
 function locationPing() {    
     var sliderLoc = $('#slider').slider('value') / SLIDER_MAX;
@@ -525,12 +522,7 @@ function locationPing() {
     if (!has_moved_slider) {
         window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);
     }
-    else if (lastLocation != null &&  Math.abs(lastLocation - sliderLoc) > MAX_MOVEMENT_PER_PING) {
-        console.log("Moving too fast: " + (lastLocation - sliderLoc));
-        lastLocation = sliderLoc;
-        window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);
-    } else{
-        lastLocation = sliderLoc;
+    else{
         
         var url = "rts/video/location";
         url += "?phase=" + phase['phase'];
@@ -540,7 +532,7 @@ function locationPing() {
         $.getJSON(url,
             function(data) {
                 if (data['phase'] != phase['phase']) {
-                    console.log("We have a new phase: " + phase['phase'] + " --> " + data['phase'] );
+                    console.log("We have a new phase: " + phase['phase'] + " --> " + data['phase'] + ". [" + data['min'] + ', ' + data['max'] + ']'  );
                     
                     // Make sure this isn't just a new name for an old phase
                     // e.g., if the old one just took forever and expired
