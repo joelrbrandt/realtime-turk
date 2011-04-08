@@ -17,7 +17,7 @@ function scheduleRetainer(showCallback, defaultWorkURL) {
 
 // Hides the text from the user
 function retainerHide() {
-    $('#taskText').css("visibility", "hidden")
+    //$('#taskText').css("visibility", "hidden")
 }
 
 // Sets a callback to fire and show the text to the user
