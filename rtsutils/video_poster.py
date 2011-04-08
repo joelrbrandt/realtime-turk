@@ -2,6 +2,7 @@ from optparse import OptionParser
 from datetime import datetime, timedelta
 import time
 import random
+import os
 
 
 from video_hit import *
@@ -12,8 +13,12 @@ from video_approver import approve_video_hits_and_clean_up
 from work_approver import expire_all_hits
 from break_handler import BreakHandler
 import video_hit
+import video_encoder
 
 TIME_BETWEEN_RUNS = 30 # seconds
+VIDEO_DIRECTORY = '../web/media/videos/'
+
+MIN_ON_RETAINER = 1
 
 def postRandomHITs(num_hits, max_wait_time, price, expiration, mt_conn, db):
     """ Posts HITs of several possible varieties (creating multiple HIT groups) based on a random selection: will vary price and description """
@@ -56,6 +61,7 @@ def quikTurKit(num_hits, max_wait_time, price, expiration):
             
             postRandomHITs(num_hits, max_wait_time, price, expiration, mt_conn, db)
             approve_video_hits_and_clean_up(verbose=False, dry_run=False)
+            postNewVideos(db)
             
             sleep(start_run)
     except KeyboardInterrupt:
@@ -65,7 +71,7 @@ def quikTurKit(num_hits, max_wait_time, price, expiration):
 
 
 def printCurrentlyWaiting(db):
-    ping_floor = datetime.now() - timedelta(seconds = 15)
+    ping_floor = datetime.now() - timedelta(seconds = 10)
     ping_types = ["ping-waiting", "ping-showing", "ping-working"]
 
     results = dict()
@@ -76,10 +82,48 @@ def printCurrentlyWaiting(db):
         print(ping_type + ": unique assignmentIds pings in last 15 seconds: " + str(results[ping_type]))
     return results
 
+
 def sleep(start_run):
     sleep_time = max(0, TIME_BETWEEN_RUNS - total_seconds(datetime.now() - start_run))
     print("Sleeping for %s seconds" % sleep_time)
     time.sleep(sleep_time)
+
+def postNewVideos(db):
+    """ Will post a new video if there are enough people on retainer"""
+    ping_floor = unixtime(datetime.now() - timedelta(seconds = 10))
+    
+    sql = """SELECT logging.assignmentid, logging.servertime FROM logging, 
+        (SELECT MAX(servertime) AS pingtime, assignmentid FROM logging WHERE servertime > %s AND event LIKE 'ping%%' GROUP BY assignmentid) as mostRecent 
+    WHERE logging.servertime = mostRecent.pingTime AND logging.assignmentid=mostRecent.assignmentid AND event = 'ping-waiting' GROUP BY assignmentid"""
+    result = db.query_and_return_array(sql, (ping_floor, ))
+    num_waiting = len(result)
+
+    print("%s on retainer right now" % num_waiting)
+    
+    if num_waiting >= MIN_ON_RETAINER:
+        print("posting video")
+        postVideo(db)
+
+
+def postVideo(db):
+    # get posted videos
+    in_db = [row['filename'] for row in db.query_and_return_array("""SELECT filename FROM videos""")]
+
+    dirList = os.listdir(VIDEO_DIRECTORY)
+    in_directory = filter(lambda x: x.endswith('.3gp'), dirList)
+    
+    available_to_post = [item for item in in_directory if item[:-4] not in in_db]
+    if len(available_to_post) > 0:
+        encodeAndUpload(VIDEO_DIRECTORY + random.choice(available_to_post))
+    
+
+def encodeAndUpload(filename):
+    (head, tail) = os.path.split(filename) # ('/foo/bar/baz/', 'quux.txt')
+    (name, extension) = os.path.splitext(tail) # ('quux', 'txt')
+
+    (width, height) = video_encoder.encodeVideo(head, name, extension)
+    video_encoder.uploadVideo(name, width, height)
+
 
 if __name__ == "__main__":
     # Parse the options
