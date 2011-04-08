@@ -207,6 +207,9 @@ def compareLocations(phase, servertime, db):
             # forever alone :(
             logging.debug("User has been waiting alone too long. Going to use an old phase.")
             return compareToHistoricalPhase(phase, servertime, db)
+        else:
+            # temporarily alone :/
+            return (False, None, None)
     
     ranges = getAgreement(phase['min'], phase['max'], result)    
     best = max(ranges, key = lambda k: k['agreement'])
@@ -313,7 +316,7 @@ def compareToHistoricalPhase(phase, servertime, db):
         # we should be able to call compareLocations on the older
         # phase and get the older result back, which we can use
         # to simulate what happened in the past
-        return compareLocations(older_phase, servertime, db)    
+        return compareLocations(older_phase, older_phase['end'], db)    
 
 
 def getNextHistoricalPhase(phase, db):
