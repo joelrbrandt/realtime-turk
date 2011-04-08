@@ -18,6 +18,8 @@ AGREEMENT_PERCENT = (1.0 / 3) # This % of workers must agree on a range
 AGREEMENT_MINIMUM = 2   # At least this many must agree (no single person!)
 
 MIN_SECS_BETWEEN_PHASES = 3
+HYSTERESIS_SECONDS = Decimal(str(2.5))
+LOCATION_PRECISION = 3 # number of decimal places
 
 PHASE_MAX_AGE_IN_SECONDS = 30
 MAX_TIME_TO_WAIT_ALONE_IN_SECS = 10
@@ -182,16 +184,12 @@ def compareLocations(phase, servertime, db):
     """
     
     # have to get the entire row containing the MAX(servertime), ugh ugly SQL.
-    sql = """SELECT locations.location, most_recent.assignmentid FROM locations, 
-            (SELECT MAX(servertime) AS maxtime, assignmentid, phase FROM locations WHERE phase = %s AND servertime >= %s GROUP BY assignmentid) AS most_recent
-            WHERE most_recent.assignmentid = locations.assignmentid
-            AND most_recent.maxtime = locations.servertime
-            AND most_recent.phase = locations.phase"""
-    result = db.query_and_return_array(sql, (phase['phase'], phase['start'] + MIN_SECS_BETWEEN_PHASES))
-    locations = sorted([row['location'] for row in result])
+    sql = """SELECT assignmentid, location FROM locations WHERE locations.phase = %s AND servertime >= %s """
+    result = db.query_and_return_array(sql, (phase['phase'], servertime - HYSTERESIS_SECONDS))
+    #locations = sorted([row['location'] for row in result])
 
 
-    if len(locations) == 0:
+    if len(result) == 0:
         # all locations are just too recent
         return (False, None, None)
     
@@ -210,11 +208,11 @@ def compareLocations(phase, servertime, db):
             logging.debug("User has been waiting alone too long. Going to use an old phase.")
             return compareToHistoricalPhase(phase, servertime, db)
     
-    ranges = getAgreement(phase['min'], phase['max'], locations)    
+    ranges = getAgreement(phase['min'], phase['max'], result)    
     best = max(ranges, key = lambda k: k['agreement'])
 
     # How many workers must agree?
-    required_workers = max(AGREEMENT_PERCENT * len(locations), AGREEMENT_MINIMUM)
+    required_workers = max(AGREEMENT_PERCENT * num_workers, AGREEMENT_MINIMUM)
     #logging.debug("Required to agree: %s. Agreeing: %s" % (required_workers, best['agreement']))
     if best['agreement'] >= required_workers:
         # They agree! Time to start new phase.
@@ -232,6 +230,9 @@ def getAgreement(phase_min, phase_max, locations):
     # We need to find out if at least required_workers have agreed on
     # a range that is at most agreement_range
     
+    locations_by_worker = groupByKey(locations, lambda x: x['assignmentid'])    
+    
+    # NEED TO UPDATE THIS
     # We use a sliding window approach. Iterate through each location, then look
     # ahead to see how many locations are in the next agreement_rage positions.
     # Keep the range with the most agreeing people
@@ -239,23 +240,38 @@ def getAgreement(phase_min, phase_max, locations):
     for (i, location) in enumerate(locations):
         range = dict()
         
-        range['min'] = location
-        range['max'] = location + agreement_range
+        range['min'] = location['location']
+        range['max'] = location['location'] + agreement_range
+        range['agreement'] = 0
         
-        #logging.debug("All locations: " + str(locations))
+        farthest_right = range['min']
+        for (assignmentid, assignment_locations) in locations_by_worker.items():
+            only_in_range = filter( lambda x: x['location'] >= range['min'] and x['location'] <= range['max'], assignment_locations)
+            
+            # if they never left
+            if len(only_in_range) == len(assignment_locations): 
+                range['agreement'] +=1
+                farthest_right = max(farthest_right, max(only_in_range, key = lambda x: x['location'])['location'])
         
-        # We're going to do this the easy-to-code way since the list is
-        # likely to be small: just filter the entire list dynamically each time
-        agreeing_locations = sorted(filter( lambda x: x >= range['min'] and x <= range['max'], locations ))
-        #logging.debug("Agreeing locations: " + str(agreeing_locations))
-        range['agreement'] = len( agreeing_locations )
-        # logging.debug("Agreement %s in [%s, %s)" % (range['agreement'], range['min'], range['max']) )
-        
-        # set the effective max of the new range to be the largest item in the range
-        range['max'] = agreeing_locations[-1]
+        # Now snip the max to be just as large as the rightmost
+        # most recent ping
+        range['max'] = farthest_right
+
+        logging.debug("Agreement %s in [%s, %s)" % (range['agreement'], range['min'], range['max']) )        
         
         ranges.append(range)
     return ranges
+
+def groupByKey(iterable, key):
+    """Splits all items into groups based on their value due to the key function"""
+    group_iterable = dict()
+
+    all_groups = set([key(i) for i in iterable])
+    for group in all_groups:
+        filtered_items = filter(lambda i: key(i) == group, iterable)
+        group_iterable[group] = filtered_items
+    
+    return group_iterable
 
         
 def phaseIsDivisible(phase):
