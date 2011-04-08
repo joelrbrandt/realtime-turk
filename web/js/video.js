@@ -24,6 +24,7 @@ var videoid = 0;
 var phase = null;
 var phases = [];
 
+var videoLoaded = false;
 var locationTimeout = null;
 var has_moved_slider = false;
 
@@ -112,13 +113,15 @@ function initializeVideo() {
     $f("player", "http://releases.flowplayer.org/swf/flowplayer-3.2.7.swf", {
             // don't start automatically
             clip: {
-                autoPlay: false,
+                autoPlay: true,
                 autoBuffering: true,
                 onStart: function() {
+                    console.log("START")
                     // Go to random frame so everyone
                     // doesn't choose the first frame
                     $f().stop();
-                    window.setTimeout(videoReady, 250); // flowplayer bug, not initialized
+                    console.log("STOP!")
+                    videoReady(); // flowplayer bug, not initialized
                 }                 
             },
                 
@@ -138,12 +141,15 @@ function initializeVideo() {
     
     $( "#slider" ).slider( {
         slide: function(event, ui) {
+        if (videoLoaded) {
             var percent = ui.value / SLIDER_MAX;
             if (percent < phase['min'] || percent > phase['max']) {
                 return false;
             }
             
-            seekVideoToPercent(percent);
+
+                seekVideoToPercent(percent);
+            }
             
             if (!has_moved_slider) {
                 has_moved_slider = true;
@@ -199,6 +205,8 @@ function updateSliderBackgroundRange() {
  * Event called when the video is ready to navigate
  */
 function videoReady() {
+    console.log("videoready")
+    videoLoaded = true;
     setRandomFrame();
     updateSliderBackgroundRange();    
     locationPing();     // start the notification
@@ -208,7 +216,9 @@ function videoReady() {
  * Sets the video to a random frame when it finishes loading
  */
 function setRandomFrame() {
+    console.log("trying to get duration:")
     var duration = $f().getClip().fullDuration;
+    console.log("duration " + duration);
     var rand = getRandomArbitrary(phase['min'], phase['max']);
     
     $('#slider').slider("value", rand * 100);
