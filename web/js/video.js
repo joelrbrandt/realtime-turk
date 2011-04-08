@@ -524,14 +524,7 @@ function converged() {
  */
 var LOCATION_PING_FREQUENCY = 500;  // millis
 var CONVERGE_WAIT_TIME = 750;   // millis
-function locationPing() {
-    console.error("TURNING OFF LOCATION PINGING");
-    return;
-    
-    
-    
-    
-    
+function locationPing() {    
     var sliderLoc = $('#slider').slider('value') / SLIDER_MAX;
     
     // TODO: reorganize so we don't need to repeat setTimeout
