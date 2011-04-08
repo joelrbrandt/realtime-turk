@@ -118,7 +118,7 @@ function initializeVideo() {
                     // Go to random frame so everyone
                     // doesn't choose the first frame
                     $f().stop();
-                    videoReady();
+                    window.setTimeout(videoReady, 250); // flowplayer bug, not initialized
                 }                 
             },
                 
@@ -190,12 +190,8 @@ function updateSliderBackgroundRange() {
     var currentValue = slider.slider('value');
     var minSlider = (phase['min'] * SLIDER_MAX);
     var maxSlider = (phase['max'] * SLIDER_MAX);
-    if (currentValue < minSlider) {
-        slider.slider('value', minSlider);
-        seekVideoToPercent(phase['min']);
-    } else if (currentValue > maxSlider) {
-        slider.slider('value', maxSlider);
-        seekVideoToPercent(phase['max']);
+    if (currentValue < minSlider || currentValue > maxSlider) {
+        setRandomFrame();
     }
 }
 
