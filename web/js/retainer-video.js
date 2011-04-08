@@ -22,7 +22,7 @@ function retainerHide() {
 
 // Sets a callback to fire and show the text to the user
 function setMaxWaitCallback(showCallback, defaultWorkURL) {
-    var waitTime = maxWaitTime * 1000; 
+    var waitTime = maxWaitTime * 1000;
 
     console.log("max wait time: " + waitTime);
    showTimeout = window.setTimeout(function() {
@@ -40,7 +40,7 @@ function setMaxWaitCallback(showCallback, defaultWorkURL) {
 	    }
 	    $.get(randomURL, function(data) {
 		    showCallback(data);
-		    showGoButton();
+		    showGoButton();		    
 		});
 	}
     }, waitTime);
@@ -65,6 +65,24 @@ function generatePoll(callback) {
     var theFunction = function() {
 	var theURL = 'rts/video/ready?workerid=' + workerid + '&assignmentid=' + assignmentid;
 	$.get(theURL, function(data) {
+	
+	/*
+	    data = {
+	        filename: 'charlie-short',
+	        height: 360,
+	        is_ready: true,
+	        phase: {
+	            min: 0,
+	            max: 1,
+	            numworkers: 1,
+	            phase: 756,
+	            phase_list: 200,
+	            start: 1302292921.57
+	        },
+	        videoid: 1,
+	        width: 640
+	    };
+	*/
 		if (data['is_ready']) {
 		    window.clearTimeout(checkInterval);
 		    window.clearTimeout(showTimeout);
@@ -101,6 +119,7 @@ function showGoButton() {
     if (isAlert) {
         playSound();
         alert('Start now!');
+        console.log("alert dismissed");
         // log immediately after they click the OK button
         showText();
     } else {

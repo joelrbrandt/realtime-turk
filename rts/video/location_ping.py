@@ -22,7 +22,7 @@ HYSTERESIS_SECONDS = Decimal(str(2.5))
 LOCATION_PRECISION = 3 # number of decimal places
 
 PHASE_MAX_AGE_IN_SECONDS = 30
-MAX_TIME_TO_WAIT_ALONE_IN_SECS = 10
+MAX_TIME_TO_WAIT_ALONE_IN_SECS = 1#10
 
 def locationPing(request):
     request.content_type = "application/json"

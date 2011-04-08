@@ -48,7 +48,7 @@ $(document).ready(function() {
 
 	$('#snapshotBtn').click(shoot);
 	$('#donebtn').hide().attr("disabled", "true").html("HIT will be submittable after job appears");
-    initializeVideo()
+    //initializeVideo();
 });
 
 /**
@@ -82,7 +82,7 @@ function loadParameters() {
  * Takes video data from the server and adds it to the page
  */
 function videoDataCallback(data) {
-/*
+
     var videoElement = $('<a href="media/videos/' + data['filename'] + '.flv"'
         + 'style="display:block; width: ' + data['width'] + 'px; ' 
         + 'height: ' + data['height'] + 'px;" id="player"></a>');
@@ -90,9 +90,7 @@ function videoDataCallback(data) {
     // idea for range background slider from http://stackoverflow.com/questions/2992148/jquery-slider-set-background-color-to-show-desired-range
     var sliderElement = $('<div id="slider" style="width: ' + data['width'] + 'px"><div class="range"></div><div class="range below">Find photo in this clip</div></div>');
 
-    $('#videoContainer').append(videoElement).append(sliderElement);
-*/    
-
+    $('#videoContainer').append(videoElement).append(sliderElement);    
     
     phase = data['phase'];
     phases.push(phase)
@@ -100,9 +98,9 @@ function videoDataCallback(data) {
     
     console.log("Phase " + phase['phase']);
 
-    $f().play( { url: 'media/videos/' + data['filename'] + '.flv' } )
+    //$f().play( { url: 'media/videos/' + data['filename'] + '.flv' } )
 
-    //initializeVideo();
+    initializeVideo();
 }
 
 /**
@@ -113,15 +111,20 @@ function initializeVideo() {
     $f("player", "http://releases.flowplayer.org/swf/flowplayer-3.2.7.swf", {
             // don't start automatically
             clip: {
-                autoPlay: true,
+                autoPlay: false,
                 autoBuffering: true,
                 onStart: function() {
-                    console.log("START")
+//                    console.log("START")
                     // Go to random frame so everyone
                     // doesn't choose the first frame
-                    $f().stop();
-                    console.log("STOP!")
-                    videoReady(); // flowplayer bug, not initialized
+                    //window.setTimeout(function() {
+                    //    console.log("TIMEOUT");
+
+                    //}, 0);
+                    
+                    //$f().stop();
+                    videoReady();
+                    //window.setTimeout(showGoButton, 500);
                 }                 
             },
                 
@@ -131,6 +134,7 @@ function initializeVideo() {
             },
             
             onLoad: function() {
+                console.log("video player loaded");
                 $f().getPlugin("play").hide();
             },
             
@@ -160,6 +164,18 @@ function initializeVideo() {
         max: SLIDER_MAX,
         step: 1
     });
+}
+
+
+/**
+ * Event called when the video is ready to navigate
+ */
+function videoReady() {
+    console.log("videoready")
+    videoLoaded = true;
+    setRandomFrame();
+    updateSliderBackgroundRange();    
+    locationPing();     // start the notification
 }
 
 /**
@@ -202,23 +218,10 @@ function updateSliderBackgroundRange() {
 }
 
 /**
- * Event called when the video is ready to navigate
- */
-function videoReady() {
-    console.log("videoready")
-    videoLoaded = true;
-    setRandomFrame();
-    updateSliderBackgroundRange();    
-    locationPing();     // start the notification
-}
-
-/**
  * Sets the video to a random frame when it finishes loading
  */
 function setRandomFrame() {
-    console.log("trying to get duration:")
     var duration = $f().getClip().fullDuration;
-    console.log("duration " + duration);
     var rand = getRandomArbitrary(phase['min'], phase['max']);
     
     $('#slider').slider("value", rand * 100);
@@ -521,7 +524,14 @@ function converged() {
  */
 var LOCATION_PING_FREQUENCY = 500;  // millis
 var CONVERGE_WAIT_TIME = 750;   // millis
-function locationPing() {    
+function locationPing() {
+    console.error("TURNING OFF LOCATION PINGING");
+    return;
+    
+    
+    
+    
+    
     var sliderLoc = $('#slider').slider('value') / SLIDER_MAX;
     
     // TODO: reorganize so we don't need to repeat setTimeout

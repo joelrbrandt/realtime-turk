@@ -87,12 +87,13 @@ else:
 </div>
 
 <div class = "task" id="taskContainer">
-  <div id="goContainer"><img src="media/video-directions.png" /></div>
+  <div id="goContainer"><img src="media/video-directions.png" id="directions" /></div>
   <div id="taskText">
     <div id="workerCount"></div>
     <div id="videoContainer">
-        <a style="display:block; width: 720px; height: 480px;" id="player"></a>    
+        <!--<a style="display:block; width: 720px; height: 480px;" id="player"></a>    
         <div id="slider" style="width: 720px"><div class="range"></div><div class="range below">Find photo in this clip</div></div>        
+        -->
     </div>  
   
     <div id="photos">
