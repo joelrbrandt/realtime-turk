@@ -1,0 +1,118 @@
+<%!
+from rtsutils.is_worker_busy import isWorkerBusy
+from rtsutils.video_approver import MINIMUM_ACCURACY
+%>
+
+
+<%
+# grab wait time from the URL parameters
+if fieldstorage.has_key('waittime'):
+   wait_time = int(fieldstorage['waittime'])
+else:
+   wait_time = 120
+
+# have they already agreed that they understand the instructions?
+
+if fieldstorage.has_key('workerId'):
+    worker_id = fieldstorage['workerId']    
+else:
+    worker_id = 0
+    
+if fieldstorage.has_key('assignmentId'):
+    assignment_id = fieldstorage['assignmentId']
+    if assignment_id == "ASSIGNMENT_ID_NOT_AVAILABLE":
+        assignment_id = 0    
+else:
+    assignment_id = 0
+
+%>
+
+% if isWorkerBusy(worker_id, [assignment_id]):
+    <h1>Please return this HIT</h1>
+    Due to the nature of this HIT, you can only have one of our HITs accepted at a time. Our records show that you have another HIT from us accepted, and it has not expired, been submitted, or been returned. Please return this HIT and complete or return that one. You may accept another HIT then. 
+    <% return %>
+% endif
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Video Chooser</title>
+    <link href="css/video.css" rel="stylesheet" type="text/css" />
+    <link href="css/word_clicker.css" rel="stylesheet" type="text/css" />
+    <link href="css/jquery-ui-1.8.11.custom.css" rel="stylesheet" type="text/css" />
+    <link href="css/jquery.countdown.css" rel="stylesheet" type="text/css" />
+    
+    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="lib/alert/script/soundmanager2-nodebug-jsmin.js"></script>
+    <script type="text/javascript" src="lib/alert/alert.js"></script>
+    <script src="lib/jquery.getUrlParam.js" type="text/javascript"></script>
+    <script src="lib/jquery.countdown.js" type-"text/javascript"></script>    
+    
+    <script src="lib/flowplayer/flowplayer-3.2.6.min.js" type="text/javascript"></script>
+    <script src="http://static.flowplayer.org/js/flowplayer.controls-3.0.2.min.js"></script>    
+    <script src="js/video.js" type="text/javascript"></script>
+    <script type="text/javascript" src="lib/date.js"></script>
+    <script type="text/javascript" src="js/retainer-video.js"></script>
+
+    <script type="text/javascript">
+        var maxWaitTime = ${wait_time};
+        var MIN_ACCURACY = ${MINIMUM_ACCURACY};
+    </script>
+
+</head>
+<body>
+
+<div class="task instructions">
+    Instructions:
+    <ol>
+        <li>
+% if wait_time <= 60:
+        In ${wait_time} seconds 
+% else:
+        In ${wait_time / 60} minutes 
+% endif        
+        or less, you will receive an alert. Act <b>quickly</b> to dismiss the alert and a 5-10 second video will appear.</li>
+        <li>Work simultaneously with other Turkers who have this task by moving the slider to agree on <b>the best photo in the video</b>.</li>
+        <li>If your slider is near other workers's sliders, we will narrow down  the video to that clip and keep going. You get a point if your slider was inside the clip when this happens.</li>
+        <li>Keep going, working with other Turkers and narrowing down the video, until you have agreed on one photo.</li>
+        <li>You will get paid if you earn at least one point.</li>
+    </ol>
+</div>
+
+<div id="waitContainer" class="task" style="border: none; width: 300px; padding: 0;">
+    <div>The video will appear at the latest in:</div>
+    <div id="countdown"></div>
+</div>
+
+<div class = "task" id="taskContainer">
+  <div id="goContainer"><img src="media/video-directions.png" id="directions" /></div>
+  <div id="taskText">
+    <div id="workerCount"></div>
+    <div id="videoContainer">
+        <!--<a style="display:block; width: 720px; height: 480px;" id="player"></a>    
+        <div id="slider" style="width: 720px"><div class="range"></div><div class="range below">Find photo in this clip</div></div>        
+        -->
+    </div>  
+  
+    <div id="photos">
+      <!--<div><button id="snapshotBtn">Good Photo</button></div>-->
+      <!--<div class="countdown">6 seconds</div>-->
+      <div id="output"></div>
+    </div>
+  </div>
+  
+    <div>
+      <div style="color: red;" id="submitError"></div>
+      <button id="donebtn">Submit</button>
+    </div>  
+</div>
+
+<form id="completeForm" action="rts/video/submit" method="GET" style="display: none">
+      <input type="submit" name="done" value="done"></input>
+</form>
+
+</body>
+</html>
+

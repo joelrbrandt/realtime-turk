@@ -1,0 +1,22 @@
+<html>
+<head>
+<script type="text/javascript" src="script/soundmanager2-nodebug-jsmin.js"></script>
+<script type="text/javascript" src="alert.js"></script>
+<script type="text/javascript">
+function playSound() {
+    var s = soundManager.getSoundById('alert-sound');
+    s.play();
+}
+
+function playSoundAndAlertLater(t) {
+    setTimeout(function() {playSound(); alert('foo')}, t)
+}
+</script>
+
+
+
+</head>
+<body>
+<button onclick="playSoundAndAlertLater(2000);">Play and Alert in 2 seconds</button>
+</body>
+</html>
