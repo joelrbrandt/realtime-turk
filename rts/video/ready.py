@@ -1,5 +1,5 @@
 from mod_python import apache, util
-import simplejson as json
+import json
 
 from rtsutils.db_connection import DBConnection
 from rts.video import location_ping
@@ -42,7 +42,7 @@ def is_ready(request):
         videoid = result[0]['pk']
         video = getAndAssignVideo(assignmentid, videoid)
         
-        request.write(json.dumps(video, use_decimal = True) )
+        request.write(json.dumps(video, cls = location_ping.DecimalEncoder) )
 
 def getAndAssignVideo(assignmentid, videoid, restart_if_converged = False):
     """Gets the given video from the database, and populates a dict with its properties. Assigns the video to the worker in the database. """

@@ -1,7 +1,7 @@
 from mod_python import apache, util
 from rtsutils.db_connection import DBConnection
 import random
-import simplejson as json
+import json
 
 def getValidationImages(request):
     db = DBConnection()
@@ -14,7 +14,7 @@ def getValidationImages(request):
     videos.append(random.choice(bad))
     
     random.shuffle(videos)
-    request.write(json.dumps(videos))    
+    request.write(json.dumps(videos))
     
 
 def getImages(db, is_good):

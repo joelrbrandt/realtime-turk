@@ -1,5 +1,5 @@
 from mod_python import apache, util
-import simplejson as json
+import json
 from datetime import datetime, timedelta
 
 from rtsutils.db_connection import DBConnection
@@ -17,7 +17,7 @@ AGREEMENT_RANGE = Decimal(25) / Decimal(100)   # Agreement must occur within thi
 AGREEMENT_PERCENT = (1.0 / 3) # This % of workers must agree on a range
 AGREEMENT_MINIMUM = 2   # At least this many must agree (no single person!)
 
-MIN_SECS_BETWEEN_PHASES = 3
+MIN_SECS_BETWEEN_PHASES = Decimal(str(2.5))
 HYSTERESIS_SECONDS = Decimal(str(2.5))
 LOCATION_PRECISION = 3 # number of decimal places
 
@@ -39,7 +39,7 @@ def locationPing(request):
         # Ensure that there isn't already a newer phase that
         # we should be returning to the client    
         if cur_phase['phase'] != phase:
-            request.write(json.dumps(cur_phase, use_decimal=True))
+            request.write(json.dumps(cur_phase, cls=DecimalEncoder))
         else:
             # Record where we are
             pushLocation(location, phase, assignment, video_id, servertime, db)
@@ -57,14 +57,14 @@ def locationPing(request):
                     closePhase(new_phase['phase'], servertime, False, db)
                     takePicture(new_phase, video_id, db)                                        
                                         
-                request.write(json.dumps(new_phase, use_decimal=True))
+                request.write(json.dumps(new_phase, cls=DecimalEncoder))
             else:
-                request.write(json.dumps(cur_phase, use_decimal=True))
-        
+                request.write(json.dumps(cur_phase, cls=DecimalEncoder))        
         db.commit()
         
-    except:
+    except Exception, e:
         db.rollback()
+        logging.exception(e)
         raise
     
 def getArgs(request):
@@ -183,11 +183,15 @@ def compareLocations(phase, servertime, db):
     then compares them to see if we should start a new phase
     """
     
+    time_since_phase_start = servertime - phase['start']
+    if time_since_phase_start < MIN_SECS_BETWEEN_PHASES:
+        logging.debug("Too soon.")
+        return (False, None, None)
+    
     # have to get the entire row containing the MAX(servertime), ugh ugly SQL.
     sql = """SELECT assignmentid, location FROM locations WHERE locations.phase = %s AND servertime >= %s """
-    result = db.query_and_return_array(sql, (phase['phase'], max(servertime - HYSTERESIS_SECONDS, phase['start'])))
+    result = db.query_and_return_array(sql, (phase['phase'], servertime - HYSTERESIS_SECONDS ))
     #locations = sorted([row['location'] for row in result])
-
 
     if len(result) == 0:
         # all locations are just too recent
@@ -229,6 +233,7 @@ def getAgreement(phase_min, phase_max, locations):
     
     # The effective range that workers must agree on
     agreement_range = AGREEMENT_RANGE * Decimal(phase_max - phase_min)
+    logging.debug("Agreement range: %s, phase range %s" % (agreement_range, phase_max - phase_min))
     
     # We need to find out if at least required_workers have agreed on
     # a range that is at most agreement_range
@@ -310,7 +315,7 @@ def compareToHistoricalPhase(phase, servertime, db):
     older_phase = getNextHistoricalPhase(phase, db)
     
     if older_phase is None:
-        # logging.info("For now we are going to just keep waiting; there are no historical phases to refer to.") 
+        logging.info("Keep waiting; no historical phases to refer to.") 
         return (False, None, None)
     else:         
         # we should be able to call compareLocations on the older
@@ -344,4 +349,13 @@ def getNextHistoricalPhase(phase, db):
         return None
     else:
         return result[0]
+
+class DecimalEncoder(json.JSONEncoder):
+    def _iterencode(self, o, markers=None):
+        if isinstance(o, Decimal):
+            # wanted a simple yield str(o) in the next line,
+            # but that would mean a yield on the line with super(...),
+            # which wouldn't work (see my comment below), so...
+            return (str(o) for o in [o])
+        return super(DecimalEncoder, self)._iterencode(o, markers)
     

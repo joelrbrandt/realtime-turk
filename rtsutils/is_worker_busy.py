@@ -34,6 +34,9 @@ def getWorkerOpenHITs(worker_id):
         is_expired = (datetime.now() > assignment_elapses)
         
         if not is_done and not is_returned and not is_expired:
-            open_hits.append(row['assignmentid'])
+            notifications = db.query_and_return_array("""SELECT `eventtype` FROM notifications WHERE assignmentid = %s AND `eventtype` = "AssignmentReturned" OR `eventtype` = "AssignmentAbandoned" """, (row['assignmentid'],) )
+            
+            if len(notifications) == 0:
+                open_hits.append(row['assignmentid'])
     
     return open_hits

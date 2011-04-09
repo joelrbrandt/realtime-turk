@@ -1,5 +1,5 @@
 from mod_python import apache, util
-import simplejson as json
+import json
 
 from rts import rts_logging
 import logging
@@ -47,5 +47,4 @@ def getRandomVideo(request):
             videoid = db.query_and_return_array("""SELECT pk FROM videos ORDER BY RAND() LIMIT 1""")[0]['pk']
         
     video_json = ready.getAndAssignVideo(assignmentid, videoid, restart_if_converged = True)
-    logging.debug(video_json)
-    request.write(json.dumps(video_json, use_decimal=True))
+    request.write(json.dumps(video_json, cls = location_ping.DecimalEncoder))
