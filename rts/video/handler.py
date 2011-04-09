@@ -31,6 +31,11 @@ def handler(request):
         import submit
         submit.record_and_redirect(request)
         return apache.OK
+    
+    elif uri_parts[-1] == "validation":
+        import validation
+        validation.getValidationImages(request)
+        return apache.OK
 
     else:
         # request.content_type = "text/plain"

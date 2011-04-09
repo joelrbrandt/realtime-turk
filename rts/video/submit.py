@@ -30,6 +30,7 @@ def log_submission_in_db(request):
       accept = a
       show = sh
       go = g
+      validation_pictures = v
       submit = su
     """
 
@@ -44,6 +45,7 @@ def log_submission_in_db(request):
     assignmentid = get_value_or_none(form, "assignmentId")
     workerid = get_value_or_none(form, "w")
     phases = get_value_or_none(form, "p")
+    validation = get_value_or_none(form, "v")
 
     # Parse the times
     accept = get_time_or_none(form, "a")
@@ -51,14 +53,13 @@ def log_submission_in_db(request):
     go = get_time_or_none(form, "g")
     submit = get_time_or_none(form, "su")
     
-
     sql = """UPDATE `assignments` SET
-              `phases` = %s, `show` = %s, `go` = %s, `submit` = %s WHERE assignmentid = %s;
+              `phases` = %s, `validation` = %s, `show` = %s, `go` = %s, `submit` = %s WHERE assignmentid = %s;
           """
 
     try:
         db=DBConnection()
-        db.query_and_return_array(sql, (phases, show, go, submit, assignmentid))
+        db.query_and_return_array(sql, (phases, validation, show, go, submit, assignmentid))
     except:
         logging.exception("couldn't insert into the database")
 

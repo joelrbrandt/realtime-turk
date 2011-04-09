@@ -1,15 +1,19 @@
 <%!
 from rtsutils.is_worker_busy import isWorkerBusy
-from rtsutils.video_approver import MINIMUM_ACCURACY
+from rtsutils.video_approver import MINIMUM_ACCURACY, BONUS_TIME_LIMIT, BONUS_AMOUNT
 %>
 
 
 <%
+is_reward = True
+is_alert = True
+is_tetris = False
+
 # grab wait time from the URL parameters
 if fieldstorage.has_key('waittime'):
    wait_time = int(fieldstorage['waittime'])
 else:
-   wait_time = 120
+   wait_time = 300
 
 # have they already agreed that they understand the instructions?
 
@@ -24,6 +28,9 @@ if fieldstorage.has_key('assignmentId'):
         assignment_id = 0    
 else:
     assignment_id = 0
+
+# time the user has to dismiss the dialog
+max_reward_time = BONUS_TIME_LIMIT
 
 %>
 
@@ -59,6 +66,11 @@ else:
     <script type="text/javascript">
         var maxWaitTime = ${wait_time};
         var MIN_ACCURACY = ${MINIMUM_ACCURACY};
+        var maxRewardTime = ${max_reward_time};
+        
+        var isAlert = ${str(is_alert).lower()};
+        var isReward = ${str(is_reward).lower()};
+        var isTetris = ${str(is_tetris).lower()};
     </script>
 
 </head>
@@ -74,11 +86,21 @@ else:
         In ${wait_time / 60} minutes 
 % endif        
         or less, you will receive an alert. Act <b>quickly</b> to dismiss the alert and a 5-10 second video will appear.</li>
+% if is_reward:        
+        <li>You get a <b><u>${int(BONUS_AMOUNT*100)} cent bonus</b></u> if you 
+    % if is_alert:
+        dismiss the alert
+    % else:
+        click the Go! button
+    % endif
+    in less than ${int(max_reward_time)} seconds.</li>
+% endif        
+        
         <li>Work simultaneously with other Turkers who have this task by moving the slider to agree on <b>the best photo in the video</b>.</li>
-        <li>If your slider is near other workers's sliders, we will narrow down  the video to that clip and keep going. You get a point if your slider was inside the clip when this happens.</li>
-        <li>Keep going, working with other Turkers and narrowing down the video, until you have agreed on one photo.</li>
+        <li>If your slider is near other workers's sliders, we will narrow down  the video to that clip and keep going. You get a point if your slider was inside the clip when this happens. Continue narrowing down the video until you have agreed on one photo.</li>
         <li>You will get paid if you earn at least one point.</li>
     </ol>
+    <div id='time-report' style='display: none'></div>
 </div>
 
 <div id="waitContainer" class="task" style="border: none; width: 300px; padding: 0;">
@@ -101,6 +123,11 @@ else:
       <!--<div class="countdown">6 seconds</div>-->
       <div id="output"></div>
     </div>
+  </div>
+  
+  <div id="backup">
+        <div>So that we can verify that you are intelligently choosing photos, please mark the <u>one</u> best photo among these three:</div>
+        <form id='backupForm' name='backup'></form>
   </div>
   
     <div>

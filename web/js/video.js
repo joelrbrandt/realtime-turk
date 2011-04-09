@@ -13,9 +13,11 @@ var assignmentid = 0;
 var workerid = 0;
 var hitid = 0;
 
+/* now in video.mpy
 var isTetris = false;
-var isAlert = true;
-var isReward = false;
+var isAlert = true; 
+var isReward = true;
+*/
 
 var timingLoaded = false;
 
@@ -313,6 +315,14 @@ function submitForm() {
     var phase_nums = $.map(phases, function(elem, index) { return elem['phase']; } )
     phases_json = JSON.stringify(phase_nums);
     form.append('<input type="hidden" name="p" value="' + phases_json + '" />');
+    
+    // validation = v
+    var validationPicture = $('input:radio:checked');
+    var validationString = ""
+    if (validationPicture.length > 0) {
+        validationString = validationPicture.val();
+    }
+    form.append('<input type="hidden" name="v" value="' + validationString + '" />');
 
     form.submit();
 }
@@ -509,13 +519,32 @@ function converged() {
         output.removeClass("wrongAnswer").addClass("rightAnswer");
     } else {
         output.html("Oops. You agreed only " + accurateCount + " times out of " + (phases.length-1) + ". We'll be reviewing your work to make sure you are making a good faith effort and should be paid. ");
-        output.addClass("wrongAnswer").removeClass("rightAnswer");        
+        output.addClass("wrongAnswer").removeClass("rightAnswer");
+        
+        showBackupTest();
     }
     output.append("Click the submit button below to finish.");
     
     $('#donebtn').fadeIn();
     
     // add styles
+}
+
+/** Shows the backup test if you
+ * didn't have much agreement
+ */
+function showBackupTest() {
+    $.getJSON('rts/video/validation',
+        function(data) {
+            console.log(data);
+            var backup_form = "" 
+            for (var i=0; i<data.length; i++) {
+                backup_form = backup_form + "<div><input type='radio' name='backup' value='" + data[i] + "'><img src='media/videos/greg/" + data[i]  + "' width='350' /></input></div>"
+            }
+            
+            $('#backupForm').append(backup_form);
+        }
+    );
 }
 
 
