@@ -23,7 +23,7 @@ def printVideoTimes(db):
     WHERE pictures.phase_list = phase_lists.pk
     AND phase_lists.pk = phases.phase_list
     AND phase_lists.is_historical = FALSE
-    GROUP BY pictures.videoid""")
+    GROUP BY phase_lists.pk""")
     
     table = [["video", "elapsed"]]
     for picture in result:
@@ -31,25 +31,30 @@ def printVideoTimes(db):
     pprint_table(sys.stdout, table)
 
 def printPhaseTimes(db, all_videos):
-    table = [["video", "phase list", "phase", "first go", "crowd go", "first ping", "crowd ping", "agreement", "num workers", "on retainer"]]
+    table = [["video", "phase list", "phase", "width", "first go", "crowd go", "first ping", "crowd ping", "agreement", "total", "num workers", "on retainer"]]
     
     rows = []
     for video in all_videos:
         video_rows = parseVideo(video['pk'], db)
         rows.extend(video_rows)
-        
-    numpy_data = numpy.array(rows)
-    medians = numpy.median(numpy_data, axis=0)
-    rows = [list(medians)] + rows
-
-    rows[0][0] = "median"
-    rows[0][1] = "median"
-    rows[0][2] = "median"
+    
+    median_row = [ "median", "median", "median" ]
+    for column in range(3, len(rows[0])):
+        numpy_data = filter(lambda x: x is not None, list(numpy.array(rows)[:,column]))
+        medians = numpy.median(numpy.array([ numpy_data ]))
+        median_row.append(medians)
+    rows = [median_row] + rows
 
     for row in rows:
-        table.append([str(i) for i in row])
+        table.append(map(stringOrNothing, row))
     
     pprint_table(sys.stdout, table)
+    
+def stringOrNothing(item):
+    if item is None or item == numpy.nan:
+        return ""
+    else:
+        return str(item)
 
 def parseVideo(videoid, db):
     """
@@ -80,17 +85,26 @@ def parseVideo(videoid, db):
             readies = sorted([datetime.fromtimestamp(row['go']) for row in assignments])
             shows = sorted([datetime.fromtimestamp(row['show']) for row in assignments])
             
+            width = float(phase['max'] - phase['min'])
+            
             if len(readies) < 2:
                 continue
             
-            first_go = total_seconds(readies[0] - shows[0])
-            crowd_go = total_seconds(readies[1] - shows[0])
+            if i==0:
+                first_go = total_seconds(readies[0] - shows[0])
+                crowd_go = total_seconds(readies[1] - shows[0])
+                first_ping_wait = total_seconds(first_ping - shows[0])
+                crowd_wait = total_seconds(second_ping - shows[0])                
+                agreement = total_seconds(end - second_ping)
+            else:
+                first_go = None
+                crowd_go = None
+                first_ping_wait = None
+                crowd_wait = None
+                agreement = total_seconds(end - start)
+            total = total_seconds(end - start)
             
-            first_ping_wait = total_seconds(first_ping - shows[0])
-            crowd_wait = total_seconds(second_ping - shows[0])
-            agreement = total_seconds(end - shows[0])
-            
-            video_rows.append([videoid, phase_list['pk'], i+1, first_go, crowd_go, first_ping_wait, crowd_wait, agreement, phase['COUNT(DISTINCT assignmentid)'], retainers])
+            video_rows.append([videoid, phase_list['pk'], i+1, width, first_go, crowd_go, first_ping_wait, crowd_wait, agreement, total, phase['COUNT(DISTINCT assignmentid)'], retainers])
     
     return video_rows
 

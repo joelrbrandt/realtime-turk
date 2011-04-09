@@ -2,6 +2,7 @@ from mod_python import apache, util
 from rtsutils.db_connection import DBConnection
 import random
 import json
+from rtsutils.video_approver import getImages
 
 def getValidationImages(request):
     db = DBConnection()
@@ -15,8 +16,3 @@ def getValidationImages(request):
     
     random.shuffle(videos)
     request.write(json.dumps(videos))
-    
-
-def getImages(db, is_good):
-    images = db.query_and_return_array("""SELECT filename FROM verification WHERE is_good = %s""", (is_good, ))
-    return [row['filename'] for row in images]

@@ -25,6 +25,7 @@ var videoid = 0;
 
 var phase = null;
 var phases = [];
+var phase_last_locations = [];
 
 var videoLoaded = false;
 var locationTimeout = null;
@@ -316,6 +317,10 @@ function submitForm() {
     phases_json = JSON.stringify(phase_nums);
     form.append('<input type="hidden" name="p" value="' + phases_json + '" />');
     
+    // phase_last_locations = loc
+    last_locations_json = JSON.stringify(phase_last_locations);
+    form.append('<input type="hidden" name="loc" value="' + last_locations_json + '" />');    
+    
     // validation = v
     var validationPicture = $('input:radio:checked');
     var validationString = ""
@@ -580,9 +585,10 @@ function locationPing() {
                     } else {
                         // OK, this is the real deal. Better test accuracy
                         checkAccuracy(sliderLoc, data);
-                    }                        
+                    }
                     phase = data;
                     phases.push(phase);
+                    phase_last_locations.push(sliderLoc);
                     
                     updateSliderBackgroundRange();
                 }
