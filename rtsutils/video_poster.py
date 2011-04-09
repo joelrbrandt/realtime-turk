@@ -128,7 +128,7 @@ def encodeAndUpload(filename):
 
 if __name__ == "__main__":
     if settings.SANDBOX:
-        wait_bucket = 4 * 60
+        wait_bucket = 5
     else:
         wait_bucket = 4 * 60
 

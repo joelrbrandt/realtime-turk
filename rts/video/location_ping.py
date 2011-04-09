@@ -17,9 +17,7 @@ AGREEMENT_RANGE = Decimal(25) / Decimal(100)   # Agreement must occur within thi
 AGREEMENT_PERCENT = (1.0 / 3) # This % of workers must agree on a range
 AGREEMENT_MINIMUM = 2   # At least this many must agree (no single person!)
 
-MIN_SECS_BETWEEN_PHASES = Decimal(str(2.5))
 HYSTERESIS_SECONDS = Decimal(str(2.5))
-LOCATION_PRECISION = 3 # number of decimal places
 
 PHASE_MAX_AGE_IN_SECONDS = 30
 MAX_TIME_TO_WAIT_ALONE_IN_SECS = 10
@@ -183,14 +181,17 @@ def compareLocations(phase, servertime, db):
     then compares them to see if we should start a new phase
     """
     
-    time_since_phase_start = servertime - phase['start']
-    if time_since_phase_start < MIN_SECS_BETWEEN_PHASES:
-        logging.debug("Too soon.")
-        return (False, None, None)
+    time_floor = servertime - HYSTERESIS_SECONDS
     
-    # have to get the entire row containing the MAX(servertime), ugh ugly SQL.
-    sql = """SELECT assignmentid, location FROM locations WHERE locations.phase = %s AND servertime >= %s """
-    result = db.query_and_return_array(sql, (phase['phase'], servertime - HYSTERESIS_SECONDS ))
+    # get all the location pings in this phase in the last HYSTERESIS seconds,
+    # but only those people who have actually been around for HYSTERESIS seconds
+    # in the phase (we don't want to fire when someone just clicked the slider
+    # for the first time
+    sql = """SELECT assignmentid, location, servertime 
+             FROM locations, (
+                SELECT assignmentid, phase, MIN(servertime) AS min_servertime FROM locations WHERE phase = %s GROUP BY assignmentid
+            ) AS min_times WHERE locations.phase = min_times.phase AND min_times.assignmentid = locations.assignmentid AND servertime >= %s AND min_times.min_servertime <= %s"""
+    result = db.query_and_return_array(sql, (phase['phase'], time_floor, time_floor ))
     #locations = sorted([row['location'] for row in result])
 
     if len(result) == 0:
@@ -212,7 +213,7 @@ def compareLocations(phase, servertime, db):
             logging.debug("User has been waiting alone too long. Going to use an old phase.")
             return compareToHistoricalPhase(phase, servertime, db)
         else:
-            # temporarily alone :/
+            # temporarily alone
             return (False, None, None)
     
     ranges = getAgreement(phase['min'], phase['max'], result)    
@@ -240,10 +241,7 @@ def getAgreement(phase_min, phase_max, locations):
     
     locations_by_worker = groupByKey(locations, lambda x: x['assignmentid'])    
     
-    # NEED TO UPDATE THIS
-    # We use a sliding window approach. Iterate through each location, then look
-    # ahead to see how many locations are in the next agreement_rage positions.
-    # Keep the range with the most agreeing people
+    # 
     ranges = []
     for (i, location) in enumerate(locations):
         range = dict()
@@ -256,8 +254,8 @@ def getAgreement(phase_min, phase_max, locations):
         for (assignmentid, assignment_locations) in locations_by_worker.items():
             only_in_range = filter( lambda x: x['location'] >= range['min'] and x['location'] <= range['max'], assignment_locations)
             
-            # if they never left
-            if len(only_in_range) == len(assignment_locations): 
+            # if they never left and they've been in the phase long enough
+            if len(only_in_range) == len(assignment_locations) and been_in_phase:
                 range['agreement'] +=1
                 farthest_right = max(farthest_right, max(only_in_range, key = lambda x: x['location'])['location'])
         
