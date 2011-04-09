@@ -62,12 +62,11 @@ def bonus_evaluator(answer):
     
     try:
         workerid = answer['w']
-        if condition.isReward(workerid):
-            show = parseISO(answer['sh'])
-            go = parseISO(answer['g'])
-            diff = go-show
-            if diff < BONUS_TIME_LIMIT:
-                result = bonus_response
+        show = parseISO(answer['sh'])
+        go = parseISO(answer['g'])
+        diff = go-show
+        if diff < BONUS_TIME_LIMIT:
+            result = bonus_response
     except:
         logging.exception('error calculating bonus for answer: ' + str(answer))
     return result    

@@ -77,7 +77,7 @@ max_reward_time = BONUS_TIME_LIMIT
 <body>
 
 <div class="task instructions">
-    Instructions:
+    First, the alert:
     <ol>
         <li>
 % if wait_time <= 60:
@@ -94,22 +94,27 @@ max_reward_time = BONUS_TIME_LIMIT
         click the Go! button
     % endif
     in less than ${int(max_reward_time)} seconds.</li>
-% endif        
-        
-        <li>Work simultaneously with other Turkers who have this task by moving the slider to agree on <b>the best photo in the video</b>.</li>
-        <li>If your slider is near other workers's sliders, we will narrow down  the video to that clip and keep going. You get a point if your slider was inside the clip when this happens. Continue narrowing down the video until you have agreed on one photo.</li>
-        <li>You will get paid if you earn at least one point.</li>
+% endif
     </ol>
+    
+    Then, the task:
+    <ol>        
+        <li>Work simultaneously with other Turkers by moving your slider to agree on <b>the best photo in the video</b>.</li>
+        <li>If your slider is near other Turkers's sliders, we will narrow down  the video to that clip and keep going. You get a point if your slider was inside the clip when this happens. Continue narrowing down the video until you have agreed on one photo.</li>
+        <li>We will pay anyone who has at least one point. If you had no points, we will ask you a backup question to verify payment.</li>
+    </ol>
+        
     <div id='time-report' style='display: none'></div>
 </div>
 
-<div id="waitContainer" class="task" style="border: none; width: 300px; padding: 0;">
-    <div>The video will appear at the latest in:</div>
-    <div id="countdown"></div>
-</div>
-
 <div class = "task" id="taskContainer">
-  <div id="goContainer"><img src="media/video-directions.png" id="directions" /></div>
+  <div id="goContainer"><img src="media/video-directions.png" id="directions" />
+  <div id="countdownContainer" class="countdown">
+        <div>The video will appear at the latest in:</div>
+        <div id="countdown"></div>
+    </div>
+  </div>
+  
   <div id="taskText">
     <div id="workerCount"></div>
     <div id="videoContainer">

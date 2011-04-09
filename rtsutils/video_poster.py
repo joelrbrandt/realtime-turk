@@ -14,6 +14,7 @@ from work_approver import expire_all_hits
 from break_handler import BreakHandler
 import video_hit
 import video_encoder
+import settings
 
 TIME_BETWEEN_RUNS = 30 # seconds
 VIDEO_DIRECTORY = '../web/media/videos/'
@@ -126,12 +127,17 @@ def encodeAndUpload(filename):
 
 
 if __name__ == "__main__":
+    if settings.SANDBOX:
+        wait_bucket = 4 * 60
+    else:
+        wait_bucket = 4 * 60
+
     # Parse the options
     parser = OptionParser()
     parser.add_option("-n", "--number-of-hits", dest="number_of_hits", help="NUMBER of hits", metavar="NUMBER", default = 3)
-    parser.add_option("-b", "--wait-bucket", dest="waitbucket", help="number of SECONDS to wait on retainer", metavar="SECONDS", default = 180)
+    parser.add_option("-b", "--wait-bucket", dest="waitbucket", help="number of SECONDS to wait on retainer", metavar="SECONDS", default = wait_bucket)
     parser.add_option("-p", "--price", dest="price", help="number of CENTS to pay", metavar="CENTS", default = 4)
-    parser.add_option("-x", "--expiration-time", dest="expiration", help="number of seconds before hit EXPIRES", metavar="EXPIRES", default = 6 * 60)
+    parser.add_option("-x", "--expiration-time", dest="expiration", help="number of seconds before hit EXPIRES", metavar="EXPIRES", default = 10 * 60)
     
     print("TODO: clean up existing HITs")
 

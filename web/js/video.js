@@ -518,7 +518,7 @@ function converged() {
         output.html("Great, you agreed " + accurateCount + " time" + (accurateCount == 1 ? '' : 's') + " out of " + (phases.length-1) + ". ");
         output.removeClass("wrongAnswer").addClass("rightAnswer");
     } else {
-        output.html("Oops. You agreed only " + accurateCount + " times out of " + (phases.length-1) + ". We'll be reviewing your work to make sure you are making a good faith effort and should be paid. ");
+        output.html("Oops. You agreed only " + accurateCount + " times out of " + (phases.length-1) + ". Please answer the backup question below correctly to guarantee payment. Then, submit.");
         output.addClass("wrongAnswer").removeClass("rightAnswer");
         
         showBackupTest();
@@ -543,6 +543,7 @@ function showBackupTest() {
             }
             
             $('#backupForm').append(backup_form);
+            $('#backup').show();
         }
     );
 }
