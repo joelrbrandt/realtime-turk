@@ -149,7 +149,6 @@ function showText() {
         if (timeDiff < maxRewardTime * 1000) {
             timeString = timeString + " You get the bonus!";
             $('#time-report').css('color', 'red');
-            grantBonus();
         }
         $('#time-report').html(timeString).fadeIn();
     }
@@ -161,18 +160,6 @@ function showText() {
     }
     $('#taskText').css("visibility", "visible");
     $('#taskContainer').effect('highlight', {}, 3000);
-}
-
-function grantBonus() {
-    if (isPreview()) {
-        return; // don't grant a bonus for a preview!
-    }
-    
-    var theURL = 'rts/bonus?workerId=' + workerid + '&assignmentId=' + assignmentid + '&hitId=' + hitid;
-
-    $.get(theURL, function(data) {
-        console.log("bonus logged");
-    });
 }
 
 function playSound() {

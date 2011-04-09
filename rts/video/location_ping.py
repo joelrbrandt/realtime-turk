@@ -185,7 +185,7 @@ def compareLocations(phase, servertime, db):
     
     # have to get the entire row containing the MAX(servertime), ugh ugly SQL.
     sql = """SELECT assignmentid, location FROM locations WHERE locations.phase = %s AND servertime >= %s """
-    result = db.query_and_return_array(sql, (phase['phase'], servertime - HYSTERESIS_SECONDS))
+    result = db.query_and_return_array(sql, (phase['phase'], max(servertime - HYSTERESIS_SECONDS, phase['start'])))
     #locations = sorted([row['location'] for row in result])
 
 

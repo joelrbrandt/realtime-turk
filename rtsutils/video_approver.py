@@ -8,6 +8,7 @@ import sys
 from optparse import OptionParser
 
 import simplejson as json
+from decimal import Decimal
 
 import settings
 
@@ -20,9 +21,11 @@ import mt_connection
 MINIMUM_ACCURACY = 1;
 APPROVE_REASON = "Accurate work. Thank you!"
 REJECT_REASON = "You did not choose enough meaningful or good-looking photos. Sorry."
-#BONUS_AMOUNT = 0.02
-#BONUS_REASON = "$0.02 bonus for quick response. Thank you!"
-#BONUS_TIME_LIMIT = 2.0 # seconds
+
+BONUS_AMOUNT = 0.03
+BONUS_REASON = "$0.03 bonus for quick response. Thank you!"
+BONUS_TIME_LIMIT = Decimal(2) # seconds
+
 
 """
 Mapping of answer dict keys (right) to meaning (left)
@@ -49,6 +52,25 @@ def answer_reviewer(answer):
         logging.exception("error reviewing answer: " + str(answer))
 
     return approve_response
+    
+def bonus_evaluator(answer):
+    """ Returns tuple (True/False [give bonus?], Amount [float], Reason [string])"""
+
+    bonus_response = (True, BONUS_AMOUNT, BONUS_REASON)
+    no_bonus_response = (False, None, None)
+    result = no_bonus_response
+    
+    try:
+        workerid = answer['w']
+        if condition.isReward(workerid):
+            show = parseISO(answer['sh'])
+            go = parseISO(answer['g'])
+            diff = go-show
+            if diff < BONUS_TIME_LIMIT:
+                result = bonus_response
+    except:
+        logging.exception('error calculating bonus for answer: ' + str(answer))
+    return result    
 
 def approve_video_hits_and_clean_up(verbose=True, dry_run=False):
     conn = mt_connection.get_mt_conn()
@@ -56,6 +78,7 @@ def approve_video_hits_and_clean_up(verbose=True, dry_run=False):
 
     reviewed_counts = work_approver.review_pending_assignments(conn,
                                                                answer_reviewer=answer_reviewer,
+                                                               bonus_evaluator= bonus_evaluator,
                                                                verbose=verbose,
                                                                dry_run=dry_run)
     
