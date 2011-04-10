@@ -31,15 +31,15 @@ def printVideoTimes(db):
     pprint_table(sys.stdout, table)
 
 def printPhaseTimes(db, all_videos):
-    table = [["video", "phase list", "phase", "width", "first go", "crowd go", "first ping", "crowd ping", "agreement", "total", "num workers", "on retainer"]]
+    table = [["video", "phase list", "phase", "phase order", "width", "first go", "crowd go", "first ping", "crowd ping", "agreement", "total", "num workers", "on retainer"]]
     
     rows = []
     for video in all_videos:
         video_rows = parseVideo(video['pk'], db)
         rows.extend(video_rows)
     
-    median_row = [ "median", "median", "median" ]
-    for column in range(3, len(rows[0])):
+    median_row = [ "median", "median", "median", "median" ]
+    for column in range(4, len(rows[0])):
         numpy_data = filter(lambda x: x is not None, list(numpy.array(rows)[:,column]))
         medians = numpy.median(numpy.array([ numpy_data ]))
         median_row.append(medians)
@@ -80,7 +80,7 @@ def parseVideo(videoid, db):
             
             retainers = db.query_and_return_array("""SELECT COUNT(DISTINCT assignmentid) FROM logging, phases WHERE event="ping-waiting" AND servertime >= (phases.start - 10) AND servertime <= phases.start AND phases.phase = %s""", (phase['phase'], ))[0]['COUNT(DISTINCT assignmentid)']
             
-            assignments = db.query_and_return_array("""SELECT * FROM assignments, locations WHERE assignments.assignmentid = locations.assignmentid AND phase = %s AND `submit` IS NOT NULL""", (phase['phase'], ))
+            assignments = db.query_and_return_array("""SELECT * FROM assignments, locations WHERE assignments.assignmentid = locations.assignmentid AND phase = %s AND `submit` IS NOT NULL GROUP BY assignments.assignmentid""", (phase['phase'], ))
             
             readies = sorted([datetime.fromtimestamp(row['go']) for row in assignments])
             shows = sorted([datetime.fromtimestamp(row['show']) for row in assignments])
@@ -104,7 +104,7 @@ def parseVideo(videoid, db):
                 agreement = total_seconds(end - start)
             total = total_seconds(end - start)
             
-            video_rows.append([videoid, phase_list['pk'], i+1, width, first_go, crowd_go, first_ping_wait, crowd_wait, agreement, total, phase['COUNT(DISTINCT assignmentid)'], retainers])
+            video_rows.append([videoid, phase_list['pk'], phase['phase'], i+1, width, first_go, crowd_go, first_ping_wait, crowd_wait, agreement, total, phase['COUNT(DISTINCT assignmentid)'], retainers])
     
     return video_rows
 

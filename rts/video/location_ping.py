@@ -187,7 +187,7 @@ def compareLocations(phase, servertime, db):
     # but only those people who have actually been around for HYSTERESIS seconds
     # in the phase (we don't want to fire when someone just clicked the slider
     # for the first time
-    sql = """SELECT assignmentid, location, servertime 
+    sql = """SELECT locations.assignmentid, location, servertime 
              FROM locations, (
                 SELECT assignmentid, phase, MIN(servertime) AS min_servertime FROM locations WHERE phase = %s GROUP BY assignmentid
             ) AS min_times WHERE locations.phase = min_times.phase AND min_times.assignmentid = locations.assignmentid AND servertime >= %s AND min_times.min_servertime <= %s"""
@@ -255,7 +255,7 @@ def getAgreement(phase_min, phase_max, locations):
             only_in_range = filter( lambda x: x['location'] >= range['min'] and x['location'] <= range['max'], assignment_locations)
             
             # if they never left and they've been in the phase long enough
-            if len(only_in_range) == len(assignment_locations) and been_in_phase:
+            if len(only_in_range) == len(assignment_locations):
                 range['agreement'] +=1
                 farthest_right = max(farthest_right, max(only_in_range, key = lambda x: x['location'])['location'])
         

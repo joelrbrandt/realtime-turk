@@ -40,7 +40,6 @@ function setMaxWaitCallback(showCallback, defaultWorkURL) {
 	    }
 	    $.get(randomURL, function(data) {
 		    showCallback(data);
-		    showGoButton();		    
 		});
 	}
     }, waitTime);
@@ -88,7 +87,6 @@ function generatePoll(callback) {
 		    window.clearTimeout(showTimeout);
             
 		    callback(data);
-		    showGoButton();
 		} else {
 		    checkInterval = window.setTimeout(generatePoll(callback), 1000);
 		}
@@ -108,6 +106,8 @@ function showGoButton() {
     $('#retainer').hide();
     $('#donebtn').hide();
     $('#waitContainer').hide();
+    $('#goContainer').hide();  
+    
     
     if (isTetris) {
         simulatePause();
@@ -154,7 +154,6 @@ function showText() {
     }
     
     //$('#donebtn').show();
-    $('#goContainer').hide();
     if (assignmentid != 0) {
         $('#donebtn').attr("disabled", "").html("Submit");    
     }

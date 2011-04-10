@@ -85,7 +85,6 @@ function loadParameters() {
  * Takes video data from the server and adds it to the page
  */
 function videoDataCallback(data) {
-
     var videoElement = $('<a href="media/videos/' + data['filename'] + '.flv"'
         + 'style="display:block; width: ' + data['width'] + 'px; ' 
         + 'height: ' + data['height'] + 'px;" id="player"></a>');
@@ -117,17 +116,11 @@ function initializeVideo() {
                 autoPlay: false,
                 autoBuffering: true,
                 onStart: function() {
-//                    console.log("START")
-                    // Go to random frame so everyone
-                    // doesn't choose the first frame
-                    //window.setTimeout(function() {
-                    //    console.log("TIMEOUT");
-
-                    //}, 0);
-                    
-                    //$f().stop();
-                    videoReady();
-                    //window.setTimeout(showGoButton, 500);
+                    // bug in flowplayer: random frame doesn't work onStart
+                    //window.setTimeout( function() {
+                        videoReady();
+                        showGoButton();
+                    //}, 250);
                 }                 
             },
                 
@@ -177,7 +170,7 @@ function videoReady() {
     console.log("videoready")
     videoLoaded = true;
     setRandomFrame();
-    updateSliderBackgroundRange();    
+    updateSliderBackgroundRange();
     locationPing();     // start the notification
 }
 
