@@ -116,7 +116,8 @@ def postVideo(db):
     available_to_post = [item for item in in_directory if item[:-4] not in in_db]
     if len(available_to_post) > 0:
         encodeAndUpload(VIDEO_DIRECTORY + random.choice(available_to_post))
-    
+    else:  
+        print("Nothing to post")
 
 def encodeAndUpload(filename):
     (head, tail) = os.path.split(filename) # ('/foo/bar/baz/', 'quux.txt')

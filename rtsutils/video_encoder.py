@@ -4,7 +4,7 @@ import subprocess, shlex
 from optparse import OptionParser
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from timeutils import unixtime
 
 def encodeVideo(head, name, extension):
@@ -39,6 +39,28 @@ def uploadVideo(name, width, height):
 
 def generateFilename(head, name, extension):
     return head+os.sep+name+extension
+    
+def getVideoLength(filename):
+    # raptor2: .64
+    cmd = "ffmpeg"
+    cmd += " -i " + filename
+
+    # how long is this video?
+    #Duration: ([0-9]{2}):([0-9]{2}):([^ ,])+
+    args = shlex.split(cmd)
+    process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+    output = process.communicate()[1]
+
+    pattern = re.compile('Duration: (?P<hours>[0-9]{2}):(?P<minutes>[0-9]{2}):(?P<seconds>[0-9]{2}).(?P<millis>[0-9]{2}),')#[^ ,])+')
+    groups = re.search(pattern, output.replace('\n', ''))
+    hours = int(groups.group('hours'))
+    minutes = int(groups.group('minutes'))
+    seconds = int(groups.group('seconds'))
+    millis = int(groups.group('millis'))    
+    
+    duration = timedelta(hours=hours, minutes=minutes, seconds=seconds, milliseconds = millis)
+    return duration
+    
     
 if __name__ == "__main__":
     parser = OptionParser() #no options now, the only thing is the 
