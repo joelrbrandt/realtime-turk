@@ -85,7 +85,7 @@ function loadParameters() {
  * Takes video data from the server and adds it to the page
  */
 function videoDataCallback(data) {
-    var videoElement = $('<a href="media/videos/' + data['filename'] + '.flv"'
+    var videoElement = $('<a href="media/videos/flv/' + data['filename'] + '.flv"'
         + 'style="display:block; width: ' + data['width'] + 'px; ' 
         + 'height: ' + data['height'] + 'px;" id="player"></a>');
 
