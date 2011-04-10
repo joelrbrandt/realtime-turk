@@ -14,7 +14,8 @@ def encodeVideo(head, name, extension):
     """Encodes the video into a FLV and returns the filename"""
 
     generateStills(head, name, extension)
-    generateMovie(head, name, '.jpg')
+    (movie_width, movie_height) = generateMovie(head, name, '.jpg')
+    return (movie_width, movie_height)
 
 def generateStills(head, name, extension):
     """Generates ~100 still JPEGs from the 3gp video"""
@@ -53,7 +54,6 @@ def generateMovie(head, name, extension):
     process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
     output = process.communicate()[1]
     print("Finished creating movie")
-    print(output)
 
     # get width and height from the output
 
