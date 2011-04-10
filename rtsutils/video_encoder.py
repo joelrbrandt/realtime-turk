@@ -15,7 +15,7 @@ def encodeVideo(head, name, extension):
 
 def generateStills(head, name, extension):
     """Generates ~100 still JPEGs from the 3gp video"""
-    # ffmpeg -r 25 -i filename.3gp -r {outputframerate} filename%3d.jpg
+    # ffmpeg -r 25 -i filename.3gp -r {outputframerate} -vframes 100 filename%3d.jpg
     
     output_frame_rate = int(100.0 / total_seconds(getVideoLength(generateFilename(head, name, extension)))) + 1
 
@@ -24,7 +24,8 @@ def generateStills(head, name, extension):
     cmd += " -i " + generateFilename(head, name, extension) # filename 
     cmd += " -y " # -y: force overwrite output files
     cmd += " -r " + str(output_frame_rate)
-    cmd += " " + generateFilename(head, name, "%3d.jpg") # output file
+    cmd += " -vframes 100 "
+    cmd += " " + generateFilename(head + os.sep + "output/", name, "%3d.jpg") # output file
     print("Stills command: %s" % cmd)
     
     args = shlex.split(cmd)
