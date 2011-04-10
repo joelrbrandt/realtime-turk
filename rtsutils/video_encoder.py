@@ -7,11 +7,14 @@ import re
 from datetime import datetime, timedelta
 from timeutils import unixtime, total_seconds
 
+JPG_DIRECTORY = "jpg"
+FLV_DIRECTORY = "flv"
+
 def encodeVideo(head, name, extension):
     """Encodes the video into a FLV and returns the filename"""
 
     generateStills(head, name, extension)
-    #generateMovie(head, name, extension)
+    generateMovie(head, name, '.jpg')
 
 def generateStills(head, name, extension):
     """Generates ~100 still JPEGs from the 3gp video"""
@@ -25,27 +28,36 @@ def generateStills(head, name, extension):
     cmd += " -y " # -y: force overwrite output files
     cmd += " -r " + str(output_frame_rate)
     cmd += " -vframes 100 "
-    cmd += " " + generateFilename(head + os.sep + "output/", name, "%3d.jpg") # output file
+    cmd += " " + generateFilename(head + os.sep + JPG_DIRECTORY, name, "%3d.jpg") # output file
     print("Stills command: %s" % cmd)
     
     args = shlex.split(cmd)
     process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
     output = process.communicate()[1]
-    print("Finished encoding")
+    print("Finished creating stills")
      
 
 def generateMovie(head, name, extension):
     """ Generates the FLV from the JPEGs. JPEGs must exist before calling this function or ffmpeg will make fun of you."""
-    # ffmpeg -i filename.3gp -an -g 1 filename.flv                                                                                                                
+    # ffmpeg -r 10 -i filename%3d.jpg -an -g 1 -y -vframes 100 -r 10 filename.flv
+
     cmd = "ffmpeg"
-    cmd += " -i " + generateFilename(head, name, extension) # filename                                                                                               cmd += " -an -g 1 -y " # an: no audio; -g 1: keyframe every frame; -y: force overwrite output files                                                              cmd += " " + generateFilename(head, name, ".flv") # output file                                                                                              
+    cmd += " -r 10 " # input "framerate" is 10 -- needs to match the second -r
+    cmd += " -i " + generateFilename(head + os.sep + JPG_DIRECTORY, name + "%3d", extension) # filename
+    cmd += " -an -g 1 -y " # an: no audio; -g 1: keyframe every frame; -y: force overwrite output files
+    cmd += " -vframes 100 " # we want 100 frames in the video
+    cmd += " -r 10 " # output framerate is 10 -- needs to match the first -r
+    cmd += " " + generateFilename(head + os.sep + FLV_DIRECTORY, name, ".flv") # output file
+
     args = shlex.split(cmd)
     process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
     output = process.communicate()[1]
-    print("Finished encoding")
+    print("Finished creating movie")
+    print(output)
 
-    # get width and height from the output                                                                                                                        
-    pattern = re.compile('Output.*Stream #0.*\ (?P<width>\d+)x(?P<height>\d+) \[')
+    # get width and height from the output
+
+    pattern = re.compile('Output.*Stream #0.*\ (?P<width>\d+)x(?P<height>\d+),')
     groups = re.search(pattern, output.replace('\n', ''))
     width = int(groups.group('width'))
     height = int(groups.group('height'))
