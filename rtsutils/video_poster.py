@@ -120,8 +120,7 @@ def postVideo(db):
         print("Nothing to post")
 
 def encodeAndUpload(filename):
-    (head, tail) = os.path.split(filename) # ('/foo/bar/baz/', 'quux.txt')
-    (name, extension) = os.path.splitext(tail) # ('quux', 'txt')
+    (head, name, extension) = video_encoder.splitPath(filename)
 
     (width, height) = video_encoder.encodeVideo(head, name, extension)
     video_encoder.uploadVideo(name, width, height)
@@ -129,7 +128,7 @@ def encodeAndUpload(filename):
 
 if __name__ == "__main__":
     if settings.SANDBOX:
-        wait_bucket = 5
+        wait_bucket = 4 * 60
     else:
         wait_bucket = 4 * 60
 
