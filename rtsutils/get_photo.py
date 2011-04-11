@@ -10,4 +10,7 @@ def getPhotos(filename):
     db = DBConnection()
     locations = db.query_and_return_array("""SELECT DISTINCT location FROM pictures, videos WHERE pictures.videoid = videos.pk AND videos.filename = %s""", (filename, ))
     
-    return [VIDEO_HOST_DIRECTORY + filename + ('%03d' % int(row['location'] * 100)) + '.jpg' for row in locations]
+    # don't forget off-by-one: slider starts at 0, but first photo is photo1.jpg
+    filenumbers = ['%03d' % min(int(row['location'] * 100 + 1), 100) for row in locations]
+    
+    return [VIDEO_HOST_DIRECTORY + filename + filenumber + '.jpg' for filenumber in filenumbers]
