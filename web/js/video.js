@@ -90,7 +90,7 @@ function videoDataCallback(data) {
         + 'height: ' + data['height'] + 'px;" id="player"></a>');
 
     // idea for range background slider from http://stackoverflow.com/questions/2992148/jquery-slider-set-background-color-to-show-desired-range
-    var sliderElement = $('<div id="slider" style="width: ' + data['width'] + 'px"><div class="range"></div><div class="range below">Find photo in this clip</div></div>');
+    var sliderElement = $('<div id="slider" style="width: ' + data['width'] + 'px"><div id="backgroundSlider" class="range"></div><div class="range below">Find photo in this clip</div></div>');
 
     $('#videoContainer').append(videoElement).append(sliderElement);    
     
@@ -146,7 +146,6 @@ function initializeVideo() {
             if (percent < phase['min'] || percent > phase['max']) {
                 return false;
             }
-            
 
                 seekVideoToPercent(percent);
             }
@@ -171,7 +170,10 @@ function videoReady() {
     videoLoaded = true;
     setRandomFrame();
     updateSliderBackgroundRange();
-    locationPing();     // start the notification
+    
+    if (!isReplay) {
+        locationPing();     // start the notification
+    }
 }
 
 /**

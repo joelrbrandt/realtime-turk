@@ -32,6 +32,13 @@
     background-color: #3F48FF;
 }
 
+.replayMark {
+    position: relative;
+    top: 20px;
+    height: 100%;
+    left: 0%;    
+}
+
 .below {
     background-color: #FFFFFF;
     position: relative;

@@ -22,6 +22,11 @@ if fieldstorage.has_key('workerId'):
 else:
     worker_id = 0
     
+if fieldstorage.has_key('replay'):
+    is_replay = (fieldstorage['replay'] == "1")
+else:
+    is_replay = False
+    
 if fieldstorage.has_key('assignmentId'):
     assignment_id = fieldstorage['assignmentId']
     if assignment_id == "ASSIGNMENT_ID_NOT_AVAILABLE":
@@ -62,6 +67,9 @@ max_reward_time = BONUS_TIME_LIMIT
     <script src="js/video.js" type="text/javascript"></script>
     <script type="text/javascript" src="lib/date.js"></script>
     <script type="text/javascript" src="js/retainer-video.js"></script>
+% if is_replay:
+    <script type="text/javascript" src="js/replay.js"></script>
+% endif
 
     <script type="text/javascript">
         var maxWaitTime = ${wait_time};
@@ -71,6 +79,7 @@ max_reward_time = BONUS_TIME_LIMIT
         var isAlert = ${str(is_alert).lower()};
         var isReward = ${str(is_reward).lower()};
         var isTetris = ${str(is_tetris).lower()};
+        var isReplay = ${str(is_replay).lower()};        
     </script>
 
 </head>
