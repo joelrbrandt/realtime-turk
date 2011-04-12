@@ -43,7 +43,6 @@ def answer_reviewer(answer):
     result = None
     approve_response = (True, APPROVE_REASON)
     reject_response = (False, REJECT_REASON)
-    return approve_response
 
     try:
         phases = json.loads(answer['p'])

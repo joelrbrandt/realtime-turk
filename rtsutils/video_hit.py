@@ -10,9 +10,9 @@ DEFAULT_ASSIGNMENT_DURATION = 60*10
 DEFAULT_LIFETIME = 60*10
 DEFAULT_AUTO_APPROVAL_DELAY = 60*60*24*7
 
-TITLE = "Find the best photo moments"
-DESCRIPTION = "Find the best photographic moments in a 5-10sec video"
-KEYWORDS = "video photography"
+TITLE = "Best photo moments"
+DESCRIPTION = "Find the best photographic moments in a 5-10sec video, quickly"
+KEYWORDS = "video photography quick"
 REWARD = 0.03
 
 class VideoHit(ExternalHit):

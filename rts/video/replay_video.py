@@ -18,10 +18,10 @@ def replayLog(request):
     phases = db.query_and_return_array("""SELECT * FROM phases, 
                 (SELECT phase_lists.pk AS phase_list FROM
                 phase_lists, pictures
-                WHERE phase_lists.videoid = %s AND phase_lists.is_historical = FALSE AND phase_lists.pk = pictures.phase_list LIMIT 1) AS pl WHERE phases.phase_list = pl.phase_list ORDER BY phase""", (videoid, ))
+                WHERE phase_lists.videoid = %s AND phase_lists.is_historical = FALSE AND phase_lists.pk = pictures.phase_list ORDER BY phase_lists.pk DESC LIMIT 1) AS pl WHERE phases.phase_list = pl.phase_list ORDER BY phase""", (videoid, ))
     
     for phase in phases:
-        locations = db.query_and_return_array("""SELECT location, servertime, assignmentid
+        locations = db.query_and_return_array("""SELECT location, servertime, assignmentid, phase
                 FROM locations WHERE phase = %s ORDER BY servertime""", (phase['phase'], ))
         phase['locations'] = locations
     

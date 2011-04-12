@@ -17,10 +17,13 @@ AGREEMENT_RANGE = Decimal(25) / Decimal(100)   # Agreement must occur within thi
 AGREEMENT_PERCENT = (1.0 / 3) # This % of workers must agree on a range
 AGREEMENT_MINIMUM = 2   # At least this many must agree (no single person!)
 
-HYSTERESIS_SECONDS = Decimal(str(2.5))
+HYSTERESIS_SECONDS = Decimal(str(3.0))
 
 PHASE_MAX_AGE_IN_SECONDS = 30
 MAX_TIME_TO_WAIT_ALONE_IN_SECS = 10
+
+# worker must have seen at least this % of the available area
+MINIMUM_RANGE_EXPLORATION = Decimal(1) / Decimal(10)
 
 def locationPing(request):
     request.content_type = "application/json"
@@ -187,15 +190,20 @@ def compareLocations(phase, servertime, db):
     # but only those people who have actually been around for HYSTERESIS seconds
     # in the phase (we don't want to fire when someone just clicked the slider
     # for the first time
-    sql = """SELECT locations.assignmentid, location, servertime 
+    sql = """SELECT locations.assignmentid, location, servertime,
+             min_times.range_percent
              FROM locations, (
-                SELECT assignmentid, phase, MIN(servertime) AS min_servertime FROM locations WHERE phase = %s GROUP BY assignmentid
-            ) AS min_times WHERE locations.phase = min_times.phase AND min_times.assignmentid = locations.assignmentid AND servertime >= %s AND min_times.min_servertime <= %s"""
-    result = db.query_and_return_array(sql, (phase['phase'], time_floor, time_floor ))
+                SELECT assignmentid, locations.phase, 
+                (MAX(location) - MIN(location) + 0.01)/(max - min + 0.01) AS range_percent 
+                FROM locations, phases
+                WHERE locations.phase = %s 
+                AND locations.phase = phases.phase
+                GROUP BY assignmentid                
+            ) AS min_times WHERE locations.phase = min_times.phase AND min_times.assignmentid = locations.assignmentid AND servertime >= %s"""
+    result = db.query_and_return_array(sql, (phase['phase'], time_floor ))
     #locations = sorted([row['location'] for row in result])
 
     if len(result) == 0:
-        # all locations are just too recent
         return (False, None, None)
     
     # has the user been waiting alone?
@@ -234,12 +242,13 @@ def getAgreement(phase_min, phase_max, locations):
     
     # The effective range that workers must agree on
     agreement_range = AGREEMENT_RANGE * Decimal(phase_max - phase_min)
-    logging.debug("Agreement range: %s, phase range %s" % (agreement_range, phase_max - phase_min))
+    #logging.debug("Agreement range: %s, phase range %s" % (agreement_range, phase_max - phase_min))
     
     # We need to find out if at least required_workers have agreed on
     # a range that is at most agreement_range
     
     locations_by_worker = groupByKey(locations, lambda x: x['assignmentid'])    
+    logging.debug("How many locations? %s", (len(locations), ))
     
     # 
     ranges = []
@@ -252,7 +261,7 @@ def getAgreement(phase_min, phase_max, locations):
         
         farthest_right = range['min']
         for (assignmentid, assignment_locations) in locations_by_worker.items():
-            only_in_range = filter( lambda x: x['location'] >= range['min'] and x['location'] <= range['max'], assignment_locations)
+            only_in_range = filter( lambda x: x['location'] >= range['min'] and x['location'] <= range['max'] and x['range_percent'] >= MINIMUM_RANGE_EXPLORATION, assignment_locations)
             
             # if they never left and they've been in the phase long enough
             if len(only_in_range) == len(assignment_locations):
@@ -262,10 +271,10 @@ def getAgreement(phase_min, phase_max, locations):
         # Now snip the max to be just as large as the rightmost
         # most recent ping
         range['max'] = farthest_right
-
-        logging.debug("Agreement %s in [%s, %s)" % (range['agreement'], range['min'], range['max']) )        
         
         ranges.append(range)
+    logging.debug("Agreements: %s", (range,) )                
+        
     return ranges
 
 def groupByKey(iterable, key):
@@ -303,19 +312,19 @@ def compareToHistoricalPhase(phase, servertime, db):
     """ Uses an older phase to mimic other people when there
     is nobody else around for this user to play with """
     
-    # note that this phase list is using historical data
-    sql = """UPDATE phase_lists, phases SET is_historical = TRUE
-            WHERE phases.phase = %s 
-            AND phases.phase_list = phase_lists.pk
-    """
-    db.query_and_return_array(sql, (phase['phase'], ))
-    
     older_phase = getNextHistoricalPhase(phase, db)
     
     if older_phase is None:
         logging.info("Keep waiting; no historical phases to refer to.") 
         return (False, None, None)
-    else:         
+    else:
+        # note that this phase list is using historical data
+        sql = """UPDATE phase_lists, phases SET is_historical = TRUE
+                WHERE phases.phase = %s 
+                AND phases.phase_list = phase_lists.pk
+        """
+        db.query_and_return_array(sql, (phase['phase'], ))    
+    
         # we should be able to call compareLocations on the older
         # phase and get the older result back, which we can use
         # to simulate what happened in the past

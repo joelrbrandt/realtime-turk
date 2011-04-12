@@ -189,9 +189,13 @@ function seekVideoToPercent(percent) {
  * Colors the slider and prevents it from 
  * moving outside the given range
  */
-function updateSliderBackgroundRange() {
-    var left = phase['min'] * 100;
-    var width = (phase['max'] - phase['min']) * 100; // percent
+function updateSliderBackgroundRange(updatePhase) {
+    if (!updatePhase) {
+        updatePhase = phase;    // use current phase
+    }
+
+    var left = updatePhase['min'] * 100;
+    var width = (updatePhase['max'] - updatePhase['min']) * 100; // percent
     $(".range").css( { "left": left + "%", 
                         "width": width + "%" } )
     
@@ -208,8 +212,8 @@ function updateSliderBackgroundRange() {
     // make sure the slider's current position is in range
     var slider = $('#slider');
     var currentValue = slider.slider('value');
-    var minSlider = (phase['min'] * SLIDER_MAX);
-    var maxSlider = (phase['max'] * SLIDER_MAX);
+    var minSlider = (updatePhase['min'] * SLIDER_MAX);
+    var maxSlider = (updatePhase['max'] * SLIDER_MAX);
     if (currentValue < minSlider || currentValue > maxSlider) {
         setRandomFrame();
     }

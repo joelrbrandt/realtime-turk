@@ -93,3 +93,7 @@
 #backup {
     display: none;
 }
+
+#replayWarning {
+    text-align: center;
+}
