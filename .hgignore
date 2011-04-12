@@ -1,0 +1,16 @@
+# use glob syntax.
+syntax: glob
+
+settings.py
+quik/run.pl
+quik/quik.sh
+*.js.database
+*.pyc
+long-poll-server/rts_config.py
+rts/video/output/*
+web/media/videos/jpg
+web/media/videos/flv
+web/media/videos/*.3gp
+web/media/videos/*.flv
+.DS_Store
+logfile.log
