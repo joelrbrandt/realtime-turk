@@ -94,6 +94,7 @@ def parseResults():
 
     graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments), lambda x: x.wait_bucket)
     
+    raw_input("Press Enter to continue...")
     graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments), lambda x: x.condition)
 
 def getAssignments(experiments):
