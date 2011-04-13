@@ -16,7 +16,7 @@ from padnums import pprint_table
 import sys
 from itertools import groupby
 
-EXPERIMENTS = range(72, 75) #range(50, 56)
+EXPERIMENTS = range(72, 76) #range(50, 56)
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
