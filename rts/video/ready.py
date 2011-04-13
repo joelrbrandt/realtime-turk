@@ -53,11 +53,11 @@ def getAndAssignVideo(assignmentid, videoid, restart_if_converged = False):
 """ Gets a Python dict for the video """
 def getVideo(videoid, restart_if_converged = False):
     db = DBConnection()
-    result = db.query_and_return_array("""SELECT pk, width, height, filename FROM videos WHERE pk = %s""", (videoid, ) )[0]
+    result = db.query_and_return_array("""SELECT pk, width, height, filename, creationtime FROM videos WHERE pk = %s""", (videoid, ) )[0]
 
     json_out = dict(is_ready = True, width = result['width'],
                     height = result['height'], filename = result['filename'],
-                    videoid = result['pk'])
+                    videoid = result['pk'], creationtime = result['creationtime'])
     
     # get or create a video labeling phase
     phase = location_ping.getMostRecentPhase(videoid, db, restart_if_converged = restart_if_converged)

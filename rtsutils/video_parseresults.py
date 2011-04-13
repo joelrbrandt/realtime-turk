@@ -70,6 +70,10 @@ def parseVideo(videoid, db):
         phases = db.query_and_return_array("""SELECT *, COUNT(DISTINCT assignmentid) FROM phases, locations WHERE phases.phase_list = %s AND locations.phase = phases.phase GROUP BY phases.phase ORDER BY start""", (phase_list['pk'],))
     
         for (i, phase) in enumerate(phases):
+            if phase['COUNT(DISTINCT assignmentid)'] < 2:
+                print("WARNING: one of the photos is missing people. What's going on?\nWARNING\nWARNING\nWARNING\nWARNING\nWARNING")
+                continue
+        
             start = datetime.fromtimestamp(phase['start'])
             end = datetime.fromtimestamp(phase['end'])                    
         

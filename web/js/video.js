@@ -33,6 +33,7 @@ var has_moved_slider = false;
 
 var times = {
     accept: null,
+    videoUpload: null,
     show: null,
     go: null,
     submit: null
@@ -51,7 +52,6 @@ $(document).ready(function() {
 
 	$('#snapshotBtn').click(shoot);
 	$('#donebtn').hide().attr("disabled", "true").html("HIT will be submittable after job appears");
-    //initializeVideo();
 });
 
 /**
@@ -98,9 +98,10 @@ function videoDataCallback(data) {
     phases.push(phase)
     videoid = data['videoid'];
     
+    times.videoUpload = new Date();
+    times.videoUpload.setTime(data['creationtime'] * 1000);
+    
     console.log("Phase " + phase['phase']);
-
-    //$f().play( { url: 'media/videos/' + data['filename'] + '.flv' } )
 
     initializeVideo();
 }
@@ -141,18 +142,25 @@ function initializeVideo() {
     
     $( "#slider" ).slider( {
         slide: function(event, ui) {
-        if (videoLoaded) {
-            var percent = ui.value / SLIDER_MAX;
-            if (percent < phase['min'] || percent > phase['max']) {
-                return false;
-            }
-
+            if (videoLoaded) {
+                var percent = ui.value / SLIDER_MAX;
+                var smallestPossiblePhase = getStreamPhase();
+                if (percent < smallestPossiblePhase['min'] || percent > smallestPossiblePhase['max']) {
+                    return false;
+                }
+    
                 seekVideoToPercent(percent);
             }
-            
+                
             if (!has_moved_slider) {
                 has_moved_slider = true;
             }
+            
+            /*
+            if (!isReplay) {
+                uploadLocation(false);
+            }
+            */
         },
         
         min: 0,
@@ -166,10 +174,11 @@ function initializeVideo() {
  * Event called when the video is ready to navigate
  */
 function videoReady() {
-    console.log("videoready")
     videoLoaded = true;
     setRandomFrame();
     updateSliderBackgroundRange();
+    
+    stream();
     
     if (!isReplay) {
         locationPing();     // start the notification
@@ -223,11 +232,22 @@ function updateSliderBackgroundRange(updatePhase) {
  * Sets the video to a random frame when it finishes loading
  */
 function setRandomFrame() {
-    var duration = $f().getClip().fullDuration;
+    var duration = $f().getClip().fullDuration;    
     var rand = getRandomArbitrary(phase['min'], phase['max']);
     
     $('#slider').slider("value", rand * 100);
     $f().seek(duration * rand).getPlugin("play").hide();
+}
+
+function getBackgroundRange() {
+    var left = $('#backgroundSlider').position()['left'];
+    var width = $('#backgroundSlider').width();
+    var wholeWidth = $('#slider').width();
+    
+    var start = left / wholeWidth;
+    var end = start + (width / wholeWidth);
+    
+    return { start: start, end: end }
 }
 
 // Returns a random number between min and max
@@ -540,10 +560,9 @@ function converged() {
 function showBackupTest() {
     $.getJSON('rts/video/validation',
         function(data) {
-            console.log(data);
             var backup_form = "" 
             for (var i=0; i<data.length; i++) {
-                backup_form = backup_form + "<div><input type='radio' name='backup' value='" + data[i] + "'><img src='media/videos/greg/" + data[i]  + "' width='350' /></input></div>"
+                backup_form = backup_form + "<div><input type='radio' name='backup' value='" + data[i] + "'><img src='media/verification/" + data[i]  + "' width='350' /></input></div>"
             }
             
             $('#backupForm').append(backup_form);
@@ -556,17 +575,19 @@ function showBackupTest() {
 /**
  * Tells the server what frame of the video I'm looking at.
  */
-var LOCATION_PING_FREQUENCY = 500;  // millis
+var LOCATION_PING_FREQUENCY = 250;  // millis
 var CONVERGE_WAIT_TIME = 750;   // millis
-function locationPing() {    
+function locationPing() {
+    uploadLocation(true);
+}
+
+function uploadLocation(includeTimeout) {
     var sliderLoc = $('#slider').slider('value') / SLIDER_MAX;
     
-    // TODO: reorganize so we don't need to repeat setTimeout
     if (!has_moved_slider) {
         window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);
     }
     else{
-        
         var url = "rts/video/location";
         url += "?phase=" + phase['phase'];
         url += "&assignmentid=" + assignmentid;
@@ -594,14 +615,46 @@ function locationPing() {
                 
                 updateCount(data['numworkers']);
             
+                
                 // Have we converged?
-                if (data['max'] - data['min'] == 0) {
+                if (data['max'] - data['min'] == 0 && includeTimeout) {
                     console.log("We converged!");
                     window.setTimeout(converged, CONVERGE_WAIT_TIME);
-                } else {
+                } else if (includeTimeout) {
                     window.setTimeout(locationPing, LOCATION_PING_FREQUENCY);
                 }
             }
         );
+    }
+}
+
+/**
+ * Returns the current effective phase range. Might be smaller than
+ * the full phase if the video is still "streaming" in
+ */
+function getStreamPhase() {
+    var diff = (new Date()) - times.videoUpload;
+    var duration = $f().getClip().fullDuration * 1000;
+    var percent = Math.min(1.0, diff/duration);
+    
+    var phaseCopy = $.extend(true, {}, phase);
+    var width = phase['max'] - phase['min'];
+    phaseCopy['max'] = phase['min'] + (width * percent);
+    return phaseCopy;
+}
+
+/**
+ * Uploads the video as it "comes in" from the server
+ */
+function stream() {
+    if (phase['min'] != 0 || phase['max'] != 1) {
+        return;     // we're dooooone
+    }    
+    
+    var phaseCopy = getStreamPhase();
+    updateSliderBackgroundRange(phaseCopy);
+    
+    if (phaseCopy['max'] != phase['max']) { // we're not done yet
+        window.setTimeout(stream, 200);
     }
 }

@@ -1,4 +1,6 @@
-from mod_python import apache, util
+import sys
+if sys.modules.has_key('mod_python'):
+    from mod_python import apache, util
 import json
 from datetime import datetime, timedelta
 
