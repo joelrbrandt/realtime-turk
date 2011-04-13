@@ -91,8 +91,10 @@ def parseResults():
         
     print("\n\n")
     printCurrentlyActiveCount(EXPERIMENTS)
+
+    graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments), lambda x: x.wait_bucket)
     
-    graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments), lambda x: x.condition)   
+    graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments), lambda x: x.condition)
 
 def getAssignments(experiments):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 

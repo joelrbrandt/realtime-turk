@@ -82,10 +82,10 @@ function drawLocation(location) {
     }
     
     var left = (location['location'] * 100) - MARK_WIDTH/2;
-    $('#' + location['assignmentid']).animate( { "left": left + "%" }, ANIMATION_TIME, 'linear', function() { console.log(location['location'] + " " + location['assignmentid'] + " " + location['servertime']); }).effect('pulsate', {times: 1}, 100);
+    $('#' + location['assignmentid']).animate( { "left": left + "%" }, ANIMATION_TIME, 'linear', function() { console.log(location['location'] + " " + location['assignmentid'] + " " + location['servertime']); });//.effect('pulsate', {times: 1}, 100);
     
     if (location['phase'] != assignmentPhases[location['assignmentid']]) {
-        $('#' + location['assignmentid']).effect("pulsate", {times: 1}, ANIMATION_TIME);
+        $('#' + location['assignmentid']).effect("highlight", {times: 1}, ANIMATION_TIME);
         assignmentPhases[location['assignmentid']] = location['phase'];
     }
     
