@@ -8,6 +8,7 @@ quik/quik.sh
 *.pyc
 long-poll-server/rts_config.py
 rts/video/output/*
+web/media/videos/*
 web/media/videos/jpg
 web/media/videos/flv
 web/media/videos/*.3gp

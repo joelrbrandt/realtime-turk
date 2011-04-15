@@ -27,6 +27,11 @@ if fieldstorage.has_key('replay'):
 else:
     is_replay = False
     
+if fieldstorage.has_key('slow'):
+    is_slow = (fieldstorage['slow'] == "1")
+else:
+    is_slow = False    
+    
 if fieldstorage.has_key('assignmentId'):
     assignment_id = fieldstorage['assignmentId']
     if assignment_id == "ASSIGNMENT_ID_NOT_AVAILABLE":
@@ -70,6 +75,9 @@ max_reward_time = BONUS_TIME_LIMIT
 % if is_replay:
     <script type="text/javascript" src="js/replay.js"></script>
 % endif
+% if is_slow:
+    <script type="text/javascript" src="js/slow.js"></script>
+% endif
 
     <script type="text/javascript">
         var maxWaitTime = ${wait_time};
@@ -80,6 +88,7 @@ max_reward_time = BONUS_TIME_LIMIT
         var isReward = ${str(is_reward).lower()};
         var isTetris = ${str(is_tetris).lower()};
         var isReplay = ${str(is_replay).lower()};        
+        var isSlow = ${str(is_slow).lower()};                
     </script>
 
 </head>
@@ -108,16 +117,27 @@ max_reward_time = BONUS_TIME_LIMIT
     
     Then, the task:
     <ol>        
+% if is_slow:
+        <li>You will be shown a 5-10 second video with a slider below it.</li>
+        <li>Move the slider to identify <b>the best photo in the video</b>.</li>
+        <li>Click "Good Photo" to choose the photo. Once you have one that you are happy with, click "Submit".</li>
+% else:
         <li>Work simultaneously with other Turkers by moving your slider to agree on <b>the best photo in the video</b>.</li>
         <li>If your slider is near other Turkers's sliders, we will narrow down  the video to that clip and keep going. You get a point if your slider was inside the clip when this happens. Continue narrowing down the video until you have agreed on one photo.</li>
         <li>We will pay anyone who has at least one point. If you had no points, we will ask you a backup question to verify payment.</li>
     </ol>
-        
+% endif
+
     <div id='time-report' style='display: none'></div>
 </div>
 
 <div class = "task" id="taskContainer">
-  <div id="goContainer"><img src="media/video-directions.png" id="directions" />
+  <div id="goContainer">
+% if is_slow:
+  <img src="media/video-directions-slow.png" id="directions" />
+% else:
+  <img src="media/video-directions.png" id="directions" />
+% endif  
   <div id="countdownContainer" class="countdown">
         <div>The video will appear at the latest in:</div>
         <div id="countdown"></div>
@@ -131,12 +151,6 @@ max_reward_time = BONUS_TIME_LIMIT
         <div id="slider" style="width: 720px"><div class="range"></div><div class="range below">Find photo in this clip</div></div>        
         -->
     </div>  
-  
-    <div id="photos">
-      <!--<div><button id="snapshotBtn">Good Photo</button></div>-->
-      <!--<div class="countdown">6 seconds</div>-->
-      <div id="output"></div>
-    </div>
   </div>
   
   <div id="backup">
@@ -146,7 +160,7 @@ max_reward_time = BONUS_TIME_LIMIT
   
     <div>
       <div style="color: red;" id="submitError"></div>
-      <button id="donebtn">Submit</button>
+      <button id="donebtn" class="largebutton" >Submit</button>
     </div>  
 </div>
 

@@ -64,9 +64,13 @@
     color: red;
 }
 
-#donebtn {
+.largebutton {
     font-size: 24pt;
     margin-top: 20px;
+
+}
+
+#donebtn {
 }
 
 #directions {
