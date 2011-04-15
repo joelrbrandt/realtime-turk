@@ -21,28 +21,32 @@ def is_ready(request):
     assignmentid = form['assignmentid'].value
     workerid = form['workerid'].value
     
-    # we need videos that have no pictures yet
-    result = db.query_and_return_array("""
-        SELECT pk FROM videos
-        
-        LEFT JOIN (SELECT COUNT(*) AS numPictures, 
-        videoid FROM pictures GROUP BY videoid)
-        AS pictureCount
-        ON pictureCount.videoid = videos.pk        
-        
-        WHERE pictureCount.numPictures IS NULL
-        
-        ORDER BY videos.pk DESC """)
+    if form.has_key('videoid'):
+        videoid = int(form['videoid'].value)
+    else:        
+        # we need videos that have no pictures yet
+        result = db.query_and_return_array("""
+            SELECT pk FROM videos
+            
+            LEFT JOIN (SELECT COUNT(*) AS numPictures, 
+            videoid FROM pictures GROUP BY videoid)
+            AS pictureCount
+            ON pictureCount.videoid = videos.pk        
+            
+            WHERE pictureCount.numPictures IS NULL
+            
+            ORDER BY videos.pk DESC """)
+    
+        if len(result) == 0:
+            request.write(json.dumps( { 'is_ready' : False } ))
+            return
+        else:
+            # grab the most recent video upload
+            logging.debug("Videos needing labels: " + str(result))        
+            videoid = result[0]['pk']
 
-    if len(result) == 0:
-        request.write(json.dumps( { 'is_ready' : False } ))
-    else:
-        # grab the most recent video upload
-        logging.debug("Videos needing labels: " + str(result))        
-        videoid = result[0]['pk']
-        video = getAndAssignVideo(assignmentid, videoid)
-        
-        request.write(json.dumps(video, cls = location_ping.DecimalEncoder) )
+    video = getAndAssignVideo(assignmentid, videoid)        
+    request.write(json.dumps(video, cls = location_ping.DecimalEncoder) )
 
 def getAndAssignVideo(assignmentid, videoid, restart_if_converged = False):
     """Gets the given video from the database, and populates a dict with its properties. Assigns the video to the worker in the database. """

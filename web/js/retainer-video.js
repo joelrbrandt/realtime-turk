@@ -63,6 +63,12 @@ function pingAlive() {
 function generatePoll(callback) {
     var theFunction = function() {
 	var theURL = 'rts/video/ready?workerid=' + workerid + '&assignmentid=' + assignmentid;
+	
+	// if they specified a video, use that
+	if (videoid != 0) {
+	    theURL = theURL + "&videoid=" + videoid;
+	}
+	
 	$.get(theURL, function(data) {
 	
 	/*

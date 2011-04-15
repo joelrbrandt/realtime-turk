@@ -4,10 +4,7 @@
 
 var SCALE_FACTOR = 0.25;
 var RANDOM_TASK_URL = "rts/video/random";
-var TOTAL_PHOTOS = 3;
 var SLIDER_MAX = 100;
-
-var snapshots = [];
 
 var assignmentid = 0;
 var workerid = 0;
@@ -50,7 +47,6 @@ $(document).ready(function() {
 	initPrototypes();    // some browsers don't have toISOString()
 	initServerTime();
 
-	$('#snapshotBtn').click(shoot);
 	$('#donebtn').hide().attr("disabled", "true").html("HIT will be submittable after job appears");
 });
 
@@ -180,7 +176,7 @@ function videoReady() {
     
     stream();
     
-    if (!isReplay) {
+    if (!isReplay && !isSlow) {
         locationPing();     // start the notification
     }
 }
@@ -256,54 +252,7 @@ function getRandomArbitrary(min, max)
   return Math.random() * (max - min) + min;
 }
  
-/**
- * Invokes the <code>capture</code> function and attaches the canvas element to the DOM.
- */
-function shoot(){
-    var video  = $('#player');
-    var snapshot = $f().getTime();
-
-    if ($.inArray(snapshot, snapshots) != -1) {
-        $('#submitError').html("You already have that picture. Choose another one.");
-    }
-    else {
-        snapshots.unshift(snapshot);
-        $('#submitError').html('');
-    }
-    
-    logEvent("picture", { 'timestamp': snapshot }, null);
-    refreshShots();
-}
-
-/**
- * Refreshes the set of pictures
- */
-function refreshShots() {
-    var output = $('#output');
-    output.html("")
-    for(var i=0; i<snapshots.length; i++){
-        var ssElement = $("<div class='snapshot' id='snapshot" + i + "'></div>");
-        //ssElement.append(snapshots[i].canvas);
-        ssElement.append("<div>" + Math.round(snapshots[i]*100)/100 + "sec</div>");
-        ssElement.append("<a href='#' class='remove'>(remove)</a>");
-        output.append(ssElement);
-    }
-    
-    $('.remove').click(function() {
-	    var snapshot = $(this).parent(".snapshot");
-	    var ssId = parseInt(snapshot.attr('id').substring("snapshot".length));
-	    snapshots.splice(ssId, 1);
-	    refreshShots();
-    });
-}
-
 function submitForm() {
-/*
-    if (snapshots.length < TOTAL_PHOTOS) {
-        $('#submitError').html("You have selected fewer than three photos. Please select at least three photos and then submit.");
-        return;
-    }
-*/
     // record the time of submission in the times array
     times.submit = getServerTime();
 

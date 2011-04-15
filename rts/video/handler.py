@@ -41,6 +41,11 @@ def handler(request):
         import replay_video
         replay_video.replayLog(request)
         return apache.OK
+        
+    elif uri_parts[-1] == "slowsubmit":
+        import slow_submit
+        slow_submit.slowSubmit(request)
+        return apache.OK
 
     else:
         # request.content_type = "text/plain"
