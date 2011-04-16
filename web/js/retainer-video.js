@@ -38,6 +38,10 @@ function setMaxWaitCallback(showCallback, defaultWorkURL) {
 	        // manually specify video
 	        randomURL += "&videoid=" + videoid
 	    }
+	    if (isSlow) {
+	        // make sure we're in slow mode
+	        randomURL += "&slow=1";
+	    }
 	    $.get(randomURL, function(data) {
 		    showCallback(data);
 		});
@@ -63,6 +67,10 @@ function pingAlive() {
 function generatePoll(callback) {
     var theFunction = function() {
 	var theURL = 'rts/video/ready?workerid=' + workerid + '&assignmentid=' + assignmentid;
+	
+	if (isSlow) {
+	    theURL = theURL + '&slow=1';
+	}
 	
 	// if they specified a video, use that
 	if (videoid != 0) {

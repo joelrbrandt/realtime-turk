@@ -100,6 +100,10 @@ function videoDataCallback(data) {
     console.log("Phase " + phase['phase']);
 
     initializeVideo();
+    
+    if (isSlow) {
+        $('#snapshotBtn').show();
+    }
 }
 
 /**

@@ -6,6 +6,7 @@ import logging
 from rtsutils.db_connection import DBConnection
 
 import submit
+from ready import PHOTOGRAPHER_ID
 
 def slowSubmit(request):
     """ Handles submissions from the "slow" server """
@@ -24,7 +25,7 @@ def slowSubmit(request):
     for snapshot in snapshots:
         db.query_and_return_array("""INSERT INTO slow_snapshots (assignmentid, location) VALUES (%s, %s)""", (assignmentid, snapshot) )
 
-    if workerid == "photographer":
+    if workerid == PHOTOGRAPHER_ID:
         # photographer doesn't submit a HIT :)
         submit.log_submission_in_db(request)
         request.write("OK, got it! %s for %s" % (snapshots, assignmentid))
