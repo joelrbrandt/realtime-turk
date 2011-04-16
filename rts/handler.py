@@ -15,6 +15,9 @@ def handler(request):
     if uri_parts[2] == 'video':
         import rts.video.handler as videoHandler
         return videoHandler.handler(request)
+    elif uri_parts[2] == 'vote':
+        import rts.vote.handler as voteHandler
+        return voteHandler.handler(request)        
 
     # now us
     elif uri_parts[-1] == "time":
