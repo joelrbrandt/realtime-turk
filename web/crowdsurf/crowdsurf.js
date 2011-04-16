@@ -1,15 +1,191 @@
-function setup() {
-    $("*").each(function(i, e) { $(this).hover(
-	function(e) {
-	    $(this).css("outline", "red dotted thin");
-	    return false;
-	},
-	function (e) {
-	    $(this).css("outline", "");
+var crowdsurf = 
+    (function() {
+
+	// setup stuff we want to do as soon as possible
+
+	var xhr_base_open = XMLHttpRequest.prototype.open;
+	XMLHttpRequest.prototype.open = function(method,uri,async) {
+	    console.log("making xhr request to " + uri);
+	    return xhr_base_open.call(this, method, uri, async);
+	};
+
+	//
+	// private members
+	//
+
+	var query = jQuery.noConflict(true);
+
+	var hovered = null;
+	var clicked = null;
+
+	function mouseOverIdentifier(e) {
+	    if (hovered) {
+		hovered.removeClass("crowdsurf_outline");
+		hovered.parents().removeClass("crowdsurf_outline_parent");
+	    }
+	    hovered = query(this)
+	    hovered.addClass("crowdsurf_outline");
+	    hovered.parents().addClass("crowdsurf_outline_parent");
+
 	    return false;
 	}
-    ) });
 
-}
+	function clickIdentifier(e) {
+	    if (clicked) {
+		clicked.removeClass("crowdsurf_click_outline");
+	    }
+	    clicked = query(this)
+	    clicked.addClass("crowdsurf_click_outline");
+	    return true;
+	}
 
-$(function() { setup(); });
+
+	function setup() {
+	    query("*").mouseover(mouseOverIdentifier).click(clickIdentifier);
+	}
+
+
+	// do this at onload
+	query(function() { setup(); });
+
+	// base64 encode/decode
+	// code taken from http://ostermiller.org/calc/encode.html under GPL
+
+	var END_OF_INPUT = -1;
+
+	var base64Chars = new Array(
+	    'A','B','C','D','E','F','G','H',
+	    'I','J','K','L','M','N','O','P',
+	    'Q','R','S','T','U','V','W','X',
+	    'Y','Z','a','b','c','d','e','f',
+	    'g','h','i','j','k','l','m','n',
+	    'o','p','q','r','s','t','u','v',
+	    'w','x','y','z','0','1','2','3',
+	    '4','5','6','7','8','9','+','/'
+	);
+
+	var reverseBase64Chars = new Array();
+	for (var i=0; i < base64Chars.length; i++){
+	    reverseBase64Chars[base64Chars[i]] = i;
+	}
+
+	var base64Str;
+	var base64Count;
+	function setBase64Str(str){
+	    base64Str = str;
+	    base64Count = 0;
+	}
+	function readBase64(){    
+	    if (!base64Str) return END_OF_INPUT;
+	    if (base64Count >= base64Str.length) return END_OF_INPUT;
+	    var c = base64Str.charCodeAt(base64Count) & 0xff;
+	    base64Count++;
+	    return c;
+	}
+	function encodeBase64(str){
+	    setBase64Str(str);
+	    var result = '';
+	    var inBuffer = new Array(3);
+	    var lineCount = 0;
+	    var done = false;
+	    while (!done && (inBuffer[0] = readBase64()) != END_OF_INPUT){
+		inBuffer[1] = readBase64();
+		inBuffer[2] = readBase64();
+		result += (base64Chars[ inBuffer[0] >> 2 ]);
+		if (inBuffer[1] != END_OF_INPUT){
+		    result += (base64Chars [(( inBuffer[0] << 4 ) & 0x30) | (inBuffer[1] >> 4) ]);
+		    if (inBuffer[2] != END_OF_INPUT){
+			result += (base64Chars [((inBuffer[1] << 2) & 0x3c) | (inBuffer[2] >> 6) ]);
+			result += (base64Chars [inBuffer[2] & 0x3F]);
+		    } else {
+			result += (base64Chars [((inBuffer[1] << 2) & 0x3c)]);
+			result += ('=');
+			done = true;
+		    }
+		} else {
+		    result += (base64Chars [(( inBuffer[0] << 4 ) & 0x30)]);
+		    result += ('=');
+		    result += ('=');
+		    done = true;
+		}
+		lineCount += 4;
+		if (lineCount >= 76){
+		    result += ('\n');
+		    lineCount = 0;
+		}
+	    }
+	    return result;
+	}
+	function readReverseBase64(){   
+	    if (!base64Str) return END_OF_INPUT;
+	    while (true){      
+		if (base64Count >= base64Str.length) return END_OF_INPUT;
+		var nextCharacter = base64Str.charAt(base64Count);
+		base64Count++;
+		if (reverseBase64Chars[nextCharacter]){
+		    return reverseBase64Chars[nextCharacter];
+		}
+		if (nextCharacter == 'A') return 0;
+	    }
+	    return END_OF_INPUT;
+	}
+
+	function ntos(n){
+	    n=n.toString(16);
+	    if (n.length == 1) n="0"+n;
+	    n="%"+n;
+	    return unescape(n);
+	}
+
+	function decodeBase64(str){
+	    setBase64Str(str);
+	    var result = "";
+	    var inBuffer = new Array(4);
+	    var done = false;
+	    while (!done && (inBuffer[0] = readReverseBase64()) != END_OF_INPUT
+		   && (inBuffer[1] = readReverseBase64()) != END_OF_INPUT){
+		inBuffer[2] = readReverseBase64();
+		inBuffer[3] = readReverseBase64();
+		result += ntos((((inBuffer[0] << 2) & 0xff)| inBuffer[1] >> 4));
+		if (inBuffer[2] != END_OF_INPUT){
+		    result +=  ntos((((inBuffer[1] << 4) & 0xff)| inBuffer[2] >> 2));
+		    if (inBuffer[3] != END_OF_INPUT){
+			result +=  ntos((((inBuffer[2] << 6)  & 0xff) | inBuffer[3]));
+		    } else {
+			done = true;
+		    }
+		} else {
+		    done = true;
+		}
+	    }
+	    return result;
+	}
+
+	function getCurrentURL() {
+	    var encUrl = crowdsurf.query.url.setUrl(window.location.href).param("q");
+	    var url = decodeBase64(encUrl);
+	    return url;
+	}
+
+
+	//
+	// public members
+	//
+
+	return {
+
+	    query : query,
+	    decodeBase64 : decodeBase64,
+	    encodeBase64 : encodeBase64,
+	    getCurrentURL : getCurrentURL
+	}
+
+    })();
+
+// stuff below this line definitely goes in the page
+
+
+//XMLHttpRequest.prototype.open = function(method,uri,async) {
+//    return this.base_open(method, parseURL(uri.replace('localhost', 'www.myspace.com'), 'ajax'), async);
+//};
+

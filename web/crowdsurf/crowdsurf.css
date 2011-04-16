@@ -1,0 +1,12 @@
+.crowdsurf_outline {
+    outline: red thin dotted
+}
+
+.crowdsurf_outline_parent {
+    outline: green thin dotted
+}
+
+
+.crowdsurf_click_outline {
+    outline: green thick solid
+}
