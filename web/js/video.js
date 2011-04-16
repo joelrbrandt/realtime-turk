@@ -528,7 +528,7 @@ function showBackupTest() {
 /**
  * Tells the server what frame of the video I'm looking at.
  */
-var LOCATION_PING_FREQUENCY = 250;  // millis
+var LOCATION_PING_FREQUENCY = 333;  // millis
 var CONVERGE_WAIT_TIME = 750;   // millis
 function locationPing() {
     uploadLocation(true);
