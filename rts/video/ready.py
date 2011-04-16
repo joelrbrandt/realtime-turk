@@ -10,8 +10,9 @@ import logging
 from rtsutils.timeutils import unixtime
 from datetime import datetime
 
+from rtsutils.study_poster import unlabeledVideos
+
 VIDEO_SOURCE_DIR = 'media/videos/'
-PHOTOGRAPHER_ID = "photographer"
 
 """ Writes to the request whether we need this particular worker to attack a video right now"""
 def is_ready(request):
@@ -25,28 +26,13 @@ def is_ready(request):
     if form.has_key('videoid'):
         videoid = int(form['videoid'].value)        
     else:
-        # we need videos that have no pictures yet
-        if form.has_key('slow') and form['slow'] == "1":        
-            inner_query = "SELECT COUNT(*) AS numPictures,                 videoid FROM slow_snapshots, assignments WHERE slow_snapshots.assignmentid = assignments.assignmentid AND workerid <> '" + PHOTOGRAPHER_ID + "' GROUP BY videoid"
-            column = 'slow_available'
-        else:
-            inner_query = "SELECT COUNT(*) AS numPictures,                 videoid FROM pictures GROUP BY videoid"
-            column = 'fast_available'            
+        is_slow = form.has_key('slow') and form['slow'] == "1"
+        result = unlabeledVideos(db, is_slow)
+
+        if is_slow:
+            # have I already labeled this video?
+            result = filter(lambda x: not haveCompleted(x['pk'], workerid, db), result)
         
-        result = db.query_and_return_array("""
-            SELECT pk FROM videos
-            
-            INNER JOIN study_videos ON study_videos.videoid = videos.pk
-            
-            LEFT JOIN (""" + inner_query + """)
-            AS pictureCount
-            ON pictureCount.videoid = videos.pk        
-            
-            WHERE pictureCount.numPictures IS NULL
-            AND study_videos.""" + column + """ = TRUE
-            
-            ORDER BY videos.pk DESC """)
-    
         if len(result) == 0:
             request.write(json.dumps( { 'is_ready' : False } ))
             return
@@ -57,6 +43,11 @@ def is_ready(request):
 
     video = getAndAssignVideo(assignmentid, videoid)        
     request.write(json.dumps(video, cls = location_ping.DecimalEncoder) )
+
+def haveCompleted(videoid, workerid, db):
+    """Only call this in the slow version"""
+    count = db.query_and_return_array("""SELECT COUNT(*) FROM slow_snapshots, assignments WHERE videoid = %s AND slow_snapshots.assignmentid = assignments.assignmentid AND workerid = %s""", (videoid, workerid))
+    return count[0]['COUNT(*)']
 
 def getAndAssignVideo(assignmentid, videoid, restart_if_converged = False):
     """Gets the given video from the database, and populates a dict with its properties. Assigns the video to the worker in the database. """

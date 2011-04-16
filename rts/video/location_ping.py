@@ -31,6 +31,7 @@ def locationPing(request):
     request.content_type = "application/json"
     
     db = DBConnection(autocommit = False)
+    start = datetime.now()
 
     try:
         (phase, assignment, location, video_id) = getArgs(request)    
@@ -263,7 +264,12 @@ def getAgreement(phase_min, phase_max, locations):
         
         farthest_right = range['min']
         for (assignmentid, assignment_locations) in locations_by_worker.items():
-            only_in_range = filter( lambda x: x['location'] >= range['min'] and x['location'] <= range['max'] and x['range_percent'] >= MINIMUM_RANGE_EXPLORATION, assignment_locations)
+            only_in_range = filter( lambda x: 
+                x['location'] >= range['min'] 
+                and x['location'] <= range['max'] 
+                and (x['range_percent'] >= MINIMUM_RANGE_EXPLORATION 
+                     or phase_min != Decimal('0') or phase_max  != Decimal('1')),
+                assignment_locations)
             
             # if they never left and they've been in the phase long enough
             if len(only_in_range) == len(assignment_locations):

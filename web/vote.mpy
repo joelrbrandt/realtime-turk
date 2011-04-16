@@ -1,0 +1,40 @@
+<%!
+from rtsutils.get_photo import getPhotos
+from rtsutils.db_connection import DBConnection
+%>
+
+
+<%
+    db = DBConnection()
+    videos = db.query_and_return_array("""SELECT filename FROM study_videos, slow_votes WHERE slow_votes.videoid = study_videos.videoid AND  slow_voting_available = TRUE GROUP BY slow_votes.videoid HAVING COUNT(*) < 5""")
+    
+    video_pics = dict()
+    for video in videos:
+        locations = getPhotos(video['filename'])
+        video_pics[video['filename']] = locations
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Pictures</title>    
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+</head>
+<body>
+<h1>CrowdCam Photos</h1>
+<table>
+% for video in video_pics.keys():
+    <tr><td><h2><a href="media/videos/${video}.3gp">${video}</a></h2></td></tr>
+    <tr>
+    % for picture in video_pics[video]:
+        <td><img src="${picture}" /></td>
+    % endfor
+    </tr>
+% endfor
+</table>
+
+
+</body>
+</html>
+
