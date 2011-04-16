@@ -22,8 +22,8 @@ MINIMUM_ACCURACY = 1;
 APPROVE_REASON = "Accurate work. Thank you!"
 REJECT_REASON = "You did not agree with the other Turkers, and your extra question response was incorrect. Sorry."
 
-BONUS_AMOUNT = 0.03
-BONUS_REASON = "$0.03 bonus for quick response. Thank you!"
+BONUS_AMOUNT = 0.02
+BONUS_REASON = "$0.02 bonus for quick response. Thank you!"
 BONUS_TIME_LIMIT = Decimal(2) # seconds
 
 
@@ -45,17 +45,22 @@ def answer_reviewer(answer):
     reject_response = (False, REJECT_REASON)
 
     try:
-        phases = json.loads(answer['p'])
-        locations = json.loads(answer['loc'])
-        if answer['v'] != "":
-            validation = answer['v']
-        else:
-            validation = None
-        
-        if agreedWithPhases(phases, locations, 1) or validationAgreed(validation):
+        # if it was a slow HIT, we just pay
+        if answer.has_key('sn'):
             result = approve_response
-        else:
-            result = reject_response
+        # otherwise, quality control
+        else:            
+            phases = json.loads(answer['p'])
+            locations = json.loads(answer['loc'])
+            if answer['v'] != "":
+                validation = answer['v']
+            else:
+                validation = None
+            
+            if agreedWithPhases(phases, locations, 1) or validationAgreed(validation):
+                result = approve_response
+            else:
+                result = reject_response
     except:
         logging.exception("error reviewing answer: " + str(answer))
 

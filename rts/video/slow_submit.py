@@ -6,7 +6,7 @@ import logging
 from rtsutils.db_connection import DBConnection
 
 import submit
-from ready import PHOTOGRAPHER_ID
+from rtsutils.study_poster import PHOTOGRAPHER_ID
 
 def slowSubmit(request):
     """ Handles submissions from the "slow" server """

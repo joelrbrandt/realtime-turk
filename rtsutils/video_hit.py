@@ -13,7 +13,7 @@ DEFAULT_AUTO_APPROVAL_DELAY = 60*60*24*7
 TITLE = "Photo moments: best photos"
 DESCRIPTION = "Find the best photographic moments in a 5-10sec video, quickly"
 KEYWORDS = "video photography quick"
-REWARD = 0.03
+REWARD = 0.02
 
 class VideoHit(ExternalHit):
     def __init__(self,
@@ -26,9 +26,13 @@ class VideoHit(ExternalHit):
                  assignment_duration = DEFAULT_ASSIGNMENT_DURATION,
                  lifetime = DEFAULT_LIFETIME,
                  max_assignments = 1,
-                 auto_approval_delay = DEFAULT_AUTO_APPROVAL_DELAY):
+                 auto_approval_delay = DEFAULT_AUTO_APPROVAL_DELAY,
+                 version = "fast"):
         
         url = "http://" + str(settings.HIT_SERVER) + "/" + str(settings.HIT_SERVER_USER_DIR) + "/video.mpy?waittime=" + str(waitbucket)
+
+        if version == "slow":
+            url += "&slow=1"
         
         ExternalHit.__init__(self, 
                              title=title, 
@@ -42,13 +46,15 @@ class VideoHit(ExternalHit):
                              max_assignments=max_assignments,
                              auto_approval_delay=auto_approval_delay)
         self.waitbucket = waitbucket
+        self.version = version
 
     def post(self, mt_conn, db_conn):
         hit = ExternalHit.post(self, mt_conn)
         sql = """INSERT INTO hits 
-                    (hitid, hittypeid, creation_time, title, description, keywords, reward, assignment_duration, lifetime, max_assignments, auto_approval_delay, waitbucket)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                    (hitid, hittypeid, creation_time, title, description, keywords, reward, assignment_duration, lifetime, max_assignments, auto_approval_delay, waitbucket, version)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         db_conn.query_and_return_array(sql, (hit.HITId, hit.HITTypeId,
                                              unixtime(datetime.now()), self.title, self.description, self.keywords,
-                                             self.reward_as_usd_float, self.assignment_duration, self.lifetime, self.max_assignments, self.auto_approval_delay, self.waitbucket))
+                                             self.reward_as_usd_float, self.assignment_duration, self.lifetime, self.max_assignments, self.auto_approval_delay, self.waitbucket, 
+                                             self.version))
         return hit

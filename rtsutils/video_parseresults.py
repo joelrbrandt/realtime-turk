@@ -28,6 +28,8 @@ def printVideoTimes(db):
     table = [["video", "elapsed"]]
     for picture in result:
         table.append([str(picture['videoid']), str(picture['elapsed'])])
+        
+    print("Median: %s" % numpy.median([float(row[1]) for row in table[1:]]))        
     pprint_table(sys.stdout, table)
 
 def printPhaseTimes(db, all_videos):
@@ -38,17 +40,18 @@ def printPhaseTimes(db, all_videos):
         video_rows = parseVideo(video['pk'], db)
         rows.extend(video_rows)
     
-    median_row = [ "median", "median", "median", "median" ]
-    for column in range(4, len(rows[0])):
-        numpy_data = filter(lambda x: x is not None, list(numpy.array(rows)[:,column]))
-        medians = numpy.median(numpy.array([ numpy_data ]))
-        median_row.append(medians)
-    rows = [median_row] + rows
-
-    for row in rows:
-        table.append(map(stringOrNothing, row))
+    if len(rows) > 0:
+        median_row = [ "median", "median", "median", "median" ]
+        for column in range(4, len(rows[0])):
+            numpy_data = filter(lambda x: x is not None, list(numpy.array(rows)[:,column]))
+            medians = numpy.median(numpy.array([ numpy_data ]))
+            median_row.append(medians)
+        rows = [median_row] + rows
     
-    pprint_table(sys.stdout, table)
+        for row in rows:
+            table.append(map(stringOrNothing, row))
+        
+        pprint_table(sys.stdout, table)
     
 def stringOrNothing(item):
     if item is None or item == numpy.nan:
