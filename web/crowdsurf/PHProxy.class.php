@@ -118,7 +118,8 @@ class PHProxy
 	}
 	function decode_url($url)
 	{
-	  return str_replace('&amp;', '&', str_rot13(rawurldecode($url)));
+	  // return str_replace('&amp;', '&', str_rot13(rawurldecode($url)));
+	  return str_rot13(rawurldecode($url));
 	}
       }
     else if ($this->flags['base64_encode'])
@@ -129,7 +130,8 @@ class PHProxy
 	}
 	function decode_url($url)
 	{
-	  return str_replace('&amp;', '&', base64_decode(rawurldecode($url)));
+	  // return str_replace('&amp;', '&', base64_decode(rawurldecode($url)));
+	  return base64_decode(rawurldecode($url));
 	}
       }
     else
@@ -140,7 +142,8 @@ class PHProxy
 	}
 	function decode_url($url)
 	{
-	  return str_replace('&amp;', '&', rawurldecode($url));
+	  // return str_replace('&amp;', '&', rawurldecode($url));
+	  return rawurldecode($url);
 	}
       }
   }
@@ -157,6 +160,7 @@ class PHProxy
 
   function open_socket()
   {
+    error_log("phproxy: opening socket for url {$this->url}", 0);
     $this->socket = @fsockopen($this->url_segments['host'], $this->url_segments['port'], $err_no, $err_str, 12);
 
     if ($this->socket === false)
@@ -202,7 +206,9 @@ class PHProxy
 	// we don't need to do any further operations on it. And if the file were like a large movie file, it
 	// wouldn't fit in a variable without exceeding the memory limit alloted for the scipt.
 
-	if (!in_array($this->content_type, array('text/html', 'application/xml+xhtml', 'application/xhtml+xml', 'text/css')) && (!$this->content_length || (int)$this->content_length <= $this->config['max_file_size']))
+
+	// if (!in_array($this->content_type, array('text/html', 'application/xml+xhtml', 'application/xhtml+xml', 'text/css')) && (!$this->content_length || (int)$this->content_length <= $this->config['max_file_size']))
+	if (!in_array($this->content_type, array('text/html', 'application/xml+xhtml', 'application/xhtml+xml', 'text/css')))
 	  {
 	    // Impose no time limit since it might be a large file that would take a long while to download.
 	    @set_time_limit(0);
@@ -480,8 +486,10 @@ class PHProxy
 	    break;
 	  case 'head':
 	    $rebuild = true;
-	    $extra_html .= "\n<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js'></script>\n";
-	    $extra_html .= "<script src='crowdsurf.js'></script>\n";
+	    $extra_html .= "\n<link rel=\"stylesheet\" type=\"text/css\" href=\"crowdsurf.css\" />";
+	    $extra_html .= "<script src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js\"></script>\n";
+	    $extra_html .= "<script src=\"jquery.url.js\"></script>\n";
+	    $extra_html .= "<script src=\"crowdsurf.js\"></script>\n";
 	    if (isset($attrs['profile']))
 	      {
 		//space-separated list of urls
