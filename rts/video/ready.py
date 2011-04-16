@@ -11,6 +11,7 @@ from rtsutils.timeutils import unixtime
 from datetime import datetime
 
 VIDEO_SOURCE_DIR = 'media/videos/'
+PHOTOGRAPHER_ID = "photographer"
 
 """ Writes to the request whether we need this particular worker to attack a video right now"""
 def is_ready(request):
@@ -22,18 +23,27 @@ def is_ready(request):
     workerid = form['workerid'].value
     
     if form.has_key('videoid'):
-        videoid = int(form['videoid'].value)
-    else:        
+        videoid = int(form['videoid'].value)        
+    else:
         # we need videos that have no pictures yet
+        if form.has_key('slow') and form['slow'] == "1":        
+            inner_query = "SELECT COUNT(*) AS numPictures,                 videoid FROM slow_snapshots, assignments WHERE slow_snapshots.assignmentid = assignments.assignmentid AND workerid <> '" + PHOTOGRAPHER_ID + "' GROUP BY videoid"
+            column = 'slow_available'
+        else:
+            inner_query = "SELECT COUNT(*) AS numPictures,                 videoid FROM pictures GROUP BY videoid"
+            column = 'fast_available'            
+        
         result = db.query_and_return_array("""
             SELECT pk FROM videos
             
-            LEFT JOIN (SELECT COUNT(*) AS numPictures, 
-            videoid FROM pictures GROUP BY videoid)
+            INNER JOIN study_videos ON study_videos.videoid = videos.pk
+            
+            LEFT JOIN (""" + inner_query + """)
             AS pictureCount
             ON pictureCount.videoid = videos.pk        
             
             WHERE pictureCount.numPictures IS NULL
+            AND study_videos.""" + column + """ = TRUE
             
             ORDER BY videos.pk DESC """)
     

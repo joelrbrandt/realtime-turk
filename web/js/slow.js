@@ -7,7 +7,7 @@ var snapshots = [];
 
 $(document).ready(function() {
     $('#taskText').after('<div id="photos"><div><button id="snapshotBtn">Good Photo</button></div><div id="output"></div></div>');
-	$('#snapshotBtn').click(shoot);
+	$('#snapshotBtn').click(shoot).hide();
 
     var form = $('#completeForm');	
     form.append('<input type="hidden" name="sn" value="" />');
