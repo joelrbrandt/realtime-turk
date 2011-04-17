@@ -1,6 +1,6 @@
 from mod_python import apache
 
-""" Handler for /video/ requests only"""
+""" Handler for /vote/ requests only"""
 
 def handler(request):
     uri_parts = request.uri.split("/")
@@ -13,8 +13,8 @@ def handler(request):
         return apache.OK
         
     elif uri_parts[-1] == "random":
-        import random_video
-        random_video.getRandomVideo(request)
+        import random_photos
+        random_photos.getRandomPhotos(request)
         return apache.OK
 
     elif uri_parts[-1] == "log":

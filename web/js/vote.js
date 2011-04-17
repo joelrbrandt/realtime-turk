@@ -49,20 +49,21 @@ function loadParameters() {
  * Takes video data from the server and adds it to the page
  */
 function voteDataCallback(data) {
-    console.log(data)
-
-    $('#voteContainer').html("<table id='voteTable'><tr><td><h2>Click on the best photo:</h2></td></tr></table>")
-
-//            <tr>
-  //              <td><img src="picture" width = 500/></td>
-    //        </tr>
+    $('#voteContainer').html("<table id='voteTable'><tr><td><h2>Click on the best photo:</h2></td></tr><tr id='voteRow'></tr></table>")
     
-    $('table img').click(function() {
+    for (var i=0; i<data.photos.length; i++) {
+        $('#voteTable').append("<tr><td><img src='" + data.photos[i] + "' width=500 /></td></tr>");
+    }
+    
+    $('#voteTable img').click(function() {
         var location = $(this).attr('src');
         location = location.substring(location.length-7, location.length-4); // just the main filename
         vote = location;
         submitForm();
-    }).css("cursor", "pointer")
+    }).css("cursor", "pointer");
+    
+    videoid = data['videoid']
+    showGoButton();
 }
 
  
@@ -179,14 +180,14 @@ function testReady() {
  */
 function beginTask() {
     if (assignmentid != 0) {
-        logEvent("accept");
-	times.accept = getServerTime();
+        times.accept = getServerTime();            
+        logEvent("accept", null, function() {
+            scheduleRetainer(voteDataCallback, RANDOM_TASK_URL);
+            retainerHide();
+        
+            registerFocusBlurListeners();        
+        });
     }       
-    
-    scheduleRetainer(voteDataCallback, RANDOM_TASK_URL);
-    retainerHide();
-
-    registerFocusBlurListeners();
 }
 
 function isPreview() {
@@ -223,7 +224,7 @@ function logEvent(eventName, detail, finishedCallback) {
         time: getServerTime().toISOString()
     }
     
-    $.post("rts/video/log", logData,        
+    $.post("rts/vote/log", logData,        
         function(reply) {
             //console.log(logData.event + " " + logData.time + " " + JSON.stringify(detail));
             if (finishedCallback != null) {
