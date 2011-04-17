@@ -1,0 +1,37 @@
+@charset "UTF-8";
+body {
+    margin:1em;
+    font-size: 12pt;
+    font-family: Georgia, "Times New Roman", Times, serif;
+}
+
+pre {
+    background-color: #dddddd;
+    padding: 10px;
+}
+
+table.photogroup {
+    border-style: none;
+    border-collapse: collapse;
+}
+table.photogroup td {
+    padding: 20px;
+    border-style: none;
+    vertical-align: top;
+}
+
+table.likert {
+    text-align: center;
+    border-style: none;
+    border-collapse: collapse;
+    background-color: #dddddd;
+}
+table.likert td {
+    padding: 5px;
+    border-style: none;
+}
+
+#btn_done {
+    font-size: 50pt;
+    min-height: 50pt;
+}

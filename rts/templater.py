@@ -15,7 +15,7 @@ def serve_template(request, **kwargs):
 def handler(request):
     request.content_type = "text/html"
     try:
-        serve_template(request, fieldstorage=util.FieldStorage(request))
+        serve_template(request, apache_request=request, fieldstorage=util.FieldStorage(request))
     except TopLevelLookupException:
         return apache.HTTP_NOT_FOUND
     #except:

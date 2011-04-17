@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "MIT UID User Study"
+AuthUserFile /var/www/htpasswds/study.htpasswd
+Require valid-user
