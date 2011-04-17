@@ -1,0 +1,49 @@
+<%!
+from rtsutils import study_rating_helpers as helpers
+import pprint
+import random
+import cgi
+%>
+
+<%
+username = apache_request.user
+participant_number = helpers.parse_participant_number(username)
+recorded = helpers.record_ratings(participant_number, fieldstorage)
+finished = helpers.check_all_rated(participant_number)
+
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MIT UID User Study - Photo Rating</title>    
+    <link href="study_rating.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+% if finished:
+
+<h1>Thanks ${username} - <span style="color: green">You're Finished!</span></h1>
+<p>We've recorded your ratings. Thanks for participating in our study.</p>
+<p>If you want, you can <a href="index.mpy?nonce=${random.randint(0,1000000)}">go back to the ratings page</a> to update your ratings.</p>
+
+% else: #not yet finished
+
+<h1>Thanks ${username} - <span style="color: red">But you aren't done yet!</span></h1>
+<p>We've recorded your ratings, but you haven't yet rated all the photos. <b><a href="index.mpy?nonce=${random.randint(0,1000000)}">Go back to the ratings page</a> when you're ready to finish.</b></p>
+
+% endif
+
+<hr>
+<p>In case you're curious, here's what we've recorded:</p>
+<pre>
+<%
+pp = pprint.PrettyPrinter(indent=4)
+pprecorded = pp.pformat(recorded)
+%>
+${cgi.escape(pprecorded)}
+</pre>
+
+</body>
+</html>

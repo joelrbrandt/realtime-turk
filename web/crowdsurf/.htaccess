@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "FLOCK!!!!!!!"
+AuthUserFile /var/www/htpasswds/secure.htpasswd
+Require valid-user

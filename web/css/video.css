@@ -1,0 +1,103 @@
+#output {
+    display: inline-block; 
+    top: 4px; 
+    position: relative ;
+    border: dotted 1px #ccc; 
+    padding: 2px;
+}
+
+#snapshotBtn {
+    /*border: solid 2px #ccc;*/
+    font-size: 24pt;
+}
+
+.instructions {
+    margin-bottom: 20px;
+}
+
+#photos {
+    margin-top: 20px;
+}
+
+#slider {
+    margin-top: 10px;
+}
+
+.range {
+    position: absolute;
+    height:100%;
+    width:100%;
+    top: 0;
+    left: 0%;
+    background-color: #3F48FF;
+}
+
+.replayMark {
+    position: relative;
+    top: 20px;
+    height: 100%;
+    left: 0%;    
+}
+
+.below {
+    background-color: #FFFFFF;
+    position: relative;
+    top: 20px;
+    height: 25%;
+    text-align: center;
+    font-size: 8pt;
+    border-bottom: 2px solid #3F48FF;
+    border-left: 2px solid #3F48FF;
+    border-right: 2px solid #3F48FF;
+    color: #3F48FF;
+}
+
+#slider {
+    background: #D6C9C9;
+}
+
+.rightAnswer {
+    color: blue;
+}
+
+.wrongAnswer {
+    color: red;
+}
+
+.largebutton {
+    font-size: 24pt;
+    margin-top: 20px;
+
+}
+
+#donebtn {
+}
+
+#directions {
+    
+}
+
+#backup {
+    margin-top: 20px;
+}
+
+#countdownContainer {
+    border: none; 
+    width: 300px; 
+    padding: 0;
+    margin-top: 20px;
+}
+
+/*
+.countdown {
+    font-size: 20pt;
+}
+*/
+
+#backup {
+    display: none;
+}
+
+#replayWarning {
+    text-align: center;
+}
