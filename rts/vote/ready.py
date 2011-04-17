@@ -10,6 +10,7 @@ from rtsutils.timeutils import unixtime
 from datetime import datetime
 from rts.video import location_ping
 from rtsutils.get_photo import getSlowPhotos
+from rtsutils.vote_poster import getVideosNeedingVotes
 import random
 
 
@@ -29,19 +30,23 @@ def is_ready(request):
     else:
         # grab the most recent video upload
         videoid = result[0]['videoid']
-        logging.debug("Videos needing votes: " + str(videoid))        
-        locations = getSlowPhotos(videoid, 3)
-        random.shuffle(locations)
-        request.write(json.dumps(dict( videoid = videoid, photos = locations), cls = location_ping.DecimalEncoder))
+        result = getAndAssignPhotos(videoid, assignmentid, db)
+        request.write(json.dumps(result, cls = location_ping.DecimalEncoder))
 
-def getVideosNeedingVotes(db, workerid):
-    videos = db.query_and_return_array("""SELECT COUNT(*), study_videos.videoid FROM study_videos LEFT JOIN slow_votes ON slow_votes.videoid = study_videos.videoid WHERE slow_voting_available = TRUE GROUP BY study_videos.videoid HAVING COUNT(*) < 5 LIMIT 1""")
+def getAndAssignPhotos(videoid, assignmentid, db):
+    updateAssignment(assignmentid, videoid)
     
-    videos = filter(lambda x: not haveCompleted(x['videoid'], workerid, db), videos)
+    logging.debug("Videos needing votes: " + str(videoid))        
+    locations = getSlowPhotos(videoid, 3)
+    random.shuffle(locations)
+    return dict( videoid = videoid, photos = locations, is_ready = True)    
+
     
-    return videos
+def updateAssignment(assignmentid, videoid):
+    """ Updates the database to map this video onto the assignment """
+    db = DBConnection()
+    try:
+        db.query_and_return_array("""UPDATE assignments SET videoid = %s WHERE assignmentid = %s""", (videoid, assignmentid) )
+    except:
+        logging.exception("Error updating assignments table to set videoid")
     
-    
-def haveCompleted(videoid, workerid, db):
-    count = db.query_and_return_array("""SELECT COUNT(*) FROM slow_votes WHERE videoid = %s AND workerid = %s""", (videoid, workerid))
-    return count[0]['COUNT(*)']

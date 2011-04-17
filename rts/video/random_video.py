@@ -52,5 +52,5 @@ def getRandomVideo(request):
             videoid = db.query_and_return_array("""SELECT pk FROM videos LEFT JOIN study_videos ON videos.pk = study_videos.videoid WHERE study_videos.videoid IS NULL """ + """ AND pk < 100 """ + 
             """ ORDER BY RAND() LIMIT 1""")[0]['pk']
             
-    video_json = ready.getAndAssignVideo(assignmentid, videoid, restart_if_converged = True)
+    video_json = ready.getAndAssignPhotos(assignmentid, videoid, db)
     request.write(json.dumps(video_json, cls = location_ping.DecimalEncoder))

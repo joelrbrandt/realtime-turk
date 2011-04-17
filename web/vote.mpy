@@ -65,6 +65,7 @@ max_reward_time = BONUS_TIME_LIMIT
         var maxWaitTime = ${wait_time};
         var maxRewardTime = ${max_reward_time};        
         var isAlert = ${str(is_alert).lower()};
+        var isReward = ${str(is_reward).lower()};        
     </script>
 </head>
 <body>
@@ -79,7 +80,7 @@ max_reward_time = BONUS_TIME_LIMIT
 % endif        
         or less, you will receive an alert. Act <b>quickly</b> to dismiss the alert and a 5-10 second video will appear.</li>
 % if is_reward:        
-        <li>You get a <b><u>${int(BONUS_AMOUNT*100)} cent bonus</b></u> if you 
+        <li>You get a <b><u>${int(BONUS_AMOUNT*100)} cent bonus</u></b> if you 
     % if is_alert:
         dismiss the alert
     % else:
@@ -112,8 +113,8 @@ max_reward_time = BONUS_TIME_LIMIT
   </div>
 </div>
 
-<form id="completeForm" action="rts/video/votesubmit" method="GET" style="display: none">
-      <input type="submit" name="done" value="done"></input>
+<form id="completeForm" action="rts/vote/submit" method="GET" style="display: none">
+      <input type="submit" name="done" value="done" />
 </form>
 
 </body>

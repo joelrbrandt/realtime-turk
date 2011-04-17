@@ -20,7 +20,7 @@ TIME_BETWEEN_RUNS = 5 # seconds
 TIME_BETWEEN_HIT_POSTINGS = 30 # seconds
 VIDEO_DIRECTORY = '../web/media/videos/'
 
-MIN_ON_RETAINER = 5
+MIN_ON_RETAINER = 4
 PHOTOGRAPHER_ID = "photographer"
 
 def postRandomHITs(num_hits, max_wait_time, price, expiration, mt_conn, db, version):
