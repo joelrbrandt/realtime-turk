@@ -31,7 +31,21 @@ group_count = 0
 </head>
 <body>
 <h1>Hi Friendly Participant ${username}!</h1>
-<p>Please rate the following photos.</p>
+
+<p>It's time to rate each of the moments captured from your
+videos. Below you'll find five photos for each video.</p>
+
+<p><b>Focus on whether the photo captures the right moment:</b> ignore
+things like brightness, contrast, pixelation and color. Choose a
+rating from 1 to 9, where 1 means "this is absolutely the wrong
+moment", 9 means "this is absolutely the perfect moment", and 5 is
+neutral.</p>
+
+<p>For example, this photo is not of the right moment:<br/>
+<img src="/msbernst/media/verification/greg123.jpg" width=480 /></p>
+
+<p>This one captures a much better moment:<br/>
+<img src="/msbernst/media/verification/greg60.jpg" width=480 /></p>
 
 <form action="record.mpy" method="POST">
 
@@ -76,7 +90,7 @@ photo_count += 1
 <td>&nbsp;</td>
 </tr>
 <tr>
-<td>poor</td>
+<td>worst moment</td>
 % for j in range(1,10):
 
 % if ratings.has_key(photo['id']) and ratings[photo['id']]['rating'] == j:
@@ -86,7 +100,7 @@ photo_count += 1
 % endif
 
 % endfor
-<td>great</td>
+<td>perfect moment</td>
 </tr>
 </table>
 <p>
