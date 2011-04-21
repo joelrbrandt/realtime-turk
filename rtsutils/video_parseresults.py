@@ -5,25 +5,33 @@ from padnums import pprint_table
 import sys
 import numpy
 
-def parseVideos():
+def parseVideos(study_videos_only = True):
     """
     Grabs each video from the DB and tells us information
     about its lag
     """
     db = DBConnection()
-    all_videos = db.query_and_return_array("""SELECT pk, filename FROM videos""")
+    if study_videos_only:
+        all_videos = db.query_and_return_array("""SELECT pk, filename FROM videos, study_videos WHERE videos.pk = study_videos.videoid""")
+    else:
+        all_videos = db.query_and_return_array("""SELECT pk, filename FROM videos""")
     
-    printPhaseTimes(db, all_videos)
+    printPhaseTimes(db, study_videos_only, all_videos)
     print('\n')
-    printVideoTimes(db)
+    printVideoTimes(db, study_videos_only)
     
-def printVideoTimes(db):
-    result = db.query_and_return_array(
-    """SELECT pictures.videoid, MIN(start), MAX(end), MAX(end) - MIN(start) AS elapsed FROM pictures, phase_lists, phases
-    WHERE pictures.phase_list = phase_lists.pk
-    AND phase_lists.pk = phases.phase_list
-    AND phase_lists.is_historical = FALSE
-    GROUP BY phase_lists.pk""")
+def printVideoTimes(db, study_videos_only):
+    sql = """SELECT pictures.videoid, MIN(start), MAX(end), MAX(end) - MIN(start) AS elapsed FROM pictures, phase_lists, phases"""
+    if study_videos_only:
+        sql += """, study_videos """    
+    sql += """WHERE pictures.phase_list = phase_lists.pk
+        AND phase_lists.pk = phases.phase_list
+        AND phase_lists.is_historical = FALSE"""
+    if study_videos_only:
+        sql += """ AND study_videos.videoid = pictures.videoid"""
+    sql += """ GROUP BY phase_lists.pk"""
+    
+    result = db.query_and_return_array(sql)
     
     table = [["video", "elapsed"]]
     for picture in result:
@@ -32,12 +40,12 @@ def printVideoTimes(db):
     print("Median: %s" % numpy.median([float(row[1]) for row in table[1:]]))        
     pprint_table(sys.stdout, table)
 
-def printPhaseTimes(db, all_videos):
+def printPhaseTimes(db, study_videos_only, all_videos):
     table = [["video", "phase list", "phase", "phase order", "width", "first go", "crowd go", "first ping", "crowd ping", "agreement", "total", "num workers", "on retainer"]]
     
     rows = []
     for video in all_videos:
-        video_rows = parseVideo(video['pk'], db)
+        video_rows = parseVideo(video['pk'], study_videos_only, db)
         rows.extend(video_rows)
     
     if len(rows) > 0:
@@ -59,7 +67,7 @@ def stringOrNothing(item):
     else:
         return str(item)
 
-def parseVideo(videoid, db):
+def parseVideo(videoid, study_videos_only, db):
     """
     Gets timing information for each video
     """
@@ -73,14 +81,23 @@ def parseVideo(videoid, db):
         phases = db.query_and_return_array("""SELECT *, COUNT(DISTINCT assignmentid) FROM phases, locations WHERE phases.phase_list = %s AND locations.phase = phases.phase GROUP BY phases.phase ORDER BY start""", (phase_list['pk'],))
     
         for (i, phase) in enumerate(phases):
+            if i == 0:
+                continue
             if phase['COUNT(DISTINCT assignmentid)'] < 2:
                 print("WARNING: one of the photos is missing people. What's going on?\nWARNING\nWARNING\nWARNING\nWARNING\nWARNING")
                 continue
         
-            start = datetime.fromtimestamp(phase['start'])
+            if study_videos_only and i == 0: # first phase is indexed by when we uploaded the video, not the first time someone asked about it (start)
+                rawstart = db.query_and_return_array("""SELECT fast_available_time FROM study_videos WHERE videoid = %s""", (videoid,))[0]['fast_available_time']
+                start = datetime.fromtimestamp(rawstart)
+            else:
+                start = datetime.fromtimestamp(phase['start'])
             end = datetime.fromtimestamp(phase['end'])                    
         
             workers = db.query_and_return_array("""SELECT MIN(servertime), assignmentid FROM locations WHERE phase = %s GROUP BY assignmentid ORDER BY MIN(servertime)""", (phase['phase'],))
+            
+            #if len(workers) <= 2:
+            #    continue
             
             first_ping = datetime.fromtimestamp(workers[0]['MIN(servertime)'])
             second_ping = datetime.fromtimestamp(workers[1]['MIN(servertime)'])
