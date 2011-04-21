@@ -7,16 +7,26 @@ from datetime import datetime, timedelta
 import simplejson as json
 from rtsutils.timeutils import *
 
+import copy
+
 import numpy
 from scipy import stats, interpolate
 from matplotlib import pyplot
 import scikits.statsmodels
+from matplotlib.font_manager import FontProperties
 
 from padnums import pprint_table
 import sys
 from itertools import groupby
 
-EXPERIMENTS = range(72, 76) #range(50, 56)
+ITEM_OF_INTEREST = "design" #'waitbucket'
+
+if ITEM_OF_INTEREST == "waitbucket":
+    EXPERIMENTS = range(50, 56)
+    settings.DB_DATABASE = 'wordclicker'
+if ITEM_OF_INTEREST == "design":
+    EXPERIMENTS = range(72, 76)
+    settings.DB_DATABASE = 'wordclicker'
 
 class Assignment:
     """ Encapsulates information about an assignment completion """
@@ -91,12 +101,54 @@ def parseResults():
         
     print("\n\n")
     printCurrentlyActiveCount(EXPERIMENTS)
-
-    graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments), lambda x: x.wait_bucket)
     
-    raw_input("Press Enter to continue...")
-    graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments), lambda x: x.condition)
+    print("\n\n")
+    printSummary(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments), bucket_assignments)
+    
+    completed = filter(lambda x: x.submit_time is not None, all_assignments)
+    print("Number of assignments attempted: %s" % len(all_assignments) )
+    print("Number of completed assignments: %s" % len(completed) )
+    print("Number of filtered assignments: %s" % len(filter(lambda x: x.precision < PRECISION_LIMIT or x.recall < RECALL_LIMIT, completed)))
+    
 
+    if ITEM_OF_INTEREST == "waitbucket":
+        keylambda = lambda x: x.wait_bucket
+    elif ITEM_OF_INTEREST == "design":
+        keylambda = lambda x: x.condition
+    
+    #raw_input("Just the good ones...")
+    #graphCDF(filter(lambda x: x.submit_time is not None and x.precision >= PRECISION_LIMIT and x.recall >= RECALL_LIMIT, all_assignments), keylambda)
+    
+    raw_input("Ne'er submitters become infinite wait time...")
+    submitter_assignments = [ translateAssignment(assignment, bounce_infinite=True, poor_quality_infinite = False) for assignment in all_assignments]
+    
+    if ITEM_OF_INTEREST == "waitbucket":
+        legend="Retainer Time"
+    elif ITEM_OF_INTEREST == "design":
+        legend="Design"
+    
+    graphCDF(submitter_assignments, keylambda, rejected_assignments = filter(lambda x: x.submit_time is not datetime.max, submitter_assignments), legend=legend)
+    
+    #raw_input("Ne'er submitters AND bad quality become infinite...")
+    #graphCDF( [ translateAssignment(assignment, bounce_infinite=True, poor_quality_infinite = True) for assignment in all_assignments], keylambda)    
+    
+def translateAssignment(assignment, bounce_infinite = True, poor_quality_infinite = False):
+    fixed = copy.deepcopy(assignment)
+    if bounce_infinite:
+        if assignment.show_time is None:
+            fixed.show_time = datetime.min
+            fixed.go_time = datetime.max    
+        elif assignment.go_time is None:
+            fixed.go_time = datetime.max
+        elif assignment.submit_time is None:
+            raise Exception("somebody hit GO but never submitted")
+    
+    if poor_quality_infinite and assignment.precision < PRECISION_LIMIT and assignment.recall < RECALL_LIMIT:
+        fixed.show_time = datetime.min
+        fixed.go_time = datetime.max            
+    
+    return fixed
+    
 def getAssignments(experiments):
     """ Queries the database for all the assignments completed in this experiment, and populates the array with all relevant timestamps """ 
 
@@ -198,7 +250,10 @@ def printSummary(assignments, assignments_including_incomplete, condition = None
                    str(numpy.mean(accept_show)),
                    str(numpy.std(accept_show)) ] )
     
-    go_show = [click.goDeltaShow() for click in assignments if click.goDeltaShow() is not None]
+    go_show = [click.goDeltaShow() for click in assignments_including_incomplete]
+    for i in range(len(go_show)):
+        if go_show[i] is None:
+            go_show[i] = sys.maxint
     table.append( ["show-go",
                    str(stats.scoreatpercentile(go_show, 10)),
                    str(stats.scoreatpercentile(go_show, 25)),
@@ -221,10 +276,10 @@ def printSummary(assignments, assignments_including_incomplete, condition = None
     pprint_table(sys.stdout, table)
     
     # Correlation between wait-show and show-go
-    (r, p_val) = stats.pearsonr(accept_show, go_show)
-    print("Correlation between accept-show and show-go: %f, p<%f" % (r, p_val))
-    (r_answer, p_val_answer) = stats.pearsonr(go_show, go_answer)    
-    print("Correlation between show-go and go-answer: %f, p<%f" % (r_answer, p_val_answer))
+    #(r, p_val) = stats.pearsonr(accept_show, go_show)
+    #print("Correlation between accept-show and show-go: %f, p<%f" % (r, p_val))
+    #(r_answer, p_val_answer) = stats.pearsonr(go_show, go_answer)    
+    #print("Correlation between show-go and go-answer: %f, p<%f" % (r_answer, p_val_answer))
     
     # bounce rate
     mortality = 1 - float(len(assignments)) / len(assignments_including_incomplete)
@@ -264,21 +319,72 @@ def printConditionSummaries(assignments, assignments_including_incomplete):
         printSummary(filtered_assignments, filtered_incomplete, condition)
     
 # http://matplotlib.sourceforge.net/api/pyplot_api.html#matplotlib.pyplot.step    
-def graphCDF(assignments, keylambda):
-    try:
+def graphCDF(assignments, keylambda, rejected_assignments = [], xaxis = "Seconds", yaxis = "P(response within x seconds)", legend="Retainer Time"):
+    rejected_ids = [rejected.assignmentid for rejected in rejected_assignments]
+    
+    try:    
         pyplot.clf()
         pyplot.hold(True)
         x = numpy.linspace(0, 4, num=1000)
     
         group_assignments = groupAssignmentsByKey(assignments, keylambda)
-        for group in sorted(group_assignments.keys()):
+        if legend == "Design":
+            groups = ['baseline', 'alert', 'tetris', 'reward']
+        else:
+            groups = sorted(group_assignments.keys())
+        
+        for group in groups:  
+        
             go_show = [click.goDeltaShow() for click in group_assignments[group]]
             ecdf = scikits.statsmodels.tools.ECDF(go_show)
             y = ecdf(x) # plots y in the CDF for each input x
             
-            pyplot.step(x, y, label=str(group), linewidth=2)
+            legend_label = str(group)
+            if legend == "Retainer Time":
+                if group < 60:
+                    legend_label += " seconds"
+                else:
+                    num_minutes = group / 60
+                    legend_label = str(num_minutes) + " minute"
+                    if num_minutes > 1:
+                        legend_label += "s"
+            elif legend == "Design":
+                if group == "alert":
+                    legend_label = "Alert"
+                elif group == "baseline":
+                    legend_label = "Baseline"
+                elif group == "reward":
+                    legend_label = "Reward"
+                elif group == "tetris":
+                    legend_label = "Game"
+            
+            color = ''
+            if group == "alert" or group == 600:
+                color = 'm'
+            
+            """ for later
+            if len(rejected_assignments) > 0:
+                group_assignments = [assignment.assignmentid for assignment in group_assignments[group]]
+                #print(group_assignments)
+                
+                not_included = [assignment for assignment in group_assignments[group] if assignment.assignmentid not in rejected_ids]
+                
+                print('lllllll')
+                print(not_included)
+                total_bounce = float(len(not_included)) / len(group_assignments[group])
+                #print(total_bounce)
+                
+                pyplot.axhline(y=total_bounce, xmin=0.95, xmax=1)
+            """
+            
+            pyplot.step(x, y, color, label=legend_label, linewidth=2)            
     
-        pyplot.legend(loc = 2)  # 2 = Upper Left http://matplotlib.sourceforge.net/users/plotting/legend.html#legend-location
+        pyplot.legend(loc = 2, title=legend, prop = FontProperties(size=12))  # 2 = Upper Left http://matplotlib.sourceforge.net/users/plotting/legend.html#legend-location
+        pyplot.axis( [0.0, 4.0, 0.0, 1.0] )
+        pyplot.xlabel(xaxis)
+        pyplot.ylabel(yaxis)
+        pyplot.yticks( numpy.arange(0, 1, 0.1) )
+        pyplot.grid(True, linewidth=1, alpha=0.2)
         pyplot.show()
     except Exception, e:
         print("Graphing exception: " + str(e))
