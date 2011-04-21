@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <title>Puppeteer</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script type="text/javascript" src="protovis-r3.2.js"></script>
+    <script src="human3.js"></script>
+    <script src="human_viewer.js"></script>
+    <style type="text/css">
+
+.fig {
+  width: 310px;
+  height: 485px;
+  display: inline;
+}
+
+    </style>
+  </head>
+  <body>
+    <table>
+      <tr>
+	<td>
+	  <div class="fig">
+	    <script>
+	      createHuman(0);
+	    </script>
+	  </div>
+	  <br /><button onclick="resetPuppet(0);">Reset this puppet</button>
+	</td>
+	<td>
+	  <div class="fig">
+	    <script>
+	      createHuman(1);
+	    </script>
+	  </div>
+	  <br /><button onclick="resetPuppet(1);">Reset this puppet</button>
+	</td>
+	<td>
+	  <div class="fig">
+	    <script>
+	      createHuman(2);
+	    </script>
+	  </div>
+	  <br /><button onclick="resetPuppet(2);">Reset this puppet</button>
+	</td>
+	<td>
+	  <img src="../media/human_puppet.png" />
+	</td>
+      </tr>
+    </table>
+
+
+    <textarea id="pointloadertxt"></textarea>
+    <button onclick="loadPoints($('#pointloadertxt').val());">load</button>
+    
+  </body>
+</html>

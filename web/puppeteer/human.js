@@ -11,12 +11,12 @@ var points = {
     lhand : {x: 5, y: 40},
     rhand : {x: 35, y: 40},
     waist : {x: 20, y: 37},
-    lhip : {x: 10, y: 45},
-    rhip : {x: 30, y: 45},
-    lknee : {x: 10, y: 60},
-    rknee : {x: 30, y: 60},
-    lfoot : {x: 10, y: 75},
-    rfoot : {x: 30, y: 75}
+    lhip : {x: 13, y: 45},
+    rhip : {x: 27, y: 45},
+    lknee : {x: 13, y: 60},
+    rknee : {x: 27, y: 60},
+    lfoot : {x: 13, y: 75},
+    rfoot : {x: 27, y: 75}
 };
 
 for (p in points) {
