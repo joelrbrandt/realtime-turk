@@ -1,14 +1,14 @@
 from mod_python import util
 
-import MySQLdb
 from rtsutils.timeutils import parseISO
+from rtsutils.db_connection import DBConnection
+
 import settings
 import logging
 import sys, traceback
 
 def notificationLogging(request):
-    db=MySQLdb.connect(host=settings.DB_HOST, passwd=settings.DB_PASSWORD, user=settings.DB_USER, db=settings.DB_DATABASE, use_unicode=True)
-    cur = db.cursor()
+    db= DBConnection()
     
     form = util.FieldStorage(request)
     event_type = form['Event.1.EventType'].value
@@ -23,13 +23,11 @@ def notificationLogging(request):
     logging.info("Event notification from MTurk: " + str(event_type) + " " + str(event_time) + " " + str(hit_type_id) + " " + str(hit_id) + " " + str(assignment_id))
     
     try:
-        cur.execute("INSERT INTO notifications (eventtype, timestamp, hittypeid, hitid, assignmentid) VALUES (%s, %s, %s, %s, %s)""", (event_type, event_time, hit_type_id, hit_id, assignment_id))
+        db.query_and_return_array("INSERT INTO notifications (eventtype, timestamp, hittypeid, hitid, assignmentid) VALUES (%s, %s, %s, %s, %s)""", (event_type, event_time, hit_type_id, hit_id, assignment_id))
+        logging.error("WE INSERTED INTO NOTIFICATIONS IN DB " + settings.DB_DATABASE)
         
         if event_type == "AssignmentReturned":
-            cur.execute("""UPDATE `assignments` SET `return` = %s WHERE `assignmentid` = %s;""", (event_time, assignment_id))
+            db.query_and_return_array("""UPDATE `assignments` SET `return` = %s WHERE `assignmentid` = %s;""", (event_time, assignment_id))
             
     except Exception:
         logging.exception("Notification exception")
-    
-    cur.close()
-    db.close()

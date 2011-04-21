@@ -1,0 +1,15 @@
+.fig {
+    width: 310px;
+    height: 485px;
+    display: inline;
+}
+.examplefig {
+    width: 110px;
+    height: 110px;
+    display: inline;
+}
+
+#donepuppeting {
+    font-size: 50pt;
+    min-height: 50pt;
+}
