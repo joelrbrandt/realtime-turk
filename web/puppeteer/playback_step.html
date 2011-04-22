@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <title>Puppeteer Playback</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script type="text/javascript" src="protovis-r3.2.js"></script>
+    <script src="playback_step.js"></script>
+    <script src="longrun_data.js"></script>
+
+    <style type="text/css">
+
+#msg {
+  height: 100px;
+  overflow: scroll;
+}
+
+#allfigs{
+  height: 500px;
+  overflow:scroll;
+}
+
+.fig {
+  width: 105px;
+  height: 164px;
+  display: inline;
+}
+
+    </style>
+  </head>
+  <body>
+    <button onclick="takeStep();">step</button> <button onclick="takeOneHundredSteps();">100 steps</button>
+    <div id="allfigs">
+    </div>
+    <div id="msg">
+
+    </div>
+  </body>
+</html>
