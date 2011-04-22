@@ -1,0 +1,98 @@
+<script src="http://code.jquery.com/jquery-1.5.2.js"></script>
+<script src="lib/jquery.approach.js"></script>
+<script>
+function layout() {
+  var items = $(".item");
+  var n = items.size();
+
+  var maxDiagonal = 0;
+  items.each(function(index) {
+    var w = $(this).width();
+    var h = $(this).height();
+    var diagonal = Math.sqrt(w*w + h*h);
+    maxDiagonal = Math.max(maxDiagonal, diagonal);
+  });
+
+  var dtheta = 2*Math.PI / n;
+  var startingTheta = (n < 3) ? 0 : -Math.PI/2;
+  
+  // to prevent the items from overlapping, we want radius to be large
+  // enough that maxDiagonal is smaller than the chord of the circle 
+  // spanning dtheta.  So r * crd(dtheta) >= maxDiagonal.  crd(dtheta) = 2sin(dtheta/2).
+  // Solve for r.
+  var radius = maxDiagonal/(2 * Math.sin(dtheta/2));
+  if (n == 1) radius = 0;
+  else radius = Math.max(radius, maxDiagonal/2 + 150); // enforce a minimum separation between 2 things
+  
+  var cxCircle = radius + maxDiagonal/2;
+  var cyCircle = radius + maxDiagonal/2;
+  
+  items.each(function(index) {
+    var theta = startingTheta + index * dtheta;
+    var cx = cxCircle + radius*Math.cos(theta);
+    var cy = cyCircle + radius*Math.sin(theta);
+    console.log(cx + "," + cy);
+    var left = cx - $(this).width()/2;
+    var top = cy - $(this).height()/2;
+    $(this).animate({left: left + "px", top: top + "px"});
+  })
+  
+  items.approach({
+    "opacity": 1.0
+  }, 300);
+  
+  
+}
+
+$(function() {
+   layout();
+})
+
+
+$(function() {
+   $(document).click(function() {
+      console.log("bang!")
+      var n = $(".item").size();
+      $(".item").each(function() {
+        if (Math.random() < 1/n) {
+          console.log("bing!")
+          $(this).remove();
+        }
+      })
+      layout();
+   })
+})
+
+
+</script>
+
+<style>
+.item {
+  width: 100px;
+  /*height: 80px;*/
+  border: 1px dashed;
+  position: absolute;
+  background-color: darkGray;
+  opacity: 0.1;
+}
+.main {
+  position: relative;
+}
+</style>
+
+<body>
+<div id="main">
+    <img class="item" src="http://flock.csail.mit.edu/msbernst/media/color-1-01.png"></div>
+    <img class="item" src="http://flock.csail.mit.edu/msbernst/media/color-2-01.png"></div>
+    <img class="item" src=""></div>
+    <img class="item" src="http://flock.csail.mit.edu/msbernst/media/font-2-01.png"></div>
+    <div class="item"></div>
+    <div class="item"></div>
+    <div class="item"></div>
+    <div class="item"></div>
+    <div class="item"></div>
+    <div class="item"></div>
+    <div class="pointer"></div>
+</div>
+
+</body>
