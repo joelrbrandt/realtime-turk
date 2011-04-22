@@ -81,7 +81,7 @@ def parseVideo(videoid, study_videos_only, db):
         phases = db.query_and_return_array("""SELECT *, COUNT(DISTINCT assignmentid) FROM phases, locations WHERE phases.phase_list = %s AND locations.phase = phases.phase GROUP BY phases.phase ORDER BY start""", (phase_list['pk'],))
     
         for (i, phase) in enumerate(phases):
-            if i == 0:
+            if i != 0:
                 continue
             if phase['COUNT(DISTINCT assignmentid)'] < 2:
                 print("WARNING: one of the photos is missing people. What's going on?\nWARNING\nWARNING\nWARNING\nWARNING\nWARNING")
@@ -115,11 +115,11 @@ def parseVideo(videoid, study_videos_only, db):
                 continue
             
             if i==0:
-                first_go = total_seconds(readies[0] - shows[0])
-                crowd_go = total_seconds(readies[1] - shows[0])
-                first_ping_wait = total_seconds(first_ping - shows[0])
-                crowd_wait = total_seconds(second_ping - shows[0])                
-                agreement = total_seconds(end - second_ping)
+                first_go = total_seconds(readies[0] - start)#shows[0])
+                crowd_go = total_seconds(readies[1] - start) # shows[0])
+                first_ping_wait = total_seconds(first_ping - start) #shows[0])
+                crowd_wait = total_seconds(second_ping - start) #shows[0])                
+                agreement = total_seconds(end - start) #second_ping)
             else:
                 first_go = None
                 crowd_go = None

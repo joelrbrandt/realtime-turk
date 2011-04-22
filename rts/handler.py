@@ -20,7 +20,11 @@ def handler(request):
         return voteHandler.handler(request)        
     elif uri_parts[2] == 'puppeteer':
         import rts.puppeteer.handler as puppeteerHandler
-        return puppeteerHandler.handler(request)        
+        return puppeteerHandler.handler(request)
+    elif uri_parts[2] == 'ab':
+        import rts.ab.handler as abHandler
+        return abHandler.handler(request)        
+
 
     # now us
     elif uri_parts[-1] == "time":
