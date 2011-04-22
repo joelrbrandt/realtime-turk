@@ -1,0 +1,39 @@
+<%!
+from rtsutils.db_connection import DBConnection
+import pprint
+import simplejson
+%>
+
+
+<%
+
+"""get all the datas"""
+
+db = DBConnection()
+points = db.query_and_return_array("SELECT assignmentid, servertime, detail as `points` FROM `logging_long_run` WHERE `event`='points' order by servertime LIMIT 100")
+for i in points:  # first convert all the json in the 'points' field to python
+   i['points'] = simplejson.loads(i['points'])
+   i['servertime'] = float(i['servertime'])
+json_points = simplejson.dumps(points) # then convert EVERYTHING to json
+
+submission_times = db.query_and_return_array("SELECT assignmentid, submit FROM `assignments_long_run` WHERE submit IS NOT NULL ORDER BY submit LIMIT 10")
+for i in submission_times:
+    i['submit'] = float(i['submit'])
+
+json_submissions = simplejson.dumps(submission_times)
+
+%>
+
+<html>
+  <head>
+    <title>Puppeteer</title>
+<script>
+var thepoints = ${json_points};
+
+var thesubmissions = ${json_submissions};
+
+</script>
+  </head>
+  <body>
+  </body>
+</html>

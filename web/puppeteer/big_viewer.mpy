@@ -1,0 +1,59 @@
+<%!
+from rtsutils.db_connection import DBConnection
+import pprint
+import simplejson
+%>
+
+
+<%
+"""get all the datas"""
+
+db = DBConnection()
+r = db.query_and_return_array("SELECT assignmentid, workerid, points FROM assignments_long_run WHERE points IS NOT NULL AND was_real_work=1 ORDER BY `submit`")
+for i in r:  # first convert all the json in the 'points' field to python
+   i['points'] = simplejson.loads(i['points'])
+json = simplejson.dumps(r) # then convert EVERYTHING to json
+
+NUMBER_OF_SUBMISSIONS = len(r)
+NUMBER_OF_FIGURES_PER_SUBMISSION = 3
+
+%>
+
+<html>
+  <head>
+    <title>Puppeteer Big Viewer</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script type="text/javascript" src="protovis-r3.2.js"></script>
+    <script src="big_viewer.js"></script>
+    <script>
+      var thedata = ${json};
+    </script>
+    <style type="text/css">
+
+.fig {
+  width: 310px;
+  height: 485px;
+  display: inline;
+}
+
+    </style>
+  </head>
+  <body>
+    <table id="puppet_table">
+% for i in range(NUMBER_OF_SUBMISSIONS):
+      <tr>
+	<td><span style="font-size:  72pt">${i}:</span></td>
+% for j in range(NUMBER_OF_FIGURES_PER_SUBMISSION):
+	<td>
+	  <div class="fig">
+	    <script>
+	      drawPuppet(thedata[${i}].points[${j}]);
+	    </script>
+	  </div>
+	</td>
+% endfor
+      </tr>
+% endfor
+    </table>    
+  </body>
+</html>

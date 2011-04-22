@@ -1,0 +1,147 @@
+<%!
+from rtsutils import study_rating_helpers as helpers
+from mod_python import apache, util
+import random
+import cgi
+%>
+
+
+<%
+IMAGE_PATH = "/msbernst/media/videos/jpg/"
+
+username = apache_request.user
+participant_number = helpers.parse_participant_number(username)
+photos = {}
+ratings = {}
+
+if participant_number:
+   photos = helpers.get_photos_to_rate(participant_number)
+   ratings = helpers.get_all_ratings_for_participant(participant_number)
+
+group_count = 0
+
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>MIT UID User Study - Photo Rating</title>    
+    <link href="study_rating.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h1>Hi Friendly Participant ${username}!</h1>
+
+<p>It's time to rate each of the moments captured from your
+videos. Below you'll find five photos for each video.</p>
+
+<p><b>Focus on whether the photo captures the right moment:</b> ignore
+things like brightness, contrast, pixelation and color. Choose a
+rating from 1 to 9, where 1 means "this is absolutely the wrong
+moment", 9 means "this is absolutely the perfect moment", and 5 is
+neutral.</p>
+
+<p>For example, this photo is not of the right moment:<br/>
+<img src="/msbernst/media/verification/greg123.jpg" width=480 /></p>
+
+<p>This one captures a much better moment:<br/>
+<img src="/msbernst/media/verification/greg60.jpg" width=480 /></p>
+
+<form action="record.mpy" method="POST">
+
+% for videoid in photos.keys():
+
+<%
+photo_indexes = range(len(photos[videoid]))
+random.shuffle(photo_indexes)
+group_count += 1
+photo_count = 0
+%>
+
+<hr>
+
+<h1>Photo Group ${group_count}</h1>
+
+<table class="photogroup">
+
+
+% for i in photo_indexes:
+
+<%
+photo = photos[videoid][i]
+photo_count += 1
+%>
+
+<tr>
+
+<td>
+<img width="480px" src="${IMAGE_PATH + photo['filename']}">
+</td>
+
+<td>
+<h2>Photo ${group_count}-${photo_count}</h2>
+<b>Rating:</b>
+<table class="likert">
+<tr>
+<td>&nbsp;</td>
+% for j in range(1,10):
+<td>${j}</td>
+% endfor
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td>worst moment</td>
+% for j in range(1,10):
+
+% if ratings.has_key(photo['id']) and ratings[photo['id']]['rating'] == j:
+<td><input type="radio" id="rating-${photo['id']}" name="rating-${photo['id']}" value="${j}" checked></td>
+% else:
+<td><input type="radio" id="rating-${photo['id']}" name="rating-${photo['id']}" value="${j}"></td>
+% endif
+
+% endfor
+<td>perfect moment</td>
+</tr>
+</table>
+<p>
+<b>Comments</b> (optional):<br />
+% if ratings.has_key(photo['id']) and ratings[photo['id']]['comment'] != None:
+<input type="text" id="comment-${photo['id']}" name="comment-${photo['id']}" size="100" value="${cgi.escape(ratings[photo['id']]['comment'], True)}"/> 
+% else:
+<input type="text" id="comment-${photo['id']}" name="comment-${photo['id']}" size="100"/> 
+% endif
+</p>
+</td>
+
+<%
+#DEBUGGING STUFF
+"""
+<td>
+<p>THIS WILL BE REMOVED: <br />
+id: ${photo['id']}<br />
+videoid: ${photo['videoid']}<br />
+location: ${photo['location']}<br />
+frame: ${photo['frame']}<br />
+algorithm: ${photo['algorithm']}<br />
+participant_number: ${photo['participant_number']}<br />
+</p>
+</td>
+"""
+%>
+
+</tr>
+
+% endfor
+
+</table>
+
+% endfor
+
+<hr>
+
+<button type="submit" id="btn_done" name="btn_done">I'm all done!</button>
+
+</form>
+
+</body>
+</html>

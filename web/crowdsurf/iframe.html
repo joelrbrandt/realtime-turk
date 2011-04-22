@@ -1,0 +1,22 @@
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+<script src="crowdsurf_mgr.js"></script>
+</head>
+
+<body>
+
+<h1>An iframe!</h1>
+
+<form method="post" action="iframe.html" onsubmit="return updateLocation();">
+<p><input type="text" size="200" id="text_url" name="text_url" value="http://m.google.com/"><input type="submit" value="go" /></p>
+</form>
+
+<iframe name="user_browser" id="user_browser" src="index.php?q=Z29vZ2xlLmNvbQ" width="300px" height="400px">
+</iframe>
+
+<p>That's it</p>
+
+</body>
+
+</html>
