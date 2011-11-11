@@ -9,7 +9,7 @@ import sys, traceback
 
 def notificationLogging(request):
     db= DBConnection()
-    #hi there jintrone
+
     form = util.FieldStorage(request)
     event_type = form['Event.1.EventType'].value
     event_time = parseISO(form['Event.1.EventTime'].value)
