@@ -1,7 +1,7 @@
 var colorMap = new Array();        
 
 $(document).ready(function() {
-    $('#taskContainer').append("<button id='replayBtn'>Replay</button>");
+    $('#taskContainer').append("<button style='margin-top: 250px;' id='replayBtn'>Replay</button>");
     $('#replayBtn').click(replayLog);
 });
 
@@ -70,7 +70,7 @@ function getRandomColor() {
     return color;
 }
 
-var MARK_WIDTH = 1.0;
+var MARK_WIDTH = 3.0;
 var ANIMATION_TIME = 500;
 function drawLocation(location) {
     color = getColor(location['assignmentid']);
@@ -98,6 +98,7 @@ var startCountdown;
 function warnPhase(phase) {
     console.log('phase warning: ' + (phase['start'] - (HYSTERESIS / 1000.0)) );
     var width = (phase['max'] - phase['min']) * 100; // percent
+    
     
     $('#replayLocations').append("<div id='replayWarning' class='replayMark' style='background-color: yellow; width: " + width + "%; left: " + phase['min'] * 100 + "%;'>2500</div>");
     window.setTimeout(function() { $('#replayWarning').remove(); }, HYSTERESIS);
