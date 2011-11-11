@@ -19,7 +19,7 @@ from padnums import pprint_table
 import sys
 from itertools import groupby
 
-ITEM_OF_INTEREST = "design" #'waitbucket'
+ITEM_OF_INTEREST = 'waitbucket' #"design" #'waitbucket'
 
 if ITEM_OF_INTEREST == "waitbucket":
     EXPERIMENTS = range(50, 56)
@@ -274,6 +274,9 @@ def printSummary(assignments, assignments_including_incomplete, condition = None
                    str(numpy.std(go_answer)) ] )
     
     pprint_table(sys.stdout, table)
+    
+    print("UNDER TWO: %s" % stats.percentileofscore(go_show, 2.0))
+    print("UNDER THREE: %s" % stats.percentileofscore(go_show, 3.0))    
     
     # Correlation between wait-show and show-go
     #(r, p_val) = stats.pearsonr(accept_show, go_show)
