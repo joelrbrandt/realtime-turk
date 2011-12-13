@@ -12,7 +12,7 @@ class DBConnection():
         self._autocommit = autocommit
         self.check_connection()
 
-
+    
     def check_connection(self):
         #logging.debug('checking connection to db')
         result = False

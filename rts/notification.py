@@ -24,7 +24,6 @@ def notificationLogging(request):
     
     try:
         db.query_and_return_array("INSERT INTO notifications (eventtype, timestamp, hittypeid, hitid, assignmentid) VALUES (%s, %s, %s, %s, %s)""", (event_type, event_time, hit_type_id, hit_id, assignment_id))
-        logging.error("WE INSERTED INTO NOTIFICATIONS IN DB " + settings.DB_DATABASE)
         
         if event_type == "AssignmentReturned":
             db.query_and_return_array("""UPDATE `assignments` SET `return` = %s WHERE `assignmentid` = %s;""", (event_time, assignment_id))

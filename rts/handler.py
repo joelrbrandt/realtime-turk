@@ -24,6 +24,9 @@ def handler(request):
     elif uri_parts[2] == 'ab':
         import rts.ab.handler as abHandler
         return abHandler.handler(request)        
+    elif uri_parts[2] == 'mole':
+        import rts.mole.handler as moleHandler
+        return moleHandler.handler(request)
 
 
     # now us

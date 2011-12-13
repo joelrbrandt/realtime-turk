@@ -10,9 +10,9 @@ def print_assignment_details(a, indent=""):
     print indent + "Status: " + a.AssignmentStatus
     print indent + "SubmitTime: " + a.SubmitTime
     print indent + "AutoApprovalTime: " + a.AutoApprovalTime
-    print indent + "Answer: " + str(reformat_external_question_answer(a.answers))
+    print indent + "Answer: " + str(reformat_external_question_answer(a.answers, a.AssignmentId))
 
-def reformat_external_question_answer(answer_array):
+def reformat_external_question_answer(answer_array, assignmentid):
     """
     reformats an answer array from an External Question into a dict
     Note: if there are repeated element names in the answer array, the last value will be used
@@ -21,6 +21,7 @@ def reformat_external_question_answer(answer_array):
     for ans in answer_array:
         for q in ans:
             a[q.QuestionIdentifier] = q.FreeText
+    a['assignmentId'] = assignmentid
     return a
 
 
@@ -64,7 +65,7 @@ def review_assignment(conn,
     print indent + "Assignment ID: " + assignment.AssignmentId
     if verbose:
         print_assignment_details(assignment, indent=indent)
-    parsed_answers = reformat_external_question_answer(assignment.answers)
+    parsed_answers = reformat_external_question_answer(assignment.answers, assignment.AssignmentId)
 
     review = answer_reviewer(parsed_answers)
     if review == None: # chose not to review this assignment
