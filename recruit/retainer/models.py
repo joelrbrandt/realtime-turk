@@ -12,6 +12,10 @@ class Assignments(models.Model):
     go_time = models.DecimalField(null=True, max_digits=19, decimal_places=3, blank=True)
     submit_time = models.DecimalField(null=True, max_digits=19, decimal_places=3, blank=True)
 
+    def __unicode__(self):
+        return self.assignment_id
+
+
 class Hits(models.Model):
     hit_id = models.CharField(max_length=255, primary_key=True)
     hit_type_id = models.CharField(max_length=255, blank=True)
@@ -26,6 +30,10 @@ class Hits(models.Model):
     auto_approval_delay = models.IntegerField(null=True, blank=True)
     retainertime = models.IntegerField()
 
+    def __unicode__(self):
+        return hit_id
+
+
 class Events(models.Model):
     #pk = models.IntegerField(primary_key=True)
     assignment = models.ForeignKey('Assignments')
@@ -36,6 +44,10 @@ class Events(models.Model):
     server_time = models.DecimalField(max_digits=19, decimal_places=3, db_index=True)
     user_agent = models.CharField(max_length=600)
 
+    def __unicode__(self):
+        return assignment + u': ' + event_type
+
+
 class Notifications(models.Model):
     #pk = models.BigIntegerField(primary_key=True)
     server_time = models.DecimalField(max_digits=19, decimal_places=3)
@@ -43,3 +55,6 @@ class Notifications(models.Model):
     hit = models.ForeignKey('Hits')
     assignmentid = models.ForeignKey('Assignments', null=True, blank=True)
     eventtype = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return hit + u' ' + assignmentid + u': ' + eventtype
