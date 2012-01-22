@@ -11,7 +11,7 @@ from mt_connection import *
 from timeutils import total_seconds, unixtime
 from video_approver import approve_video_hits_and_clean_up
 from work_approver import expire_all_hits
-from break_handler import BreakHandler
+#from break_handler import BreakHandler
 import video_hit
 import video_encoder
 import settings

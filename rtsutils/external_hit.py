@@ -35,7 +35,7 @@ class ExternalHit():
                                duration=self.assignment_duration,
                                approval_delay=self.auto_approval_delay,
                                annotation=None,
-                               qual_req=None,
+                               #qual_req=None,
                                questions=None,
                                qualifications=None,
                                response_groups=None)

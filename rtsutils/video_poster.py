@@ -11,7 +11,7 @@ from mt_connection import *
 from timeutils import total_seconds
 from video_approver import approve_video_hits_and_clean_up
 from work_approver import expire_all_hits
-from break_handler import BreakHandler
+#from break_handler import BreakHandler
 import video_hit
 import video_encoder
 import settings
@@ -19,7 +19,7 @@ import settings
 TIME_BETWEEN_RUNS = 30 # seconds
 VIDEO_DIRECTORY = '../web/media/videos/'
 
-MIN_ON_RETAINER = 3
+MIN_ON_RETAINER = 1#5
 
 def postRandomHITs(num_hits, max_wait_time, price, expiration, mt_conn, db):
     """ Posts HITs of several possible varieties (creating multiple HIT groups) based on a random selection: will vary price and description """
@@ -32,7 +32,7 @@ def postRandomHITs(num_hits, max_wait_time, price, expiration, mt_conn, db):
         postHITs(num_hits, max_wait_time, price, expiration, mt_conn, db)
     else:
         title = "TurkCamera: help take a good picture"
-        description = "I took a short movie rather than a picture. Help find the best photographic moments in it."        
+        description = "I took a short movie rather than a picture. Help find the best photographic moment in it."        
         postHITs(num_hits, max_wait_time, price, expiration, mt_conn, db, title, description)        
 
 def postHITs(num_hits, max_wait_time, price, expiration, mt_conn, db, title = video_hit.TITLE, description = video_hit.DESCRIPTION):
@@ -102,8 +102,9 @@ def postNewVideos(db):
     print("%s on retainer right now" % num_waiting)
     
     if num_waiting >= MIN_ON_RETAINER:
-        print("posting video")
-        postVideo(db)
+        print("Autoposting of videos in the directory is disabled currently.")
+        #print("posting video")
+        #postVideo(db)
 
 
 def postVideo(db):
