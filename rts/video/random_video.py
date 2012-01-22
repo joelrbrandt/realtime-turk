@@ -44,13 +44,9 @@ def getRandomVideo(request):
             # TODO: this will not scale once we have over ~10,000 rows
             logging.debug("Getting random video")
 
-            # get a video that's not in the study            
-
-            # warning! HACK!
-            logging.debug("HACK! ONLY RANDOM VIDEOS ARE THOSE with pk < 100")
+            #videoid = db.query_and_return_array("""SELECT pk FROM videos LEFT JOIN study_videos ON videos.pk = study_videos.videoid WHERE study_videos.videoid IS NULL ORDER BY RAND() LIMIT 1""")[0]['pk']
+            videoid = db.query_and_return_array("""SELECT pictures.videoid FROM `phase_lists`, pictures WHERE pictures.phase_list = phase_lists.pk AND is_historical = 0 ORDER BY RAND() LIMIT 1""")[0]['videoid']
             
-            videoid = db.query_and_return_array("""SELECT pk FROM videos LEFT JOIN study_videos ON videos.pk = study_videos.videoid WHERE study_videos.videoid IS NULL """ + """ AND pk < 100 """ + 
-            """ ORDER BY RAND() LIMIT 1""")[0]['pk']
-            
-    video_json = ready.getAndAssignPhotos(assignmentid, videoid, db)
+    video_json = ready.getAndAssignVideo(assignmentid, videoid, db)
+    logging.debug(video_json)
     request.write(json.dumps(video_json, cls = location_ping.DecimalEncoder))
