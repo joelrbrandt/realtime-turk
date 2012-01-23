@@ -106,17 +106,22 @@ def postNewVideos(db):
         #print("posting video")
         #postVideo(db)
 
-
-def postVideo(db):
+def getPostableVideos(db, directory=VIDEO_DIRECTORY):
     # get posted videos
     in_db = [row['filename'] for row in db.query_and_return_array("""SELECT filename FROM videos""")]
 
-    dirList = os.listdir(VIDEO_DIRECTORY)
+    dirList = os.listdir(directory)
     in_directory = filter(lambda x: x.endswith('.3gp'), dirList)
     
     available_to_post = [item for item in in_directory if item[:-4] not in in_db]
+    return available_to_post
+
+def postVideo(db, directory=VIDEO_DIRECTORY):
+    available_to_post = getPostableVideos(db)
     if len(available_to_post) > 0:
-        encodeAndUpload(VIDEO_DIRECTORY + random.choice(available_to_post))
+        to_post = random.choice(available_to_post)
+        encodeAndUpload(directory + to_post)
+        enableVideo(to_post)
     else:  
         print("Nothing to post")
 
