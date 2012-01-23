@@ -67,7 +67,7 @@ def generateMovie(head, name, extension):
 def uploadVideo(name, width, height):
     db = DBConnection()
     try:
-        sql = """INSERT INTO videos (filename, width, height, creationtime) VALUES (%s, %s, %s, %s)"""
+        sql = """INSERT INTO videos (filename, width, height, creationtime, enabled) VALUES (%s, %s, %s, %s, FALSE)"""
         db.query_and_return_array(sql, (name, width, height, unixtime(datetime.now())))
     except Exception, e:
         print("Error writing video to database:")
