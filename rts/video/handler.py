@@ -52,6 +52,16 @@ def handler(request):
         getvideos.getVideos(request)
         return apache.OK
 
+    elif uri_parts[-1] == "enable":
+        import enable
+        enable.enableVideo(request)
+        return apache.OK
+
+    elif uri_parts[-1] == "currentposition":
+        import replay_video
+        replay_video.getCurrentPositions(request)
+        return apache.OK
+
     else:
         # request.content_type = "text/plain"
         # request.write("Error: can't find a command with the name " + str(uri_parts) + "\n")
