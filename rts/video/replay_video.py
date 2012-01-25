@@ -26,3 +26,28 @@ def replayLog(request):
         phase['locations'] = locations
     
     request.write(json.dumps(phases, cls = location_ping.DecimalEncoder))
+
+def getCurrentPositions(request):
+    request.content_type = "application/json"
+    form = util.FieldStorage(request)
+    videoid = form['videoid'].value
+    
+    db = DBConnection()
+    cur_phase = db.query_and_return_array("""SELECT * FROM phases, phase_lists
+                WHERE phase_lists.videoid = %s AND phase_lists.pk = phases.phase_list
+                ORDER BY phases.phase DESC LIMIT 1""", (videoid, ))[0]
+
+    locations = db.query_and_return_array("""
+                   SELECT locations.assignmentid, locations.location
+                   FROM (
+                      SELECT assignmentid, MAX(servertime) as maxtime
+                      FROM locations WHERE phase = %s
+                      GROUP BY assignmentid
+                   ) AS current, locations WHERE current.maxtime = locations.servertime
+                   AND current.assignmentid = locations.assignmentid AND locations.phase = %s
+                   """, (cur_phase['phase'], cur_phase['phase'] ))
+
+    cur_phase['locations'] = locations
+    request.write(json.dumps(cur_phase, cls = location_ping.DecimalEncoder))
+    
+    
