@@ -17,10 +17,12 @@ def reformat_external_question_answer(answer_array, assignmentid):
     reformats an answer array from an External Question into a dict
     Note: if there are repeated element names in the answer array, the last value will be used
     """
+
     a = {}
     for ans in answer_array:
         for q in ans:
-            a[q.QuestionIdentifier] = q.FreeText
+            for field in q.fields:
+                a[field[0]] = field[1]
     a['assignmentId'] = assignmentid
     return a
 
