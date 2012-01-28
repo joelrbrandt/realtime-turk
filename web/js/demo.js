@@ -58,6 +58,7 @@ function loadVideo(videoData) {
     videoDataCallback(videoData);
     $('button').button('enable').click(function(e) {
 	enableVideo(videoid);
+	
     });
 }
 

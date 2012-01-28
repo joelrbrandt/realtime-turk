@@ -127,7 +127,6 @@ def postVideo(db, directory=VIDEO_DIRECTORY):
 
 def encodeAndUpload(filename):
     (head, name, extension) = video_encoder.splitPath(filename)
-
     (width, height) = video_encoder.encodeVideo(head, name, extension)
     video_encoder.uploadVideo(name, width, height)
 
