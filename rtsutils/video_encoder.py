@@ -24,8 +24,8 @@ def generateStills(head, name, extension):
     output_frame_rate = int(100.0 / total_seconds(getVideoLength(generateFilename(head, name, extension)))) + 1
 
     cmd = "ffmpeg"
-    cmd += " -r 25"
     cmd += " -i " + generateFilename(head, name, extension) # filename 
+    cmd += " -r 25"
     cmd += " -y " # -y: force overwrite output files
     cmd += " -r " + str(output_frame_rate)
     cmd += " -vframes 100 "
@@ -36,6 +36,7 @@ def generateStills(head, name, extension):
     process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
     output = process.communicate()[1]
     print("Finished creating stills")
+    print(output)
      
 
 def generateMovie(head, name, extension):
