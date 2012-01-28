@@ -26,8 +26,9 @@ def getVideos(request):
 
     videos = []
     for video in videos_in_db:
-        curVideo = getVideo(video['pk'], create_phase=False)
-        curVideo['hasphotos'] = bool(video['hasphotos'])
+        has_photos = bool(video['hasphotos'])
+        curVideo = getVideo(video['pk'], create_phase=(not has_photos), restart_if_converged=True)
+        curVideo['hasphotos'] = has_photos
         videos.append(curVideo)
 
     request.write(json.dumps(videos, cls = DecimalEncoder))
