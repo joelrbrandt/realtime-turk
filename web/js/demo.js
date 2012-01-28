@@ -64,6 +64,8 @@ function loadVideo(videoData) {
 function disableVideo(videoid) {
     $.get(ENDPOINT_DISABLE_VIDEO + "?videoid=" + videoid, function(data) {
 	console.log("disabled");
+	location.reload(true)
+
     });
 }
 

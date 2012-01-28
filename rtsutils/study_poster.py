@@ -128,24 +128,20 @@ def unlabeledVideos(db, is_slow):
     # we need videos that have no pictures yet
     if is_slow:        
         inner_query = "SELECT COUNT(*) AS numPictures, videoid FROM slow_snapshots, assignments WHERE slow_snapshots.assignmentid = assignments.assignmentid AND workerid <> '" + PHOTOGRAPHER_ID + "' GROUP BY videoid"
-        column = 'slow_available'
         num_pics_condition = 'OR pictureCount.numPictures < 3'
     else:
         inner_query = "SELECT COUNT(*) AS numPictures, videoid FROM pictures GROUP BY videoid"
-        column = 'fast_available'
         num_pics_condition = ''
     
     result = db.query_and_return_array("""
         SELECT pk FROM videos
-        
-        INNER JOIN study_videos ON study_videos.videoid = videos.pk
         
         LEFT JOIN (""" + inner_query + """)
         AS pictureCount
         ON pictureCount.videoid = videos.pk        
         
         WHERE (pictureCount.numPictures IS NULL """ + num_pics_condition + """) 
-        AND study_videos.""" + column + """ = TRUE
+        AND videos.enabled = TRUE
         
         ORDER BY videos.pk DESC """)
     return result
