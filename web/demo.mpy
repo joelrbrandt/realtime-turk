@@ -38,7 +38,7 @@
   </div>
 
   <div id="goContainer">
-  <div id="countdownContainer" class="countdown">
+  <div id="countdownContainer" class="countdown" style="display:none;">
         <div>The video will appear at the latest in:</div>
         <div id="countdown"></div>
     </div>
