@@ -37,5 +37,7 @@ def getVideos(request):
 def indexNewVideos(db):
     to_post = getPostableVideos(db, directory=VIDEO_DIRECTORY)
     for video_to_post in to_post:
-        encodeAndUpload(VIDEO_DIRECTORY + to_post)
+        video_path = os.path.abspath(VIDEO_DIRECTORY + video_to_post)
+        logging.debug(video_path)
+        encodeAndUpload(video_path)
 
