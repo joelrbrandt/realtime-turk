@@ -502,7 +502,7 @@ function converged() {
     }
     output.append("Click the submit button below to finish.");
     
-    $('#donebtn').fadeIn();
+    $('#donebtn').removeAttr("disabled").fadeIn();
     
     // add styles
 }
