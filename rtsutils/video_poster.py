@@ -19,7 +19,7 @@ import settings
 TIME_BETWEEN_RUNS = 30 # seconds
 VIDEO_DIRECTORY = '../web/media/videos/'
 
-MIN_ON_RETAINER = 1#5
+MIN_ON_RETAINER = 5
 
 def postRandomHITs(num_hits, max_wait_time, price, expiration, mt_conn, db):
     """ Posts HITs of several possible varieties (creating multiple HIT groups) based on a random selection: will vary price and description """

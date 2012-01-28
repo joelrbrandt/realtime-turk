@@ -77,11 +77,12 @@ function enableVideo(videoid) {
     });
 }
 
+var LOCATION_REQUEST_TIME = 100;
 function getLocations() {
     $.get(ENDPOINT_CURRENT_LOCATIONS + "?videoid=" + videoid, function(data) {
 	drawLocations(data);
     });
-    window.setTimeout(getLocations, 100);
+    window.setTimeout(getLocations, LOCATION_REQUEST_TIME);
 }
 
 var colorMap = new Array();        
@@ -123,7 +124,7 @@ function getColor(assignmentid) {
 }
 
 var MARK_WIDTH = 3.0;
-var ANIMATION_TIME = 500;
+var ANIMATION_TIME = LOCATION_REQUEST_TIME;
 function drawLocation(location, assignmentid) {
     color = getColor(assignmentid);
 
@@ -132,7 +133,7 @@ function drawLocation(location, assignmentid) {
     }
     
     var left = (location * 100) - MARK_WIDTH/2;
-    $('#' + assignmentid).animate( { "left": left + "%" }, ANIMATION_TIME, 'linear');
+    $('#' + assignmentid).stop().animate( { "left": left + "%" }, ANIMATION_TIME, 'linear');
 }
 
 /**

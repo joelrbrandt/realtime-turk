@@ -22,7 +22,7 @@ AGREEMENT_MINIMUM = 2   # At least this many must agree (no single person!)
 HYSTERESIS_SECONDS = Decimal(str(3.0))
 
 PHASE_MAX_AGE_IN_SECONDS = 30
-MAX_TIME_TO_WAIT_ALONE_IN_SECS = 10
+MAX_TIME_TO_WAIT_ALONE_IN_SECS = 4
 
 # worker must have seen at least this % of the available area
 MINIMUM_RANGE_EXPLORATION = Decimal(1) / Decimal(10)
@@ -218,7 +218,7 @@ def compareLocations(phase, servertime, db):
         earliest_ping = db.query_and_return_array(sql, (phase['phase'], result[0]['assignmentid']))[0]['MIN(servertime)']
         
         waiting_time = servertime - earliest_ping
-        logging.debug("waiting time: %s " % waiting_time)
+        logging.debug("waiting time: %s " % waiting_time)        
         if waiting_time > MAX_TIME_TO_WAIT_ALONE_IN_SECS:        
             # forever alone :(
             logging.debug("User has been waiting alone too long. Going to use an old phase.")
