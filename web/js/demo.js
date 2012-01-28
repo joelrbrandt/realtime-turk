@@ -1,24 +1,34 @@
 var ENDPOINT_NUM_ON_RETAINER = 	'rts/numretainer'
 var ENDPOINT_GET_VIDEOS = 'rts/video/getvideos'
 var ENDPOINT_ENABLE_VIDEO = 'rts/video/enable'
+var ENDPOINT_DISABLE_VIDEO = 'rts/video/disable'
 var ENDPOINT_CURRENT_LOCATIONS = 'rts/video/currentposition'
 
 $(document).ready(function() {
     getVideos();
     updateRetainerCount();
     $('button').button( { 'disabled': true } );
+    $('#showreset').click(function() { $('#resetlist').show() } )
 });
 
 function getVideos() {
     $.get(ENDPOINT_GET_VIDEOS, function(data) {
-	console.log(data);
 	for (var i=0; i<data.length; i++) {
 	    var newVideo = $("<div><a href='#'>" + data[i]['filename'] + "</a></div>");
-	    $(newVideo).click(function() { 
-		loadVideo($(this).data('info'));
-	    });
 	    newVideo.data('info', data[i]);
-	    $('#videolist').append(newVideo);
+
+	    if (data[i]['enabled'] || data[i]['hasphotos']) {
+		$(newVideo).click(function() { 
+		    disableVideo($(this).data('info')['videoid']);
+		});
+		$('#resetlist').append(newVideo);
+	    }
+	    else {
+		$(newVideo).click(function() { 
+		    loadVideo($(this).data('info'));
+		});
+		$('#videolist').append(newVideo);
+	    }
 	}
     });
 }
@@ -48,6 +58,12 @@ function loadVideo(videoData) {
     videoDataCallback(videoData);
     $('button').button('enable').click(function(e) {
 	enableVideo(videoid);
+    });
+}
+
+function disableVideo(videoid) {
+    $.get(ENDPOINT_DISABLE_VIDEO + "?videoid=" + videoid, function(data) {
+	console.log("disabled");
     });
 }
 

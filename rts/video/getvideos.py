@@ -20,16 +20,21 @@ def getVideos(request):
 
     indexNewVideos(db)
 
-    # get all videos that are not currently enabled and have no previous photos
-    disabled = [ row['pk'] for row in db.query_and_return_array("""SELECT videos.pk FROM videos LEFT JOIN pictures ON pictures.videoid = videos.pk WHERE enabled = FALSE AND location IS NULL""")]
+    # get all videos and whether they are currently enabled and have no previous photos
+    videos_in_db = db.query_and_return_array("""SELECT videos.pk, (location IS NOT NULL) AS hasphotos FROM videos 
+       LEFT JOIN pictures ON pictures.videoid = videos.pk""")
 
     videos = []
-    for video in disabled:
-        videos.append(getVideo(video))
+    for video in videos_in_db:
+        curVideo = getVideo(video['pk'], create_phase=False)
+        curVideo['hasphotos'] = bool(video['hasphotos'])
+        videos.append(curVideo)
 
     request.write(json.dumps(videos, cls = DecimalEncoder))
+
 
 def indexNewVideos(db):
     to_post = getPostableVideos(db, directory=VIDEO_DIRECTORY)
     for video_to_post in to_post:
         encodeAndUpload(VIDEO_DIRECTORY + to_post)
+

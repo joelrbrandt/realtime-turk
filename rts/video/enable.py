@@ -15,4 +15,10 @@ def enableVideo(request):
 
     db.query_and_return_array("""UPDATE videos SET enabled = TRUE WHERE pk = %s""", (videoid, ))
 
-### TODO: write a parallel "disable and remove all pictures" to reset the demo more easily
+def disableVideo(request):
+    db = DBConnection()
+    form = util.FieldStorage(request)
+    videoid = form['videoid'].value
+
+    db.query_and_return_array("""DELETE FROM pictures WHERE videoid = %s""", (videoid, ))
+    db.query_and_return_array("""UPDATE videos SET enabled = FALSE WHERE pk = %s""", (videoid, ))

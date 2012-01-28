@@ -57,6 +57,11 @@ def handler(request):
         enable.enableVideo(request)
         return apache.OK
 
+    elif uri_parts[-1] == "disable":
+        import enable
+        enable.disableVideo(request)
+        return apache.OK
+
     elif uri_parts[-1] == "currentposition":
         import replay_video
         replay_video.getCurrentPositions(request)

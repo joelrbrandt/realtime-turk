@@ -53,6 +53,12 @@
   
 </div>
 
+<div>
+  <div id="showreset" style="font-size: 8pt; color: #aaaaaa"><a href='#'>Reset videos</a> </div>
+  <div id="resetlist" style="display: none;">
+  </div>
+</div>
+
 </body>
 </html>
 
