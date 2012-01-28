@@ -20,9 +20,11 @@ def encodeVideo(head, name, extension):
 def generateStills(head, name, extension):
     """Generates ~100 still JPEGs from the 3gp video"""
     # ffmpeg -r 25 -i filename.3gp -r {outputframerate} -vframes 100 filename%3d.jpg
-    
+    print("momomomomo")
+
     output_frame_rate = int(100.0 / total_seconds(getVideoLength(generateFilename(head, name, extension)))) + 1
 
+    print("moo")
     cmd = "ffmpeg"
     cmd += " -i " + generateFilename(head, name, extension) # filename 
     cmd += " -r 25"
@@ -31,6 +33,7 @@ def generateStills(head, name, extension):
     cmd += " -vframes 100 "
     cmd += " " + generateFilename(head + os.sep + JPG_DIRECTORY, name, "%3d.jpg") # output file
     print("Stills command: %s" % cmd)
+    
     
     args = shlex.split(cmd)
     process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
@@ -44,8 +47,8 @@ def generateMovie(head, name, extension):
     # ffmpeg -r 10 -i filename%3d.jpg -an -g 1 -y -vframes 100 -r 10 filename.flv
 
     cmd = "ffmpeg"
-    cmd += " -r 10 " # input "framerate" is 10 -- needs to match the second -r
     cmd += " -i " + generateFilename(head + os.sep + JPG_DIRECTORY, name + "%3d", extension) # filename
+    cmd += " -r 10 " # input "framerate" is 10 -- needs to match the second -r
     cmd += " -an -g 1 -y " # an: no audio; -g 1: keyframe every frame; -y: force overwrite output files
     cmd += " -vframes 100 " # we want 100 frames in the video
     cmd += " -r 10 " # output framerate is 10 -- needs to match the first -r
@@ -86,6 +89,8 @@ def getVideoLength(filename):
     args = shlex.split(cmd)
     process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
     output = process.communicate()[1]
+    print("File length output:")
+    print(output)
 
     pattern = re.compile('Duration: (?P<hours>[0-9]{2}):(?P<minutes>[0-9]{2}):(?P<seconds>[0-9]{2}).(?P<millis>[0-9]{2}),')
     groups = re.search(pattern, output.replace('\n', ''))
