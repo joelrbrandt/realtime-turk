@@ -133,9 +133,9 @@ def encodeAndUpload(filename):
 
 if __name__ == "__main__":
     if settings.SANDBOX:
-        wait_bucket = 4 * 60
+        wait_bucket = 5 * 60
     else:
-        wait_bucket = 4 * 60
+        wait_bucket = 5 * 60
     
     if MIN_ON_RETAINER < 3 and not settings.SANDBOX:
         raise Exception("Not enough people on retainer for non-sandbox tasks! Are you sure?")

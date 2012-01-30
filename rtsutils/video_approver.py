@@ -70,10 +70,16 @@ def agreedWithPhases(phases, locations, min_phases):
     count_agreed = 0
     
     db = DBConnection()
+    print locations
     
     for i in range(len(phases)-1):
         # get the location we were at when the phase ended
-        last_location = Decimal(str(locations[i]))
+        try:
+            last_location = Decimal(str(locations[i]))
+        except IndexError:
+            # we don't have enough data points, maybe they came in midway through the decision
+            # we'll just use one they do have
+            last_location = Decimal(str(locations[0]))
         
         # get the bounds that ended up being decided on (e.g., the next phase)
         bounds = db.query_and_return_array("""SELECT min, max FROM phases WHERE phase = %s""", (phases[i+1], ))[0]
