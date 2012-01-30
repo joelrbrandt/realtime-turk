@@ -16,7 +16,7 @@ from decimal import Decimal
 
 AGREEMENT_RANGE = Decimal(25) / Decimal(100)   # Agreement must occur within this % 
                         # of the current phase range
-AGREEMENT_PERCENT = (1.0 / 3) # This % of workers must agree on a range
+AGREEMENT_PERCENT = (1.0 / 2) # This % of workers must agree on a range
 AGREEMENT_MINIMUM = 2   # At least this many must agree (no single person!)
 
 HYSTERESIS_SECONDS = Decimal(str(3.0))

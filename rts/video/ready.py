@@ -17,7 +17,7 @@ VIDEO_SOURCE_DIR = 'media/videos/'
 """ Writes to the request whether we need this particular worker to attack a video right now"""
 def is_ready(request):
     request.content_type = "application/json"
-    db = DBConnection()
+    db = DBConnection(autocommit = False)
     
     form = util.FieldStorage(request)
     assignmentid = form['assignmentid'].value
@@ -28,6 +28,7 @@ def is_ready(request):
     else:
         is_slow = form.has_key('slow') and form['slow'] == "1"
         result = unlabeledVideos(db, is_slow)
+        logging.debug(result)
 
         if is_slow:
             # have I already labeled this video?
@@ -42,6 +43,7 @@ def is_ready(request):
             videoid = result[0]['pk']
 
     video = getAndAssignVideo(assignmentid, videoid)        
+    db.commit()
     request.write(json.dumps(video, cls = location_ping.DecimalEncoder) )
 
 def haveCompleted(videoid, workerid, db):

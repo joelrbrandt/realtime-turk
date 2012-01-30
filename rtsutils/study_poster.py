@@ -22,6 +22,7 @@ VIDEO_DIRECTORY = '../web/media/videos/'
 
 MIN_ON_RETAINER = 4
 PHOTOGRAPHER_ID = "photographer"
+MAX_WORKERS_PER_VIDEO = 100
 
 def postRandomHITs(num_hits, max_wait_time, price, expiration, mt_conn, db, version):
     """ Posts HITs of several possible varieties (creating multiple HIT groups) based on a random selection: will vary price and description """
@@ -132,18 +133,28 @@ def unlabeledVideos(db, is_slow):
     else:
         inner_query = "SELECT COUNT(*) AS numPictures, videoid FROM pictures GROUP BY videoid"
         num_pics_condition = ''
+
+    ping_floor = unixtime(datetime.now() - timedelta(seconds = 10))
     
     result = db.query_and_return_array("""
         SELECT pk FROM videos
         
         LEFT JOIN (""" + inner_query + """)
         AS pictureCount
-        ON pictureCount.videoid = videos.pk        
+        ON pictureCount.videoid = videos.pk
+
+        LEFT JOIN (SELECT COUNT(DISTINCT assignments.assignmentid) AS numWorkers, videoid
+                   FROM assignments, (SELECT MAX(servertime) AS pingtime, assignmentid FROM logging WHERE 
+                   servertime > %s AND event LIKE 'ping%%' GROUP BY assignmentid) AS recentPing 
+                   WHERE recentPing.assignmentid = assignments.assignmentid GROUP BY videoid)
+        AS workerCount
+        ON workerCount.videoid = videos.pk
         
         WHERE (pictureCount.numPictures IS NULL """ + num_pics_condition + """) 
         AND videos.enabled = TRUE
+        AND (workerCount.numWorkers <= """ + str(MAX_WORKERS_PER_VIDEO) + """ OR workerCount.numWorkers IS NULL) 
         
-        ORDER BY videos.pk DESC """)
+        ORDER BY videos.pk DESC """, (ping_floor, ))
     return result
 
 
