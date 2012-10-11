@@ -22,7 +22,7 @@ VIDEO_DIRECTORY = '../web/media/videos/'
 
 MIN_ON_RETAINER = 4
 PHOTOGRAPHER_ID = "photographer"
-MAX_WORKERS_PER_VIDEO = 100
+MAX_WORKERS_PER_VIDEO = 10
 
 def postRandomHITs(num_hits, max_wait_time, price, expiration, mt_conn, db, version):
     """ Posts HITs of several possible varieties (creating multiple HIT groups) based on a random selection: will vary price and description """

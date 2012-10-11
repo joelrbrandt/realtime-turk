@@ -31,7 +31,7 @@ class Hits(models.Model):
     retainertime = models.IntegerField()
 
     def __unicode__(self):
-        return hit_id
+        return self.hit_id
 
 
 class Events(models.Model):
@@ -45,7 +45,7 @@ class Events(models.Model):
     user_agent = models.CharField(max_length=600)
 
     def __unicode__(self):
-        return assignment + u': ' + event_type
+        return unicode(self.assignment) + u': ' + self.event_type
 
 
 class Notifications(models.Model):
@@ -57,4 +57,4 @@ class Notifications(models.Model):
     eventtype = models.CharField(max_length=255)
 
     def __unicode__(self):
-        return hit + u' ' + assignmentid + u': ' + eventtype
+        return unicode(self.hit) + u' ' + unicode(self.assignmentid) + u': ' + self.eventtype

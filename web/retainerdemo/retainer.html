@@ -1,0 +1,53 @@
+<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<script src="jquery-1.5.min.js"></script>
+<script src="jquery.getUrlParam.js"></script>
+<script src="jquery.countdown.js"></script>
+<!--<script src="date.js"></script>-->
+<script src="jquery.retainer.js"></script>
+
+<head>
+    <script>
+        $(document).ready(function() {
+            var assignmentid = $(document).getUrlParam("assignmentId");
+            if (assignmentid == null || assignmentid == "ASSIGNMENT_ID_NOT_AVAILABLE") {
+                assignmentid = 0;
+            }
+        
+            var workerid = $(document).getUrlParam("workerId");
+            if (workerid == null) {
+                workerid = 0;
+            }    
+        
+            var hitid = $(document).getUrlParam("hitId");
+            if (hitid == null) {
+                hitid = 0;
+            }        
+        
+            $('#r').retainer( {
+                'requestURL':       'http://flock.csail.mit.edu:8000',
+                'taskCallback':     taskCallback,
+                'noTaskTimeout':    1000000,
+                'noTaskCallback':   noTaskCallback,
+                'assignmentId':     assignmentid,
+                'workerId':         workerid,
+                'hitId':            hitid
+            });
+        });      
+        
+        function taskCallback(data) { 
+            console.log('data back');
+            console.log(data);
+        }
+        
+        function noTaskCallback() { 
+            console.log('no task timeout');
+        }        
+    </script>
+</head>
+<body>
+    <div id="r"></div>
+</body>
+</html>
