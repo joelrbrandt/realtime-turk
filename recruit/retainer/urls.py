@@ -5,7 +5,8 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^gettask/worker/(?P<worker_id>.+)/assignment/(?P<assignment_id>.+)$', 'retainer.gettask.get_task'),
+    url(r'^gettask/assignment/(?P<assignment_id>.+)$', 'retainer.gettask.get_task'),
+    url(r'^ping/worker/(?P<worker_id>.+)/assignment/(?P<assignment_id>.+)/hit/(?P<hit_id>.+)/event/(?P<ping_type>.+)$', 'retainer.ping.ping'),
     # Examples:
     # url(r'^$', 'retainer.views.home', name='home'),
     # url(r'^retainer/', include('retainer.foo.urls')),
