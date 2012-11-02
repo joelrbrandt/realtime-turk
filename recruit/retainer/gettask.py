@@ -1,8 +1,13 @@
 from django.http import HttpResponse
-import json
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Max
+
+import json
+import simplejson
+
 from retainer.models import *
 from retainer.ping import PING_TYPES
+from retainer.utils.transaction import flush_transaction
 
 from datetime import datetime, timedelta
 from retainer.utils.timeutils import unixtime
@@ -10,45 +15,45 @@ from retainer.utils.timeutils import unixtime
 from settings import MIN_WAITING_WORKERS, PING_TIMEOUT_SECONDS
 
 # Get a task for the worker, or assign one if we can
+@csrf_exempt
 def get_task(request, assignment_id):
     # find out whether the worker has already been assigned a task. if so, just return that task.
-    current_assignments = Assignments.objects.filter(assignment_id = assignment_id)
-    if len(current_assignments) > 0 and current_assignments[0].task_id is not None:
-        task_info = get_task_info(current_assignments[0].task_id)
-
+    current_assignments = Assignment.objects.filter(assignment_id = assignment_id)
+    waiting_assignments = waiting_workers()
+    current = current_assignments[0] if len(current_assignments) > 0 else None
+    if current is None:
+        return HttpResponse('Bad assignment')
+    if current.task_id is not None:
+        task_info = { 'start': True, 'task_id': int(current.task_id) }
     else:
-        # are there enough workers waiting?
-        # if so, ask the application server to give us a task to do, or to decline giving a task
-        waiting_assignments = waiting_workers()
-        if len(waiting_assignments) >= MIN_WAITING_WORKERS:
-            assignment_map = get_assignment_task_map(waiting_assignments)
-            save_assignment_task_map(assignment_map)
-        
-            # now we get the current worker's task out of that map and return it to the client
-            current_worker_task = assignment_map[assignment_id]
-            task_info = get_task_info(current_worker_task)
+        proto = current.hit_id.proto
+        work_reqs = WorkRequest.objects.filter(proto=proto, done=False).order_by('-id')
+                
+        if len(work_reqs) > 0:
+            tid = work_reqs[0].foreign_id
+            current.task_id = tid
+            task_info = { 'start': True, 'task_id': int(tid)}
+            current.save()
         else:
-            # not enough workers, return no job
-            task_info = { 'task_id': None }
+            task_info = { 'start': False }
 
     # now turn the task_info python into JSON to return to the client
-    serialized = json.dumps(task_info)
-    return HttpResponse(serialized, mimetype="application/json")
+    return HttpResponse(simplejson.dumps(task_info), mimetype="application/json")
 
 
 # Return the number of workers who are waiting on retainer right now
 def waiting_workers():
+    flush_transaction()
     time_ping_floor = datetime.now() - timedelta(seconds = PING_TIMEOUT_SECONDS)
 
-    waiting_assignments = Assignments.objects.filter(events__event_type = PING_TYPES['waiting'], events__server_time__gte = unixtime(time_ping_floor), task_id = None).distinct()
-    print(waiting_assignments)
+    waiting_assignments = Assignment.objects.filter(event__event_type = PING_TYPES['waiting'], event__server_time__gte = unixtime(time_ping_floor), task_id = None).distinct()
     return waiting_assignments
 
 
 def save_assignment_task_map(assignment_map):
     for assignment_id in assignment_map.keys():
         task_id = assignment_map[assignment_id]
-        assignment = Assignments.objects.get(assignment_id = assignment_id)
+        assignment = Assignment.objects.get(assignment_id = assignment_id)
         assignment.task_id = task_id
         assignment.save()
 
@@ -70,12 +75,5 @@ def get_assignment_task_map(waiting_assignments):
         output[assignment.assignment_id] = 1 # assign to HIT 1, why not
     return output
 
-
-# Given a task id, return a json object that describes that task
-def get_task_info(task_id):
-    return {
-        'task_id': task_id,
-        'photo_url': 'http://www.google.com',
-    }
 
 
