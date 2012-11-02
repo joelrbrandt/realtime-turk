@@ -1,22 +1,45 @@
 # Django settings for retainer project.
 
+MIN_WAITING_WORKERS = 4 # how many workers need to be on retainer before we assign them all to a task 
+PING_TIMEOUT_SECONDS = 10  # how long ago we treat a ping as being current
+
+#
+# Mechanical Turk settings
+#
+
+aws_id="AWS_ACCESS_KEY"
+aws_secret="AWS_SECRET_KEY"
+
+SANDBOX = True
+
+#
+# External HIT server info
+#
+
+HIT_SERVER = "flock.csail.mit.edu"
+HIT_SERVER_USER_DIR = 'kylem'
+
+
 DEBUG = True #
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('ADMIN', 'ADMIN@csail'),
 )
 
 MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
+        'ENGINE': 'django.db.backends.mysql', # Add 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'DB_NAME',                      # Or path to database file if using sqlite3.
+        'USER': 'DB_USER',                      # Not used with sqlite3.
+        'PASSWORD': 'DB_PASS',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'OPTIONS': {
+            'init_command': 'SET storage_engine=INNODB',
+        }
     }
 }
 
@@ -98,6 +121,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'cors.middleware.AllowOriginMiddleware',
+    
 )
 
 ROOT_URLCONF = 'retainer.urls'
@@ -116,9 +141,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
+    'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
+    'django.contrib.admindocs',
+    'retainer',
+    'cors',
 )
 
 # A sample logging configuration. The only tangible logging

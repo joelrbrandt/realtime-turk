@@ -1,7 +1,10 @@
 from retainer.models import *
 from django.contrib import admin
 
-admin.site.register(Assignments)
-admin.site.register(Hits)
-admin.site.register(Events)
-admin.site.register(Notifications)
+admin.site.register(ProtoHit)
+admin.site.register(Assignment)
+admin.site.register(Hit)
+admin.site.register(Event)
+admin.site.register(Notification)
+admin.site.register(APIKey)
+admin.site.register(WorkRequest)

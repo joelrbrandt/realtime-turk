@@ -7,6 +7,9 @@ admin.autodiscover()
 urlpatterns = patterns('',
     url(r'^gettask/assignment/(?P<assignment_id>.+)$', 'retainer.gettask.get_task'),
     url(r'^ping/worker/(?P<worker_id>.+)/assignment/(?P<assignment_id>.+)/hit/(?P<hit_id>.+)/event/(?P<ping_type>.+)$', 'retainer.ping.ping'),
+    url(r'^puttask$', 'retainer.puttask.put_task'),
+    url(r'^putwork$', 'retainer.putwork.put_work'),
+    url(r'^putwork/done$', 'retainer.putwork.finish_work'),
     # Examples:
     # url(r'^$', 'retainer.views.home', name='home'),
     # url(r'^retainer/', include('retainer.foo.urls')),
